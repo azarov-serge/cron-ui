@@ -1,17 +1,24 @@
 import { useState, type FC } from 'react';
 import styled from 'styled-components';
 import {
-  Button,
-  CheckboxField,
+  HorizontalTab,
+  HorizontalTabs,
   LIGHT_THEME,
   Modal,
   ModalButtonPanel,
   ModalContent,
   ModalTitle,
+  NotificationItem,
+  NotificationItemContent,
+  NotificationItemTitle,
   Option,
   SelectField,
+  TabText,
   T,
+  Button,
+  CheckboxField,
 } from '@admiral-ds/react-ui';
+import { CronChecker } from '@features/cron/components/CronChecker';
 import {
   CronEditor,
   CRON_FORM_ID,
@@ -19,6 +26,7 @@ import {
   type CronOptions,
   type CronRequireField,
 } from '@features/cron/components/CronEditor';
+import { useCronPageSearchParams } from '@features/cron/hooks/useCronPageSearchParams';
 import { Cron } from '@features/cron/components/CronEditor/models/cron';
 import type {
   DailyFrequencyType,
@@ -29,8 +37,13 @@ import {
   OCCURS_OPTIONS,
   SCHEDULE_TYPE_OPTIONS,
 } from '@features/cron/components/CronEditor/constants';
+import {
+  PAGE_TABS,
+  type PageTabId,
+} from '@features/cron/utils/cronPageSearchParams';
 import { EditOutlined } from '@ant-design/icons';
 import CopyOutline from '@admiral-ds/icons/build/documents/CopyOutline.svg?react';
+import packageJson from '../../../../package.json';
 
 const Page = styled.main`
   max-width: 720px;
@@ -129,6 +142,14 @@ const Legend = styled.legend`
   width: auto;
 `;
 
+const TabContent = styled.div`
+  margin-top: 24px;
+`;
+
+const UrlErrorNotice = styled(NotificationItem)`
+  margin-top: 16px;
+`;
+
 const MINUTE_STEP_OPTIONS = [1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30] as const;
 
 const DAILY_FREQUENCY_OPTIONS = [
@@ -176,7 +197,15 @@ const toggleRequireField = (
 };
 
 export const CronPage: FC = (_props) => {
-  const [cron, setCron] = useState<Cron>(() => Cron.createEmpty());
+  const {
+    activeTab,
+    cron,
+    checkerExpression,
+    cronParamError,
+    selectTab,
+    changeCheckerExpression,
+    submitCron,
+  } = useCronPageSearchParams();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editorOptions, setEditorOptions] = useState<Required<CronOptions>>(
@@ -192,7 +221,7 @@ export const CronPage: FC = (_props) => {
   };
 
   const handleSubmit = (nextCron: Cron) => {
-    setCron(nextCron);
+    submitCron(nextCron);
     closeModal();
   };
 
@@ -271,12 +300,51 @@ export const CronPage: FC = (_props) => {
     }));
   };
 
+  const renderPageTab = (
+    tabId: string,
+    selected?: boolean,
+    onSelectTab?: (nextTabId: string) => void,
+  ) => {
+    const tab = PAGE_TABS.find((item) => item.id === tabId);
+
+    return (
+      <HorizontalTab
+        key={tabId}
+        tabId={tabId}
+        selected={selected}
+        onSelectTab={onSelectTab}
+      >
+        <TabText>{tab?.label}</TabText>
+      </HorizontalTab>
+    );
+  };
+
   return (
     <Page>
       <T font="Header/H4" as="h3">
-        Расписание заданий
+        Расписание заданий (v{packageJson.version})
       </T>
 
+      <HorizontalTabs
+        selectedTabId={activeTab}
+        onSelectTab={(tabId) => selectTab(tabId as PageTabId)}
+        tabsId={PAGE_TABS.map((tab) => tab.id)}
+        renderTab={renderPageTab}
+        tabIsDisabled={() => false}
+      />
+
+      {cronParamError && (
+        <UrlErrorNotice status="error" displayStatusIcon>
+          <NotificationItemTitle>Некорректный cron в адресе</NotificationItemTitle>
+          <NotificationItemContent>
+            {cronParamError}. Используется расписание по умолчанию (
+            {Cron.createEmpty().toExpression()}).
+          </NotificationItemContent>
+        </UrlErrorNotice>
+      )}
+
+      {activeTab === 'constructor' && (
+        <TabContent>
       <CronSummaryCard>
         <CronSummaryContent>
           <T font="Body/Body 1 Long" color="Neutral/Neutral 90">
@@ -432,6 +500,17 @@ export const CronPage: FC = (_props) => {
           </CheckboxList>
         </ControlGroup>
       </ControlsPanel>
+        </TabContent>
+      )}
+
+      {activeTab === 'checker' && (
+        <TabContent>
+          <CronChecker
+            expression={checkerExpression}
+            onExpressionChange={changeCheckerExpression}
+          />
+        </TabContent>
+      )}
 
       {isModalOpen && (
         <Modal

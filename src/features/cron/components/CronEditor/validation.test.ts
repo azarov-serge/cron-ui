@@ -28,7 +28,7 @@ describe('validateSchedule weekly requiredness', () => {
   });
 
   it('требует недели месяца при requires: weeklyWeekNumbers', () => {
-    const schedule = weeklySchedule.copyWith({
+    const schedule = weeklySchedule.clone({
       useMonthWeekNumbers: true,
       weekDays: { ...createEmptyWeekDays(), monday: true },
     });

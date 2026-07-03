@@ -63,7 +63,7 @@ export class ScheduleModel implements ScheduleInterface {
     const { minute, hour, dayOfMonth, month, dayOfWeek } = cron;
 
     if (minute.startsWith('*/')) {
-      return defaults.copyWith({
+      return defaults.clone({
         dailyFrequency: 'every',
         everyUnit: 'minutes',
         everyInterval: clampCronInterval(
@@ -74,7 +74,7 @@ export class ScheduleModel implements ScheduleInterface {
     }
 
     if (hour.startsWith('*/')) {
-      return defaults.copyWith({
+      return defaults.clone({
         dailyFrequency: 'every',
         everyUnit: 'hours',
         everyInterval: clampCronInterval(
@@ -93,7 +93,7 @@ export class ScheduleModel implements ScheduleInterface {
       month !== null &&
       dayOfWeek === null
     ) {
-      return defaults.copyWith({
+      return defaults.clone({
         scheduleType: 'one-time',
         oneTimeDate: `${dayOfMonth.padStart(2, '0')}.${month.padStart(2, '0')}.${new Date().getFullYear()}`,
         oneTimeTime: time,
@@ -106,7 +106,7 @@ export class ScheduleModel implements ScheduleInterface {
         (part) => part.weekNumber !== undefined,
       );
 
-      return defaults.copyWith({
+      return defaults.clone({
         occurs: 'weekly',
         dailyFrequency: 'once',
         onceAtTime: time,
@@ -121,7 +121,7 @@ export class ScheduleModel implements ScheduleInterface {
     }
 
     if (dayOfMonth !== null) {
-      return defaults.copyWith({
+      return defaults.clone({
         occurs: 'monthly',
         dailyFrequency: 'once',
         onceAtTime: time,
@@ -129,7 +129,7 @@ export class ScheduleModel implements ScheduleInterface {
       });
     }
 
-    return defaults.copyWith({
+    return defaults.clone({
       occurs: 'daily',
       dailyFrequency: 'once',
       onceAtTime: time,
@@ -142,7 +142,7 @@ export class ScheduleModel implements ScheduleInterface {
       const { hour, minute } = parseTime(this.oneTimeTime);
       const [day, month] = this.oneTimeDate.split('.');
 
-      return Cron.createEmpty().copyWith({
+      return Cron.createEmpty().clone({
         minute: String(minute),
         hour: String(hour),
         dayOfMonth: String(Number.parseInt(day, 10)),
@@ -155,14 +155,14 @@ export class ScheduleModel implements ScheduleInterface {
       const interval = clampCronInterval(this.everyInterval, this.everyUnit);
 
       if (this.everyUnit === 'minutes') {
-        return Cron.createEmpty().copyWith({
+        return Cron.createEmpty().clone({
           minute: `*/${interval}`,
           hour: '*',
           ...clearDateFields,
         });
       }
 
-      return Cron.createEmpty().copyWith({
+      return Cron.createEmpty().clone({
         minute: '0',
         hour: `*/${interval}`,
         ...clearDateFields,
@@ -177,12 +177,12 @@ export class ScheduleModel implements ScheduleInterface {
 
     switch (this.occurs) {
       case 'daily':
-        return Cron.createEmpty().copyWith({
+        return Cron.createEmpty().clone({
           ...timeFields,
           ...clearDateFields,
         });
       case 'weekly': {
-        return Cron.createEmpty().copyWith({
+        return Cron.createEmpty().clone({
           ...timeFields,
           dayOfWeek: buildWeeklyDayOfWeek({
             weekDays: this.weekDays,
@@ -195,7 +195,7 @@ export class ScheduleModel implements ScheduleInterface {
         });
       }
       case 'monthly':
-        return Cron.createEmpty().copyWith({
+        return Cron.createEmpty().clone({
           ...timeFields,
           dayOfMonth: String(Math.max(1, Math.min(31, this.dayOfMonth))),
           dayOfWeek: null,
@@ -217,6 +217,6 @@ export class ScheduleModel implements ScheduleInterface {
   };
 
   /** Возвращает копию с частично заменёнными полями */
-  public copyWith = (patch?: Partial<ScheduleInterface>): ScheduleModel =>
+  public clone = (patch?: Partial<ScheduleInterface>): ScheduleModel =>
     new ScheduleModel({ ...this, ...patch });
 }

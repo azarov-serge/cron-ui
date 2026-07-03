@@ -1,5 +1,5 @@
 import cronstrueI18n from 'cronstrue/i18n';
-import type { CronInterface, CronResponse, CronToStringOptions } from './types';
+import type { CronInterface, CronToStringOptions } from './types';
 import { fromWildcard, toWildcard } from './utils';
 
 /** Пятичастное cron-выражение: минута, час, день месяца, месяц, день недели */
@@ -21,17 +21,6 @@ export class Cron implements CronInterface {
   /** Расписание по умолчанию: ежедневно в 09:00 */
   static createEmpty = (): Cron => {
     return new Cron({ minute: '0', hour: '9' });
-  };
-
-  /** Создаёт Cron из ответа бэкенда (snake_case) */
-  static fromJson = (json?: Partial<CronResponse>): Cron => {
-    return new Cron({
-      minute: json?.minute,
-      hour: json?.hour,
-      dayOfWeek: json?.day_of_week,
-      dayOfMonth: json?.day_of_month,
-      month: json?.month_of_year,
-    });
   };
 
   /** Разбирает пятичастное cron-выражение; при ошибке — createEmpty() */
@@ -77,19 +66,8 @@ export class Cron implements CronInterface {
     });
   };
 
-  /** Сериализует в формат бэкенда (snake_case) */
-  public toJson = (): CronResponse => {
-    return {
-      minute: this.minute,
-      hour: this.hour,
-      day_of_week: this.dayOfWeek,
-      day_of_month: this.dayOfMonth,
-      month_of_year: this.month,
-    };
-  };
-
   /** Возвращает копию с частично заменёнными полями */
-  public copyWith = (cron?: Partial<CronInterface>): Cron => {
+  public clone = (cron?: Partial<CronInterface>): Cron => {
     return new Cron({
       ...this,
       ...cron,

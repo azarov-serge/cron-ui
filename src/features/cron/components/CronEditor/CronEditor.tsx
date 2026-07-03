@@ -104,7 +104,7 @@ export const CronEditor: React.FC<CronEditorProps> = (props) => {
     timeValue: string,
   ) => {
     setSchedule((prevSchedule) =>
-      prevSchedule.copyWith({
+      prevSchedule.clone({
         [field]: normalizeTimeToMinuteStep(timeValue, options.minuteStep),
       }),
     );
@@ -153,7 +153,7 @@ export const CronEditor: React.FC<CronEditorProps> = (props) => {
 
   const setWeekDay = (day: WeekDayKey, checked: boolean) => {
     setSchedule((prevSchedule) =>
-      prevSchedule.copyWith({
+      prevSchedule.clone({
         weekDays: { ...prevSchedule.weekDays, [day]: checked },
       }),
     );
@@ -161,7 +161,7 @@ export const CronEditor: React.FC<CronEditorProps> = (props) => {
 
   const setWeekNumber = (week: WeekNumberKey, checked: boolean) => {
     setSchedule((prevSchedule) =>
-      prevSchedule.copyWith({
+      prevSchedule.clone({
         weekNumbers: { ...prevSchedule.weekNumbers, [week]: checked },
       }),
     );
@@ -182,7 +182,7 @@ export const CronEditor: React.FC<CronEditorProps> = (props) => {
                 onChange={() =>
                   setSchedule((prevSchedule) =>
                     applyCronOptions(
-                      prevSchedule.copyWith({ scheduleType: option.value }),
+                      prevSchedule.clone({ scheduleType: option.value }),
                       options,
                     ),
                   )
@@ -205,7 +205,7 @@ export const CronEditor: React.FC<CronEditorProps> = (props) => {
                 value={schedule.oneTimeDate}
                 onChange={(event) =>
                   setSchedule((prevSchedule) =>
-                    prevSchedule.copyWith({ oneTimeDate: event.target.value }),
+                    prevSchedule.clone({ oneTimeDate: event.target.value }),
                   )
                 }
               />
@@ -249,7 +249,7 @@ export const CronEditor: React.FC<CronEditorProps> = (props) => {
                   value={schedule.occurs}
                   onChange={(event) =>
                     setSchedule((prevSchedule) =>
-                      prevSchedule.copyWith({
+                      prevSchedule.clone({
                         occurs: event.target
                           .value as ScheduleInterface['occurs'],
                       }),
@@ -278,7 +278,7 @@ export const CronEditor: React.FC<CronEditorProps> = (props) => {
                     value={schedule.dayOfMonth}
                     onChange={(event) =>
                       setSchedule((prevSchedule) =>
-                        prevSchedule.copyWith({
+                        prevSchedule.clone({
                           dayOfMonth: Number(event.target.value) || 1,
                         }),
                       )
@@ -379,7 +379,7 @@ export const CronEditor: React.FC<CronEditorProps> = (props) => {
                         checked={isOnceDaily}
                         onChange={() =>
                           setSchedule((prevSchedule) =>
-                            prevSchedule.copyWith({ dailyFrequency: 'once' }),
+                            prevSchedule.clone({ dailyFrequency: 'once' }),
                           )
                         }
                       >
@@ -419,7 +419,7 @@ export const CronEditor: React.FC<CronEditorProps> = (props) => {
                           checked={!isOnceDaily}
                           onChange={() =>
                             setSchedule((prevSchedule) =>
-                              prevSchedule.copyWith({
+                              prevSchedule.clone({
                                 dailyFrequency: 'every',
                               }),
                             )
@@ -452,7 +452,7 @@ export const CronEditor: React.FC<CronEditorProps> = (props) => {
                           }
                           onChange={(event) =>
                             setSchedule((prevSchedule) =>
-                              prevSchedule.copyWith({
+                              prevSchedule.clone({
                                 everyInterval: normalizeEveryInterval(
                                   Number(event.target.value) || 1,
                                   prevSchedule.everyUnit,
@@ -477,7 +477,7 @@ export const CronEditor: React.FC<CronEditorProps> = (props) => {
                                 options.minuteStep,
                               );
 
-                              return prevSchedule.copyWith({
+                              return prevSchedule.clone({
                                 everyUnit,
                                 everyInterval,
                               });

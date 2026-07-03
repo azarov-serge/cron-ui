@@ -27,13 +27,13 @@ const applyMinuteStep = (
   schedule: ScheduleModel,
   minuteStep: number,
 ): ScheduleModel => {
-  let next = schedule.copyWith({
+  let next = schedule.clone({
     oneTimeTime: normalizeTimeToMinuteStep(schedule.oneTimeTime, minuteStep),
     onceAtTime: normalizeTimeToMinuteStep(schedule.onceAtTime, minuteStep),
   });
 
   if (next.everyUnit === 'minutes') {
-    return next.copyWith({
+    return next.clone({
       everyInterval: normalizeEveryInterval(
         next.everyInterval,
         'minutes',
@@ -43,7 +43,7 @@ const applyMinuteStep = (
   }
 
   if (next.dailyFrequency === 'every') {
-    return next.copyWith({
+    return next.clone({
       everyInterval: normalizeEveryInterval(
         next.everyInterval,
         'hours',
@@ -73,7 +73,7 @@ export const applyCronOptions = (
     options.dailyFrequencies,
   );
 
-  let next = schedule.copyWith({
+  let next = schedule.clone({
     scheduleType,
     occurs,
     dailyFrequency,
@@ -81,12 +81,12 @@ export const applyCronOptions = (
   });
 
   if (!options.weeklyWeekNumbers) {
-    next = next.copyWith({
+    next = next.clone({
       useMonthWeekNumbers: false,
       weekNumbers: createEmptyWeekNumbers(),
     });
   } else if (!WEEK_NUMBER_KEYS.some((week) => next.weekNumbers[week])) {
-    next = next.copyWith({ weekNumbers: createDefaultWeekNumbers() });
+    next = next.clone({ weekNumbers: createDefaultWeekNumbers() });
   }
 
   if (options.minuteStep > 1) {
