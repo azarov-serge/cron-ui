@@ -27,7 +27,6 @@ jobs:
 
       - run: npm ci
       - run: npm run build
-      - run: cp dist/dev.html dist/index.html
 
       - uses: actions/configure-pages@v5
 
