@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type FC } from 'react';
+import { useMemo, useState, type FC } from 'react';
 import styled from 'styled-components';
 import {
   HorizontalTab,
@@ -25,6 +25,10 @@ import {
   type CronOptions,
   type CronRequireField,
 } from '@features/cron/components/CronEditor';
+import {
+  CronDescriptionField,
+  CronExpressionField,
+} from '@features/cron/components/CronFields';
 import { useCronPageSearchParams } from '@features/cron/hooks/useCronPageSearchParams';
 import { Cron } from '@features/cron/components/CronEditor/models/cron';
 import type {
@@ -41,7 +45,6 @@ import {
   type PageTabId,
 } from '@features/cron/utils/cronPageSearchParams';
 import { EditOutlined } from '@ant-design/icons';
-import CopyOutline from '@admiral-ds/icons/build/documents/CopyOutline.svg?react';
 import { useMediaQuery } from '@shared/hooks/useMediaQuery';
 import { useTranslation } from '@shared/i18n/useTranslation';
 import { describeCronHuman } from '@features/cron/utils/describeCron';
@@ -63,53 +66,18 @@ const PageDescription = styled(T)`
   max-width: 720px;
 `;
 
-const CronSummaryCard = styled.section`
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  margin-top: 20px;
-  padding: 16px 20px;
-  border: 1px solid ${({ theme }) => theme.color['Neutral/Neutral 20']};
-  border-radius: 8px;
-  background: ${({ theme }) => theme.color['Neutral/Neutral 05']};
-
-  @media (max-width: 767px) {
-    flex-direction: column;
-    padding: 16px;
-  }
-`;
-
-const CronSummaryContent = styled.div`
+const CronSummary = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  min-width: 0;
-  flex: 1;
+  gap: 16px;
+  margin-top: 20px;
 `;
 
-const CronExpressionRow = styled.div`
+const CronSummaryFields = styled.div`
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  gap: 16px;
   min-width: 0;
-`;
-
-import { MONO_FONT_FAMILY } from '@shared/styles/typography';
-
-const CronExpression = styled.code`
-  display: inline-block;
-  width: fit-content;
-  max-width: 100%;
-  padding: 4px 10px;
-  border-radius: 4px;
-  background: ${({ theme }) => theme.color['Neutral/Neutral 10']};
-  border: 1px solid ${({ theme }) => theme.color['Neutral/Neutral 20']};
-  font-family: ${MONO_FONT_FAMILY};
-  font-size: 13px;
-  line-height: 1.4;
-  color: ${({ theme }) => theme.color['Neutral/Neutral 90']};
-  word-break: break-all;
 `;
 
 const CronActions = styled.div`
@@ -149,26 +117,9 @@ const ParamsHint = styled(T)`
   margin-bottom: 12px;
 `;
 
-const InlineEditorPanel = styled.section`
-  margin-top: 16px;
-  padding: 16px;
-  border: 1px solid ${({ theme }) => theme.color['Neutral/Neutral 20']};
-  border-radius: 8px;
-  background: ${({ theme }) => theme.color['Neutral/Neutral 00']};
+const MobileEditorOnly = styled.div`
   min-width: 0;
   max-width: 100%;
-  overflow-x: hidden;
-
-  @media (max-width: 767px) {
-    padding: 12px;
-    margin-left: 0;
-    margin-right: 0;
-  }
-`;
-
-const InlineEditorTitle = styled(T)`
-  display: block;
-  margin-bottom: 16px;
 `;
 
 const EditorActions = styled.div`
@@ -181,10 +132,6 @@ const EditorActions = styled.div`
     flex-direction: row;
     justify-content: flex-end;
   }
-`;
-
-const CopyButton = styled(Button)`
-  flex-shrink: 0;
 `;
 
 const ControlsPanel = styled.fieldset`
@@ -332,7 +279,6 @@ export const CronPage: FC = (_props) => {
 
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const isMobile = useMediaQuery('(max-width: 767px)');
-  const editorPanelRef = useRef<HTMLElement>(null);
   const [editorOptions, setEditorOptions] = useState<Required<CronOptions>>(
     () => ({ ...DEFAULT_CRON_OPTIONS }),
   );
@@ -350,13 +296,6 @@ export const CronPage: FC = (_props) => {
     closeEditor();
   };
 
-  useEffect(() => {
-    if (!isEditorOpen || !isMobile) {
-      return;
-    }
-    editorPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, [isEditorOpen, isMobile]);
-
   const handleEditorOk = () => {
     const cronForm = document.getElementById(CRON_FORM_ID);
     if (cronForm instanceof HTMLFormElement) {
@@ -364,13 +303,6 @@ export const CronPage: FC = (_props) => {
     }
   };
 
-  const handleCopyCronExpression = async () => {
-    try {
-      await navigator.clipboard.writeText(cron.toExpression());
-    } catch {
-      // Clipboard API недоступен (HTTP, отказ в разрешении) — без уведомления в UI
-    }
-  };
 
   const patchScheduleTypes = (value: ScheduleType, checked: boolean) => {
     setEditorOptions((prevOptions) => ({
@@ -476,115 +408,11 @@ export const CronPage: FC = (_props) => {
     );
   };
 
-  return (
-    <Page>
-      <T font="Header/H4" as="h3">
-        {t.pageTitle}
-      </T>
-      <PageDescription font="Body/Body 1 Long" color="Neutral/Neutral 50" as="p">
-        {t.pageDescription}
-      </PageDescription>
+  const showMobileEditorOnly =
+    isMobile && isEditorOpen && activeTab === 'constructor';
 
-      <HorizontalTabs
-        selectedTabId={activeTab}
-        onSelectTab={(tabId) => selectTab(tabId as PageTabId)}
-        tabsId={pageTabs.map((tab) => tab.id)}
-        renderTab={renderPageTab}
-        tabIsDisabled={() => false}
-      />
-
-      {cronParamError && (
-        <UrlErrorNotice status="error" displayStatusIcon>
-          <NotificationItemTitle>{t.urlError.title}</NotificationItemTitle>
-          <NotificationItemContent>
-            {cronParamError}. {t.urlError.defaultUsed} (
-            {Cron.createEmpty().toExpression()}).
-          </NotificationItemContent>
-        </UrlErrorNotice>
-      )}
-
-      {activeTab === 'constructor' && (
-        <TabContent>
-          <HelpNotice status="info" displayStatusIcon>
-            <NotificationItemTitle>{t.help.title}</NotificationItemTitle>
-            <NotificationItemContent>
-              <ol style={{ margin: '8px 0 0', paddingLeft: 20 }}>
-                <li>{t.help.step1}</li>
-                <li>{t.help.step2}</li>
-                <li>{t.help.step3}</li>
-                <li>{t.help.step4}</li>
-              </ol>
-            </NotificationItemContent>
-          </HelpNotice>
-
-      <CronSummaryCard>
-        <CronSummaryContent>
-          <T font="Body/Body 1 Long" color="Neutral/Neutral 90">
-            {describeCronHuman(cron, locale)}
-          </T>
-          <CronExpressionRow>
-            <CronExpression>{cron.toExpression()}</CronExpression>
-            <CopyButton
-              appearance="ghost"
-              dimension="m"
-              onClick={handleCopyCronExpression}
-              aria-label={t.copyCron}
-              title={t.copyCron}
-            >
-              <CopyOutline />
-            </CopyButton>
-          </CronExpressionRow>
-        </CronSummaryContent>
-        <CronActions>
-          <EditScheduleButton
-            appearance="primary"
-            dimension="m"
-            type="button"
-            aria-expanded={isEditorOpen}
-            onClick={openEditor}
-          >
-            <ButtonContent>
-              <EditOutlined />
-              {t.editSchedule}
-            </ButtonContent>
-          </EditScheduleButton>
-        </CronActions>
-      </CronSummaryCard>
-
-      {isMobile && isEditorOpen && (
-        <InlineEditorPanel ref={editorPanelRef}>
-          <InlineEditorTitle font="Header/H6" as="h4">
-            {t.editorTitle}
-          </InlineEditorTitle>
-          {renderCronEditor()}
-          <EditorActions>
-            <Button
-              appearance="primary"
-              dimension="m"
-              type="button"
-              onClick={handleEditorOk}
-            >
-              {t.saveSchedule}
-            </Button>
-            <Button appearance="secondary" dimension="m" onClick={closeEditor}>
-              {t.closeEditor}
-            </Button>
-          </EditorActions>
-        </InlineEditorPanel>
-      )}
-
-      {!isMobile && isEditorOpen && (
-          <Modal
-            dimension="xl"
-            onClose={closeEditor}
-            aria-labelledby="cron-schedule-title"
-          >
-            <ModalTitle id="cron-schedule-title">{t.editorTitle}</ModalTitle>
-            <ModalContent>{renderCronEditor()}</ModalContent>
-            <ModalButtonPanel>{renderEditorActions()}</ModalButtonPanel>
-          </Modal>
-      )}
-
+  const renderEditorParamsPanels = () => (
+    <>
       <ControlsPanel>
         <Legend>{t.editorParams}</Legend>
         <ParamsHint font="Body/Body 2 Long" color="Neutral/Neutral 50">
@@ -712,6 +540,109 @@ export const CronPage: FC = (_props) => {
           </CheckboxList>
         </ControlGroup>
       </ControlsPanel>
+    </>
+  );
+
+  const renderMobileEditorActions = () => (
+    <EditorActions>
+      <Button
+        appearance="primary"
+        dimension="m"
+        type="button"
+        onClick={handleEditorOk}
+      >
+        {t.saveSchedule}
+      </Button>
+      <Button appearance="secondary" dimension="m" onClick={closeEditor}>
+        {t.closeEditor}
+      </Button>
+    </EditorActions>
+  );
+
+  return (
+    <Page>
+      {showMobileEditorOnly ? (
+        <MobileEditorOnly>
+          {renderCronEditor()}
+          {renderMobileEditorActions()}
+        </MobileEditorOnly>
+      ) : (
+        <>
+      <T font="Header/H4" as="h3">
+        {t.pageTitle}
+      </T>
+      <PageDescription font="Body/Body 1 Long" color="Neutral/Neutral 50" as="p">
+        {t.pageDescription}
+      </PageDescription>
+
+      <HorizontalTabs
+        selectedTabId={activeTab}
+        onSelectTab={(tabId) => selectTab(tabId as PageTabId)}
+        tabsId={pageTabs.map((tab) => tab.id)}
+        renderTab={renderPageTab}
+        tabIsDisabled={() => false}
+      />
+
+      {cronParamError && (
+        <UrlErrorNotice status="error" displayStatusIcon>
+          <NotificationItemTitle>{t.urlError.title}</NotificationItemTitle>
+          <NotificationItemContent>
+            {cronParamError}. {t.urlError.defaultUsed} (
+            {Cron.createEmpty().toExpression()}).
+          </NotificationItemContent>
+        </UrlErrorNotice>
+      )}
+
+      {activeTab === 'constructor' && (
+        <TabContent>
+          <HelpNotice status="info" displayStatusIcon>
+            <NotificationItemTitle>{t.help.title}</NotificationItemTitle>
+            <NotificationItemContent>
+              <ol style={{ margin: '8px 0 0', paddingLeft: 20 }}>
+                <li>{t.help.step1}</li>
+                <li>{t.help.step2}</li>
+                <li>{t.help.step3}</li>
+                <li>{t.help.step4}</li>
+              </ol>
+            </NotificationItemContent>
+          </HelpNotice>
+
+        <CronSummary>
+          <CronSummaryFields>
+            <CronExpressionField expression={cron.toExpression()} />
+            <CronDescriptionField
+              description={describeCronHuman(cron, locale)}
+            />
+          </CronSummaryFields>
+          <CronActions>
+            <EditScheduleButton
+              appearance="primary"
+              dimension="m"
+              type="button"
+              aria-expanded={isEditorOpen}
+              onClick={openEditor}
+            >
+              <ButtonContent>
+                <EditOutlined />
+                {t.editSchedule}
+              </ButtonContent>
+            </EditScheduleButton>
+          </CronActions>
+        </CronSummary>
+
+      {!isMobile && isEditorOpen && (
+          <Modal
+            dimension="xl"
+            onClose={closeEditor}
+            aria-labelledby="cron-schedule-title"
+          >
+            <ModalTitle id="cron-schedule-title">{t.editorTitle}</ModalTitle>
+            <ModalContent>{renderCronEditor()}</ModalContent>
+            <ModalButtonPanel>{renderEditorActions()}</ModalButtonPanel>
+          </Modal>
+      )}
+
+      {renderEditorParamsPanels()}
         </TabContent>
       )}
 
@@ -722,6 +653,8 @@ export const CronPage: FC = (_props) => {
             onExpressionChange={changeCheckerExpression}
           />
         </TabContent>
+      )}
+        </>
       )}
 
     </Page>

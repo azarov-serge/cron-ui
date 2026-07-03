@@ -1,6 +1,5 @@
 import styled from 'styled-components';
-import { T } from '@admiral-ds/react-ui';
-import { MONO_FONT_FAMILY, UI_FONT_FAMILY } from '@shared/styles/typography';
+import { UI_FONT_FAMILY } from '@shared/styles/typography';
 
 const MOBILE = '@media (max-width: 767px)';
 
@@ -155,35 +154,6 @@ export const FrequencyGroup = styled.div`
   flex-direction: column;
   min-width: 0;
   max-width: 100%;
-`;
-
-export const DescriptionSection = styled(Section)`
-  margin-bottom: 0;
-
-  span {
-    font-family: ${UI_FONT_FAMILY};
-    font-size: 14px;
-    line-height: 20px;
-    color: ${({ theme }) => theme.color['Neutral/Neutral 90']};
-    word-break: break-word;
-  }
-`;
-
-export const CronCodeText = styled.code`
-  font-family: ${MONO_FONT_FAMILY};
-  font-size: 13px;
-  line-height: 20px;
-  color: ${({ theme }) => theme.color['Neutral/Neutral 90']};
-  word-break: break-all;
-`;
-
-export const DescriptionText = styled(T).attrs({
-  font: 'Body/Body 1 Long',
-  color: 'Neutral/Neutral 90',
-  as: 'span',
-})`
-  display: block;
-  word-break: break-word;
 `;
 
 const responsiveField = (desktopWidth: string) => styled.div`

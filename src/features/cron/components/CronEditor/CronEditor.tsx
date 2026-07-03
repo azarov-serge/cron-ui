@@ -23,9 +23,6 @@ import {
 import {
   Form,
   DateFieldWrap,
-  DescriptionSection,
-  CronCodeText,
-  DescriptionText,
   FrequencyGroup,
   FieldHint,
   InlineRow,
@@ -57,6 +54,7 @@ import {
 import styled from 'styled-components';
 import { useTranslation } from '@shared/i18n/useTranslation';
 import { getOneTimeYearNotice } from '@shared/i18n/messages';
+import { CronDescriptionField, CronExpressionField } from '../CronFields';
 
 export const Legend = styled.legend`
   width: auto;
@@ -177,6 +175,7 @@ export const CronEditor: React.FC<CronEditorProps> = (props) => {
       }),
     );
   };
+
 
   return (
     <Form id={CRON_FORM_ID} onSubmit={handleSubmit}>
@@ -521,15 +520,8 @@ export const CronEditor: React.FC<CronEditorProps> = (props) => {
         </>
       )}
 
-      <DescriptionSection>
-        <Legend>{t.editor.cronLegend}</Legend>
-        <CronCodeText>{schedule.toCron().toExpression()}</CronCodeText>
-      </DescriptionSection>
-
-      <DescriptionSection>
-        <Legend>{t.editor.descriptionLegend}</Legend>
-        <DescriptionText>{schedule.toDescription(locale) ?? ''}</DescriptionText>
-      </DescriptionSection>
+      <CronExpressionField expression={schedule.toCron().toExpression()} />
+      <CronDescriptionField description={schedule.toDescription(locale) ?? ''} />
     </Form>
   );
 };

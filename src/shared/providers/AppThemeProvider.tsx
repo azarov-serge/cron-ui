@@ -37,7 +37,9 @@ const readPreference = (): ThemePreference => {
     return saved;
   }
 
-  return 'system';
+  const preference: ThemePreference = 'system';
+  localStorage.setItem(STORAGE_KEY, preference);
+  return preference;
 };
 
 type AppThemeProviderProps = {

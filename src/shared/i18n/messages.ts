@@ -118,11 +118,11 @@ export const messages = {
     help: {
       title: 'Как пользоваться',
       step1:
-        'Карточка ниже показывает текущее расписание. Сама по себе она не меняется.',
+        'Поля «cron» и «Описание» ниже показывают текущее расписание. Сами по себе они не меняются.',
       step2:
         'Чекбоксы «Параметры редактора» настраивают форму — какие поля будут в редакторе.',
       step3:
-        'Заполните редактор и нажмите «Сохранить расписание» — карточка обновится.',
+        'Заполните редактор и нажмите «Сохранить расписание» — cron и описание обновятся.',
       step4:
         'Чтобы разобрать готовое выражение, перейдите на вкладку «Проверка cron».',
     },
@@ -133,6 +133,7 @@ export const messages = {
     saveSchedule: 'Сохранить расписание',
     cancel: 'Отмена',
     copyCron: 'Копировать cron-выражение',
+    copyCronShort: 'Копировать',
     editorParams: 'Параметры редактора',
     editorParamsHint:
       'Влияют только на форму редактора. Чтобы применить cron, откройте «Изменить cron» и нажмите «Сохранить».',
@@ -206,11 +207,11 @@ export const messages = {
     help: {
       title: 'How to use',
       step1:
-        'The card below shows the current schedule. It does not change on its own.',
+        'The cron and description fields below show the current schedule. They do not change on their own.',
       step2:
         'Editor parameters checkboxes configure which fields appear in the editor form.',
       step3:
-        'Fill in the editor and click «Save schedule» — the card will update.',
+        'Fill in the editor and click «Save schedule» — the cron and description will update.',
       step4: 'To parse an expression, open the «Cron checker» tab.',
     },
     editSchedule: 'Edit cron',
@@ -220,6 +221,7 @@ export const messages = {
     saveSchedule: 'Save schedule',
     cancel: 'Cancel',
     copyCron: 'Copy cron expression',
+    copyCronShort: 'Copy',
     editorParams: 'Editor parameters',
     editorParamsHint:
       'Affect only the editor form. To apply cron, open «Edit cron» and click «Save».',
@@ -387,9 +389,9 @@ export const messages = {
     },
     help: {
       title: '使用说明',
-      step1: '下方卡片显示当前计划，不会自动更改。',
+      step1: '下方的 cron 和描述字段显示当前计划，不会自动更改。',
       step2: '「编辑器参数」复选框配置表单中显示的字段。',
-      step3: '填写编辑器并点击「保存计划」— 卡片将更新。',
+      step3: '填写编辑器并点击「保存计划」— cron 和描述将更新。',
       step4: '要解析表达式，请打开「Cron 校验」标签页。',
     },
     editSchedule: '修改 cron',
@@ -399,6 +401,7 @@ export const messages = {
     saveSchedule: '保存计划',
     cancel: '取消',
     copyCron: '复制 cron 表达式',
+    copyCronShort: '复制',
     editorParams: '编辑器参数',
     editorParamsHint:
       '仅影响编辑器表单。要应用 cron，请打开「修改 cron」并点击「保存」。',

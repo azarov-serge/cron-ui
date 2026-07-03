@@ -11,12 +11,39 @@ import type { Locale } from '@shared/i18n/messages';
 
 const STORAGE_KEY = 'cron-ui-locale';
 
-type LocaleContextValue = {
-  locale: Locale;
-  setLocale: (locale: Locale) => void;
-};
+const SUPPORTED_LOCALES: Locale[] = ['ru', 'en', 'zh', 'hi'];
 
-const LocaleContext = createContext<LocaleContextValue | null>(null);
+const isLocale = (value: string | null): value is Locale =>
+  value !== null && SUPPORTED_LOCALES.includes(value as Locale);
+
+const detectBrowserLocale = (): Locale => {
+  if (typeof navigator === 'undefined') {
+    return 'ru';
+  }
+
+  const languages = navigator.languages?.length
+    ? navigator.languages
+    : [navigator.language];
+
+  for (const language of languages) {
+    const code = language.toLowerCase();
+
+    if (code.startsWith('ru')) {
+      return 'ru';
+    }
+    if (code.startsWith('zh')) {
+      return 'zh';
+    }
+    if (code.startsWith('hi')) {
+      return 'hi';
+    }
+    if (code.startsWith('en')) {
+      return 'en';
+    }
+  }
+
+  return 'ru';
+};
 
 const readLocale = (): Locale => {
   if (typeof window === 'undefined') {
@@ -24,12 +51,21 @@ const readLocale = (): Locale => {
   }
 
   const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved === 'ru' || saved === 'en' || saved === 'zh' || saved === 'hi') {
+  if (isLocale(saved)) {
     return saved;
   }
 
-  return 'ru';
+  const detected = detectBrowserLocale();
+  localStorage.setItem(STORAGE_KEY, detected);
+  return detected;
 };
+
+type LocaleContextValue = {
+  locale: Locale;
+  setLocale: (locale: Locale) => void;
+};
+
+const LocaleContext = createContext<LocaleContextValue | null>(null);
 
 type LocaleProviderProps = {
   children: ReactNode;
