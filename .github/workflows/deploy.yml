@@ -4,7 +4,8 @@ on:
   push:
     branches: [main]
     paths-ignore:
-      - 'docs/**'
+      - 'assets/**'
+      - 'index.html'
   workflow_dispatch:
 
 permissions:
@@ -28,14 +29,17 @@ jobs:
       - run: npm ci
       - run: npm run build
 
-      - name: Prepare docs for GitHub Pages
+      - name: Copy build to repository root for GitHub Pages
         run: |
-          rm -rf docs
-          cp -r dist docs
-          touch docs/.nojekyll
+          cp dist/dev.html index.html
+          rm -rf assets
+          cp -r dist/assets assets
+          cp dist/favicon.svg favicon.svg 2>/dev/null || true
+          cp dist/icons.svg icons.svg 2>/dev/null || true
+          touch .nojekyll
 
-      - name: Commit and push docs
+      - name: Commit and push production files
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: 'chore: update GitHub Pages site'
-          file_pattern: 'docs/**'
+          file_pattern: 'index.html assets/** favicon.svg icons.svg .nojekyll'

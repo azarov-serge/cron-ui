@@ -6,6 +6,11 @@ import svgr from 'vite-plugin-svgr'
 // https://vite.dev/config/
 export default defineConfig({
   base: '/cron-ui/',
+  build: {
+    rollupOptions: {
+      input: path.resolve(__dirname, 'dev.html'),
+    },
+  },
   resolve: {
     alias: {
       '@features': path.resolve(__dirname, './src/features'),

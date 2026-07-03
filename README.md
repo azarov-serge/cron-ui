@@ -56,21 +56,18 @@ npm run preview
 
 ## Публикация
 
-Сайт деплоится в папку `docs/` через GitHub Actions (`.github/workflows/deploy.yml`) при push в `main`.  
-В `vite.config.ts` задан `base: '/cron-ui/'`.
+Сайт деплоится в **корень репозитория** (`index.html`, `assets/`) через GitHub Actions при push в `main`.  
+В `vite.config.ts` задан `base: '/cron-ui/'`. Локальная разработка: `npm run dev` (точка входа — `dev.html`).
 
-### Настройка GitHub Pages (обязательно)
+### Настройка GitHub Pages
 
-1. Откройте **Settings → Pages** в репозитории.
-2. **Build and deployment → Source** → **Deploy from a branch**.
-3. **Branch:** `main`, папка **`/docs`** (не корень `/`).
-4. Сохраните и подождите 1–2 минуты.
+1. **Settings → Pages** → **Deploy from a branch**
+2. **Branch:** `main`, папка **`/ (root)`**
+3. Сохраните и подождите 1–2 минуты
 
-Если выбран корень `/` или источник **GitHub Actions**, сайт может отдавать исходный `index.html` со ссылкой на `/src/main.tsx` — страница будет **пустой** (ошибка `main.tsx 404` в консоли).
+После каждого push в `main` workflow собирает проект и коммитит `index.html` + `assets/` в корень.
 
-Проверка: в исходном коде страницы должен быть `<script ... src="/cron-ui/assets/index-....js">`, а не `/src/main.tsx`.
-
-> Сообщения `contentscript.js` / `MaxListenersExceededWarning` в консоли — это расширения браузера (MetaMask и т.п.), не ошибки приложения.
+Проверка: в исходном коде страницы должен быть `<script ... src="/cron-ui/assets/...">`, а не `/src/main.tsx`.
 
 ## Версионирование
 
