@@ -1,17 +1,17 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { ThemeProvider } from 'styled-components'
-import { LIGHT_THEME, FontsVTBGroup, DropdownProvider } from '@admiral-ds/react-ui'
+import { FontsVTBGroup, DropdownProvider } from '@admiral-ds/react-ui'
+import { AppThemeProvider } from '@shared/providers/AppThemeProvider'
 import App from './App.tsx'
 import './index.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ThemeProvider theme={LIGHT_THEME}>
+    <AppThemeProvider>
       <DropdownProvider>
         <FontsVTBGroup />
         <App />
       </DropdownProvider>
-    </ThemeProvider>
+    </AppThemeProvider>
   </StrictMode>,
 )

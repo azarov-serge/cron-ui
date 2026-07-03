@@ -1,7 +1,6 @@
 import { useMemo, type FC } from 'react';
 import styled from 'styled-components';
 import {
-  LIGHT_THEME,
   NotificationItem,
   NotificationItemContent,
   NotificationItemTitle,
@@ -12,9 +11,9 @@ import { parseCronExpression } from '@features/cron/utils/parseCronExpression';
 
 const Panel = styled.section`
   padding: 16px 20px;
-  border: 1px solid ${LIGHT_THEME.color['Neutral/Neutral 20']};
+  border: 1px solid ${({ theme }) => theme.color['Neutral/Neutral 20']};
   border-radius: 8px;
-  background: ${LIGHT_THEME.color['Neutral/Neutral 05']};
+  background: ${({ theme }) => theme.color['Neutral/Neutral 05']};
 
   @media (max-width: 767px) {
     padding: 16px;
@@ -38,8 +37,8 @@ const PartsTable = styled.div`
   gap: 8px 12px;
   padding: 12px;
   border-radius: 4px;
-  background: ${LIGHT_THEME.color['Neutral/Neutral 00']};
-  border: 1px solid ${LIGHT_THEME.color['Neutral/Neutral 20']};
+  background: ${({ theme }) => theme.color['Neutral/Neutral 00']};
+  border: 1px solid ${({ theme }) => theme.color['Neutral/Neutral 20']};
 
   @media (max-width: 767px) {
     grid-template-columns: 1fr;
@@ -55,7 +54,7 @@ const PartRow = styled.div`
     grid-template-columns: 1fr;
     gap: 4px;
     padding-bottom: 12px;
-    border-bottom: 1px solid ${LIGHT_THEME.color['Neutral/Neutral 20']};
+    border-bottom: 1px solid ${({ theme }) => theme.color['Neutral/Neutral 20']};
 
     &:last-child {
       border-bottom: none;
@@ -74,13 +73,13 @@ const PartHeaderRow = styled.div`
 
 const PartHeader = styled(T)`
   padding-bottom: 4px;
-  border-bottom: 1px solid ${LIGHT_THEME.color['Neutral/Neutral 20']};
+  border-bottom: 1px solid ${({ theme }) => theme.color['Neutral/Neutral 20']};
 `;
 
 const PartValue = styled.code`
   font-family: ui-monospace, 'Cascadia Code', 'SF Mono', monospace;
   font-size: 13px;
-  color: ${LIGHT_THEME.color['Neutral/Neutral 90']};
+  color: ${({ theme }) => theme.color['Neutral/Neutral 90']};
 `;
 
 const DescriptionBlock = styled.div`

@@ -1,5 +1,4 @@
 import styled from 'styled-components';
-import { LIGHT_THEME } from '@admiral-ds/react-ui';
 
 const MOBILE = '@media (max-width: 767px)';
 
@@ -13,7 +12,7 @@ export const Form = styled.form`
 `;
 
 export const Section = styled.fieldset`
-  border: 1px solid ${LIGHT_THEME.color['Neutral/Neutral 20']};
+  border: 1px solid ${({ theme }) => theme.color['Neutral/Neutral 20']};
   border-radius: 4px;
   margin: 0 0 16px;
   padding: 12px 16px 16px;
@@ -26,7 +25,7 @@ export const Section = styled.fieldset`
 
   legend {
     padding: 0 6px;
-    color: ${LIGHT_THEME.color['Neutral/Neutral 50']};
+    color: ${({ theme }) => theme.color['Neutral/Neutral 50']};
     font-size: 13px;
   }
 `;
@@ -131,10 +130,10 @@ export const FieldHint = styled.div<{ $error?: boolean; $inSection?: boolean }>`
   padding-left: ${({ $inSection }) => ($inSection ? '0' : '28px')};
   font-size: 12px;
   line-height: 16px;
-  color: ${({ $error }) =>
+  color: ${({ $error, theme }) =>
     $error
-      ? LIGHT_THEME.color['Error/Error 60 Main']
-      : LIGHT_THEME.color['Neutral/Neutral 50']};
+      ? theme.color['Error/Error 60 Main']
+      : theme.color['Neutral/Neutral 50']};
 
   ${MOBILE} {
     padding-left: 0;

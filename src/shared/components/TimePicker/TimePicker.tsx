@@ -5,7 +5,6 @@ import {
   InputLine,
   isInputDataDifferent,
   keyboardKey,
-  LIGHT_THEME,
   refSetter,
   StyledDropdownContainer,
   typography,
@@ -52,8 +51,8 @@ const ColumnHeader = styled.div`
   ${typography['Body/Body 2 Short']};
   padding: 8px 12px;
   text-align: center;
-  color: ${LIGHT_THEME.color['Neutral/Neutral 50']};
-  border-bottom: 1px solid ${LIGHT_THEME.color['Neutral/Neutral 20']};
+  color: ${({ theme }) => theme.color['Neutral/Neutral 50']};
+  border-bottom: 1px solid ${({ theme }) => theme.color['Neutral/Neutral 20']};
 `;
 
 const ColumnList = styled.ul`
@@ -73,24 +72,24 @@ const OptionButton = styled.button<{ $selected?: boolean }>`
   width: 100%;
   padding: 6px 12px;
   border: none;
-  background: ${({ $selected }) =>
-    $selected ? LIGHT_THEME.color['Primary/Primary 10'] : 'transparent'};
-  color: ${({ $selected }) =>
+  background: ${({ $selected, theme }) =>
+    $selected ? theme.color['Primary/Primary 10'] : 'transparent'};
+  color: ${({ $selected, theme }) =>
     $selected
-      ? LIGHT_THEME.color['Primary/Primary 60 Main']
-      : LIGHT_THEME.color['Neutral/Neutral 90']};
+      ? theme.color['Primary/Primary 60 Main']
+      : theme.color['Neutral/Neutral 90']};
   cursor: pointer;
   text-align: center;
 
   &:hover {
-    background: ${({ $selected }) =>
+    background: ${({ $selected, theme }) =>
       $selected
-        ? LIGHT_THEME.color['Primary/Primary 10']
-        : LIGHT_THEME.color['Neutral/Neutral 10']};
+        ? theme.color['Primary/Primary 10']
+        : theme.color['Neutral/Neutral 10']};
   }
 
   &:focus-visible {
-    outline: 2px solid ${LIGHT_THEME.color['Primary/Primary 60 Main']};
+    outline: 2px solid ${({ theme }) => theme.color['Primary/Primary 60 Main']};
     outline-offset: -2px;
   }
 `;

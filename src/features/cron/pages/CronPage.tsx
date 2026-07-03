@@ -3,7 +3,6 @@ import styled from 'styled-components';
 import {
   HorizontalTab,
   HorizontalTabs,
-  LIGHT_THEME,
   Modal,
   ModalButtonPanel,
   ModalContent,
@@ -66,9 +65,9 @@ const CronSummaryCard = styled.section`
   gap: 16px;
   margin-top: 20px;
   padding: 16px 20px;
-  border: 1px solid ${LIGHT_THEME.color['Neutral/Neutral 20']};
+  border: 1px solid ${({ theme }) => theme.color['Neutral/Neutral 20']};
   border-radius: 8px;
-  background: ${LIGHT_THEME.color['Neutral/Neutral 05']};
+  background: ${({ theme }) => theme.color['Neutral/Neutral 05']};
 
   @media (max-width: 767px) {
     flex-direction: column;
@@ -97,12 +96,12 @@ const CronExpression = styled.code`
   max-width: 100%;
   padding: 4px 10px;
   border-radius: 4px;
-  background: ${LIGHT_THEME.color['Neutral/Neutral 10']};
-  border: 1px solid ${LIGHT_THEME.color['Neutral/Neutral 20']};
+  background: ${({ theme }) => theme.color['Neutral/Neutral 10']};
+  border: 1px solid ${({ theme }) => theme.color['Neutral/Neutral 20']};
   font-family: ui-monospace, 'Cascadia Code', 'SF Mono', monospace;
   font-size: 13px;
   line-height: 1.4;
-  color: ${LIGHT_THEME.color['Neutral/Neutral 90']};
+  color: ${({ theme }) => theme.color['Neutral/Neutral 90']};
   word-break: break-all;
 `;
 
@@ -146,9 +145,9 @@ const ParamsHint = styled(T)`
 const InlineEditorPanel = styled.section`
   margin-top: 16px;
   padding: 16px;
-  border: 1px solid ${LIGHT_THEME.color['Neutral/Neutral 20']};
+  border: 1px solid ${({ theme }) => theme.color['Neutral/Neutral 20']};
   border-radius: 8px;
-  background: ${LIGHT_THEME.color['Neutral/Neutral 00']};
+  background: ${({ theme }) => theme.color['Neutral/Neutral 00']};
   min-width: 0;
   max-width: 100%;
   overflow-x: hidden;
@@ -182,14 +181,14 @@ const CopyButton = styled(Button)`
 `;
 
 const ControlsPanel = styled.fieldset`
-  border: 1px solid ${LIGHT_THEME.color['Neutral/Neutral 20']};
+  border: 1px solid ${({ theme }) => theme.color['Neutral/Neutral 20']};
   border-radius: 4px;
   margin: 24px 0;
   padding: 12px 16px 16px;
 
   legend {
     padding: 0 6px;
-    color: ${LIGHT_THEME.color['Neutral/Neutral 50']};
+    color: ${({ theme }) => theme.color['Neutral/Neutral 50']};
     font-size: 13px;
   }
 `;
