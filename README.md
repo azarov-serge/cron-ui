@@ -60,7 +60,7 @@ npm run preview
 
 Сайт деплоится через GitHub Actions (`.github/workflows/deploy.yml`) при push в `main`.  
 В `vite.config.ts` задан `base: '/cron-ui/'` для production-сборки и `'/'` для `npm run dev`.  
-Локальная разработка: `npm run dev` → http://localhost:5173/
+Локальная разработка: `npm run dev` → https://localhost:5173/ (самоподписанный сертификат — в браузере подтвердите исключение).
 
 ### Настройка GitHub Pages (один раз)
 

@@ -1,11 +1,17 @@
 import path from 'node:path'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import basicSsl from '@vitejs/plugin-basic-ssl'
 import svgr from 'vite-plugin-svgr'
 
 // https://vite.dev/config/
 export default defineConfig(({ command }) => ({
   base: command === 'serve' ? '/' : '/cron-ui/',
+  server: {
+    port: 5173,
+    strictPort: true,
+    https: true,
+  },
   resolve: {
     alias: {
       '@features': path.resolve(__dirname, './src/features'),
@@ -13,6 +19,7 @@ export default defineConfig(({ command }) => ({
     },
   },
   plugins: [
+    command === 'serve' ? basicSsl() : undefined,
     react(),
     svgr({
       svgrOptions: {
@@ -22,5 +29,5 @@ export default defineConfig(({ command }) => ({
         },
       },
     }),
-  ],
+  ].filter(Boolean),
 }))
