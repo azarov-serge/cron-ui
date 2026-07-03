@@ -129,7 +129,7 @@ export const messages = {
     editSchedule: 'Изменить cron',
     editCron: 'Редактировать cron',
     editorOpenBelow: 'Редактор открыт ниже',
-    editorTitle: 'Редактор расписания',
+    editorTitle: 'Редактор cron',
     closeEditor: 'Закрыть редактор',
     saveSchedule: 'Сохранить расписание',
     cancel: 'Отмена',
@@ -182,6 +182,24 @@ export const messages = {
       field: 'Поле',
       value: 'Значение',
       meaning: 'Расшифровка',
+      diffTitle: 'Чем отличаются',
+      diffIntro:
+        'Оба поля ниже — человекочитаемый текст одного и того же cron, но полученный разными способами.',
+      diffCronstrueText:
+        'библиотека cronstrue читает cron-строку напрямую. Это полный смысл выражения «как в спецификации cron».',
+      diffEditorText:
+        'тот же текст, что в редакторе cron («{editAction}»). Сначала cron раскладывается на поля формы (ежедневно / по понедельникам / 15-е число, время…), потом снова собирается в cron и описывается.',
+      diffWhenMatch:
+        'Когда совпадают: простые расписания, которые форма умеет — например 0 9 * * * → оба «В 09:00».',
+      diffWhenDiverge: 'Когда расходятся:',
+      diffDivergeOneTime:
+        'однократный запуск 30 14 25 3 *: cronstrue — «В 14:30, 25-го марта»; редактор cron — «Выполняется один раз 25.03.2026 в 14:30» (добавляет текущий год);',
+      diffDivergeComplex:
+        'сложный cron (несколько дней, списки, нестандартные интервалы): cronstrue опишет всё, редактор cron упростит до ближайшего поддерживаемого варианта формы.',
+      cronstrueSectionTitle: 'Описание (cronstrue)',
+      cronstrueSectionHint: 'Прямой перевод cron-строки',
+      editorSectionTitle: 'Описание (редактор cron)',
+      editorSectionHint: 'Через поля формы редактора cron',
     },
     cronDescribe: {
       dailyAt: 'Ежедневно в {time}',
@@ -218,7 +236,7 @@ export const messages = {
     editSchedule: 'Edit cron',
     editCron: 'Edit cron',
     editorOpenBelow: 'Editor open below',
-    editorTitle: 'Schedule editor',
+    editorTitle: 'Cron editor',
     closeEditor: 'Close editor',
     saveSchedule: 'Save schedule',
     cancel: 'Cancel',
@@ -270,6 +288,24 @@ export const messages = {
       field: 'Field',
       value: 'Value',
       meaning: 'Meaning',
+      diffTitle: 'How they differ',
+      diffIntro:
+        'Both fields below are human-readable text for the same cron, produced in different ways.',
+      diffCronstrueText:
+        'the cronstrue library reads the cron string directly. This is the full meaning «as in the cron spec».',
+      diffEditorText:
+        'the same text as in the cron editor («{editAction}»). Cron is first split into form fields (daily / on Mondays / on the 15th, time…), then assembled back into cron and described.',
+      diffWhenMatch:
+        'When they match: simple schedules the form supports — e.g. 0 9 * * * → both «At 09:00».',
+      diffWhenDiverge: 'When they differ:',
+      diffDivergeOneTime:
+        'one-time run 30 14 25 3 *: cronstrue — «At 14:30, on the 25th of March»; cron editor — «Runs once on 25.03.2026 at 14:30» (adds the current year);',
+      diffDivergeComplex:
+        'complex cron (multiple days, lists, non-standard intervals): cronstrue describes everything; the cron editor simplifies to the nearest supported form variant.',
+      cronstrueSectionTitle: 'Description (cronstrue)',
+      cronstrueSectionHint: 'Direct translation of the cron string',
+      editorSectionTitle: 'Description (cron editor)',
+      editorSectionHint: 'Via the cron editor form fields',
     },
     cronDescribe: {
       dailyAt: 'Daily at {time}',
@@ -399,7 +435,7 @@ export const messages = {
     editSchedule: '修改 cron',
     editCron: '编辑 cron',
     editorOpenBelow: '编辑器已在下方打开',
-    editorTitle: '计划编辑器',
+    editorTitle: 'cron 编辑器',
     closeEditor: '关闭编辑器',
     saveSchedule: '保存计划',
     cancel: '取消',
@@ -451,6 +487,23 @@ export const messages = {
       field: '字段',
       value: '值',
       meaning: '含义',
+      diffTitle: '有何不同',
+      diffIntro: '下方两个字段是同一条 cron 的可读描述，但生成方式不同。',
+      diffCronstrueText:
+        'cronstrue 库直接读取 cron 字符串。这是表达式在 cron 规范中的完整含义。',
+      diffEditorText:
+        '与 cron 编辑器（「{editAction}」）中相同的文本。先将 cron 拆分为表单字段（每天 / 每周一 / 每月 15 日、时间…），再重新组装并生成描述。',
+      diffWhenMatch:
+        '一致时：表单能表达的简单计划 — 例如 0 9 * * * → 均为「每天 09:00」。',
+      diffWhenDiverge: '不一致时：',
+      diffDivergeOneTime:
+        '一次性 30 14 25 3 *：cronstrue —「3 月 25 日 14:30」；cron 编辑器 —「2026 年 3 月 25 日 14:30 执行一次」（加入当前年份）；',
+      diffDivergeComplex:
+        '复杂 cron（多天、列表、非常规间隔）：cronstrue 会完整描述；cron 编辑器会简化为表单支持的最接近方案。',
+      cronstrueSectionTitle: '描述（cronstrue）',
+      cronstrueSectionHint: 'cron 字符串的直接翻译',
+      editorSectionTitle: '描述（cron 编辑器）',
+      editorSectionHint: '通过 cron 编辑器表单字段生成',
     },
     cronDescribe: {
       dailyAt: '每天 {time}',

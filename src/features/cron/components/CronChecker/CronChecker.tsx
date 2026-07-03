@@ -9,6 +9,7 @@ import {
 } from '@admiral-ds/react-ui';
 import { parseCronExpression } from '@features/cron/utils/parseCronExpression';
 import { useTranslation } from '@shared/i18n/useTranslation';
+import { formatMessage } from '@shared/i18n/messages';
 import { MONO_FONT_FAMILY } from '@shared/styles/typography';
 
 const Panel = styled.section`
@@ -198,47 +199,41 @@ export const CronChecker: FC<CronCheckerProps> = ({
             ))}
           </PartsTable>
 
-          {/*
-            cronstrue — прямой перевод строки; редактор — после fromCron/toCron (как в модалке).
-          */}
           <DescriptionBlock>
             <T font="Body/Body 2 Short" color="Neutral/Neutral 50">
-              Чем отличаются
+              {t.checker.diffTitle}
             </T>
             <T font="Body/Body 2 Long" color="Neutral/Neutral 50" as="div">
-              Оба поля ниже — человекочитаемый текст одного и того же cron, но полученный разными
-              способами.
+              {t.checker.diffIntro}
               <br />
               <br />
-              <strong>Описание (cronstrue)</strong> — библиотека cronstrue читает cron-строку
-              напрямую. Это полный смысл выражения «как в спецификации cron».
+              <strong>{t.checker.cronstrueSectionTitle}</strong> —{' '}
+              {t.checker.diffCronstrueText}
               <br />
               <br />
-              <strong>Расписание (редактор)</strong> — тот же текст, что в модалке «Изменить
-              расписание». Сначала cron раскладывается на поля формы (ежедневно / по понедельникам /
-              15-е число, время…), потом снова собирается в cron и описывается.
+              <strong>{t.checker.editorSectionTitle}</strong> —{' '}
+              {formatMessage(t.checker.diffEditorText, {
+                editAction: t.editSchedule,
+              })}
               <br />
               <br />
-              Когда совпадают: простые расписания, которые форма умеет — например{' '}
-              <code>0 9 * * *</code> → оба «В 09:00».
+              {t.checker.diffWhenMatch}
               <br />
               <br />
-              Когда расходятся:
+              {t.checker.diffWhenDiverge}
               <br />
-              — однократный запуск <code>30 14 25 3 *</code>: cronstrue — «В 14:30, 25-го марта»;
-              редактор — «Выполняется один раз 25.03.2026 в 14:30» (добавляет текущий год);
+              — {t.checker.diffDivergeOneTime}
               <br />
-              — сложный cron (несколько дней, списки, нестандартные интервалы): cronstrue опишет
-              всё, редактор упростит до ближайшего поддерживаемого варианта формы.
+              — {t.checker.diffDivergeComplex}
             </T>
           </DescriptionBlock>
 
           <DescriptionBlock>
             <T font="Body/Body 2 Short" color="Neutral/Neutral 50">
-              Описание (cronstrue)
+              {t.checker.cronstrueSectionTitle}
             </T>
             <T font="Body/Body 2 Long" color="Neutral/Neutral 50">
-              Прямой перевод cron-строки
+              {t.checker.cronstrueSectionHint}
             </T>
             <DescriptionText font="Body/Body 1 Long" color="Neutral/Neutral 90">
               {parseResult.cronDescription}
@@ -247,10 +242,10 @@ export const CronChecker: FC<CronCheckerProps> = ({
 
           <DescriptionBlock>
             <T font="Body/Body 2 Short" color="Neutral/Neutral 50">
-              Расписание (редактор)
+              {t.checker.editorSectionTitle}
             </T>
             <T font="Body/Body 2 Long" color="Neutral/Neutral 50">
-              Как в модалке редактора (через поля формы)
+              {t.checker.editorSectionHint}
             </T>
             <DescriptionText font="Body/Body 1 Long" color="Neutral/Neutral 90">
               {parseResult.scheduleDescription}
@@ -259,7 +254,9 @@ export const CronChecker: FC<CronCheckerProps> = ({
 
           {parseResult.oneTimeNotice && (
             <NotificationItem status="warning" displayStatusIcon>
-              <NotificationItemTitle>Год не входит в cron</NotificationItemTitle>
+              <NotificationItemTitle>
+                {t.editor.yearNotInCronTitle}
+              </NotificationItemTitle>
               <NotificationItemContent>{parseResult.oneTimeNotice}</NotificationItemContent>
             </NotificationItem>
           )}

@@ -20,7 +20,7 @@ export const hiMessages = {
   editSchedule: 'cron बदलें',
   editCron: 'cron संपादित करें',
   editorOpenBelow: 'संपादक नीचे खुला है',
-  editorTitle: 'अनुसूची संपादक',
+  editorTitle: 'cron संपादक',
   closeEditor: 'संपादक बंद करें',
   saveSchedule: 'अनुसूची सहेजें',
   cancel: 'रद्द करें',
@@ -72,6 +72,24 @@ export const hiMessages = {
     field: 'फ़ील्ड',
     value: 'मान',
     meaning: 'अर्थ',
+    diffTitle: 'अंतर क्या है',
+    diffIntro:
+      'नीचे के दोनों फ़ील्ड एक ही cron का मानव-पठनीय विवरण हैं, लेकिन अलग तरीकों से बने हैं।',
+    diffCronstrueText:
+      'cronstrue लाइब्रेरी सीधे cron स्ट्रिंग पढ़ती है। यह cron विनिर्देश के अनुसार पूरा अर्थ है।',
+    diffEditorText:
+      'cron संपादक («{editAction}») में वही पाठ। पहले cron को फ़ॉर्म फ़ील्ड में बाँटा जाता है (दैनिक / सोमवार / महीने की 15 तारीख, समय…), फिर फिर से cron बनाकर विवरण दिया जाता है।',
+    diffWhenMatch:
+      'जब मेल खाते हैं: सरल अनुसूचियाँ जो फ़ॉर्म समझता है — उदा. 0 9 * * * → दोनों «09:00 बजे»।',
+    diffWhenDiverge: 'जब अलग हों:',
+    diffDivergeOneTime:
+      'एक बार 30 14 25 3 *: cronstrue — «14:30, 25 मार्च»; cron संपादक — «25.03.2026 को 14:30 पर एक बार» (वर्तमान वर्ष जोड़ता है);',
+    diffDivergeComplex:
+      'जटिल cron (कई दिन, सूचियाँ, असामान्य अंतराल): cronstrue सब कुछ बताएगा; cron संपादक निकटतम समर्थित फ़ॉर्म विकल्प तक सरल करेगा।',
+    cronstrueSectionTitle: 'विवरण (cronstrue)',
+    cronstrueSectionHint: 'cron स्ट्रिंग का सीधा अनुवाद',
+    editorSectionTitle: 'विवरण (cron संपादक)',
+    editorSectionHint: 'cron संपादक फ़ॉर्म फ़ील्ड के माध्यम से',
   },
   cronDescribe: {
     dailyAt: 'प्रतिदिन {time} बजे',

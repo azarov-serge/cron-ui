@@ -82,7 +82,7 @@ GitHub Actions (`.github/workflows/deploy.yml`) деплоит при push в `m
 | Проверка cron | `checker` | `CronChecker` |
 
 - Поля **cron** и **Описание** показывают текущее расписание; сами по себе не меняются.
-- **Изменить cron** открывает редактор (модалка на desktop, на весь экран на mobile).
+- **Изменить cron** открывает редактор cron (окно на desktop, на весь экран на mobile).
 - **Копировать** — `TextButton` с локализованной подписью на mobile.
 - Язык (`cron-ui-locale`) и тема (`cron-ui-theme`) сохраняются в `localStorage`; при первом визите — язык браузера, если поддерживается.
 

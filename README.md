@@ -82,7 +82,7 @@ Two tabs, state synced with URL (`?cron=0+9+*+*+1`, `?tab=checker`):
 | Cron checker | `checker` | `CronChecker` |
 
 - **cron** and **Description** fields show the current schedule; they do not change until you save from the editor.
-- **Edit cron** opens the editor (modal on desktop, full-screen on mobile).
+- **Edit cron** opens the cron editor (window on desktop, full-screen on mobile).
 - **Copy** — `TextButton` with localized label on mobile.
 - Locale (`cron-ui-locale`) and theme (`cron-ui-theme`) persist in `localStorage`; first visit uses browser language when supported.
 
