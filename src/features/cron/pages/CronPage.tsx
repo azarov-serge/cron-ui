@@ -1,4 +1,4 @@
-import { useState, type FC } from 'react';
+import { useEffect, useRef, useState, type FC } from 'react';
 import styled from 'styled-components';
 import {
   HorizontalTab,
@@ -44,11 +44,19 @@ import {
 import { EditOutlined } from '@ant-design/icons';
 import CopyOutline from '@admiral-ds/icons/build/documents/CopyOutline.svg?react';
 import packageJson from '../../../../package.json';
+import { useMediaQuery } from '@shared/hooks/useMediaQuery';
 
 const Page = styled.main`
+  width: 100%;
   max-width: 720px;
   margin: 0 auto;
   padding: 48px 24px;
+  min-width: 0;
+  overflow-x: hidden;
+
+  @media (max-width: 767px) {
+    padding: 16px 12px;
+  }
 `;
 
 const CronSummaryCard = styled.section`
@@ -61,6 +69,11 @@ const CronSummaryCard = styled.section`
   border: 1px solid ${LIGHT_THEME.color['Neutral/Neutral 20']};
   border-radius: 8px;
   background: ${LIGHT_THEME.color['Neutral/Neutral 05']};
+
+  @media (max-width: 767px) {
+    flex-direction: column;
+    padding: 16px;
+  }
 `;
 
 const CronSummaryContent = styled.div`
@@ -96,14 +109,75 @@ const CronExpression = styled.code`
 const CronActions = styled.div`
   display: flex;
   flex-shrink: 0;
-  gap: 4px;
+  gap: 8px;
+  width: 100%;
+
+  @media (min-width: 768px) {
+    width: auto;
+  }
+`;
+
+const EditScheduleButton = styled(Button)`
+  flex: 1;
+  justify-content: center;
+
+  @media (min-width: 768px) {
+    flex: initial;
+    min-width: 200px;
+  }
+`;
+
+const ButtonContent = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+`;
+
+const HelpNotice = styled(NotificationItem)`
+  margin-top: 16px;
+`;
+
+const ParamsHint = styled(T)`
+  display: block;
+  margin-bottom: 12px;
+`;
+
+const InlineEditorPanel = styled.section`
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid ${LIGHT_THEME.color['Neutral/Neutral 20']};
+  border-radius: 8px;
+  background: ${LIGHT_THEME.color['Neutral/Neutral 00']};
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+
+  @media (max-width: 767px) {
+    padding: 12px;
+    margin-left: 0;
+    margin-right: 0;
+  }
+`;
+
+const InlineEditorTitle = styled(T)`
+  display: block;
+  margin-bottom: 16px;
+`;
+
+const EditorActions = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
 `;
 
 const CopyButton = styled(Button)`
-  flex-shrink: 0;
-`;
-
-const ActionButton = styled(Button)`
   flex-shrink: 0;
 `;
 
@@ -124,6 +198,11 @@ const ControlsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 16px 24px;
+
+  @media (max-width: 767px) {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
 `;
 
 const ControlGroup = styled.div`
@@ -144,6 +223,8 @@ const Legend = styled.legend`
 
 const TabContent = styled.div`
   margin-top: 24px;
+  min-width: 0;
+  max-width: 100%;
 `;
 
 const UrlErrorNotice = styled(NotificationItem)`
@@ -207,25 +288,30 @@ export const CronPage: FC = (_props) => {
     submitCron,
   } = useCronPageSearchParams();
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const isMobile = useMediaQuery('(max-width: 767px)');
+  const editorPanelRef = useRef<HTMLElement>(null);
   const [editorOptions, setEditorOptions] = useState<Required<CronOptions>>(
     () => ({ ...DEFAULT_CRON_OPTIONS }),
   );
 
-  const openModal = () => {
-    setIsModalOpen(true);
-  };
+  useEffect(() => {
+    if (!isEditorOpen || !isMobile) {
+      return;
+    }
+    editorPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [isEditorOpen, isMobile]);
 
-  const closeModal = () => {
-    setIsModalOpen(false);
+  const closeEditor = () => {
+    setIsEditorOpen(false);
   };
 
   const handleSubmit = (nextCron: Cron) => {
     submitCron(nextCron);
-    closeModal();
+    closeEditor();
   };
 
-  const handleModalOk = () => {
+  const handleEditorOk = () => {
     const cronForm = document.getElementById(CRON_FORM_ID);
     if (cronForm instanceof HTMLFormElement) {
       cronForm.requestSubmit();
@@ -300,6 +386,31 @@ export const CronPage: FC = (_props) => {
     }));
   };
 
+  const renderEditorActions = () => (
+    <>
+      <Button
+        appearance="primary"
+        dimension="m"
+        type="button"
+        onClick={handleEditorOk}
+      >
+        Сохранить расписание
+      </Button>
+      <Button appearance="secondary" dimension="m" onClick={closeEditor}>
+        Отмена
+      </Button>
+    </>
+  );
+
+  const renderCronEditor = () => (
+    <CronEditor
+      key={cron.toExpression()}
+      cron={cron}
+      onSubmit={handleSubmit}
+      options={editorOptions}
+    />
+  );
+
   const renderPageTab = (
     tabId: string,
     selected?: boolean,
@@ -345,6 +456,30 @@ export const CronPage: FC = (_props) => {
 
       {activeTab === 'constructor' && (
         <TabContent>
+          <HelpNotice status="info" displayStatusIcon>
+            <NotificationItemTitle>Как пользоваться</NotificationItemTitle>
+            <NotificationItemContent>
+              <ol style={{ margin: '8px 0 0', paddingLeft: 20 }}>
+                <li>
+                  Карточка ниже показывает <strong>текущее</strong> расписание. Сама
+                  по себе она не меняется.
+                </li>
+                <li>
+                  Чекбоксы «Параметры редактора» настраивают форму — какие поля
+                  будут в редакторе.
+                </li>
+                <li>
+                  Нажмите <strong>«Изменить расписание»</strong>, заполните форму и
+                  сохраните — карточка обновится.
+                </li>
+                <li>
+                  Чтобы разобрать готовое выражение, перейдите на вкладку{' '}
+                  <strong>«Проверка cron»</strong>.
+                </li>
+              </ol>
+            </NotificationItemContent>
+          </HelpNotice>
+
       <CronSummaryCard>
         <CronSummaryContent>
           <T font="Body/Body 1 Long" color="Neutral/Neutral 90">
@@ -364,20 +499,37 @@ export const CronPage: FC = (_props) => {
           </CronExpressionRow>
         </CronSummaryContent>
         <CronActions>
-          <ActionButton
-            appearance="ghost"
+          <EditScheduleButton
+            appearance="primary"
             dimension="m"
-            onClick={openModal}
-            aria-label="Изменить расписание"
-            title="Изменить расписание"
+            type="button"
+            aria-expanded={isEditorOpen}
+            onClick={() => setIsEditorOpen(true)}
           >
-            <EditOutlined />
-          </ActionButton>
+            <ButtonContent>
+              <EditOutlined />
+              {isEditorOpen && isMobile ? 'Редактор открыт ниже' : 'Изменить расписание'}
+            </ButtonContent>
+          </EditScheduleButton>
         </CronActions>
       </CronSummaryCard>
 
+      {isEditorOpen && isMobile && (
+        <InlineEditorPanel ref={editorPanelRef}>
+          <InlineEditorTitle font="Header/H6" as="h4">
+            Редактор расписания
+          </InlineEditorTitle>
+          {renderCronEditor()}
+          <EditorActions>{renderEditorActions()}</EditorActions>
+        </InlineEditorPanel>
+      )}
+
       <ControlsPanel>
         <Legend>Параметры редактора</Legend>
+        <ParamsHint font="Body/Body 2 Long" color="Neutral/Neutral 50">
+          Влияют только на форму редактора. Чтобы применить расписание, откройте
+          «Изменить расписание» и нажмите «Сохранить».
+        </ParamsHint>
         <ControlsGrid>
           <ControlGroup>
             <T font="Body/Body 2 Short" color="Neutral/Neutral 50">
@@ -512,38 +664,18 @@ export const CronPage: FC = (_props) => {
         </TabContent>
       )}
 
-      {isModalOpen && (
+      {isEditorOpen && !isMobile && (
         <Modal
           dimension="xl"
-          onClose={closeModal}
+          onClose={closeEditor}
           aria-labelledby="cron-schedule-title"
         >
-          <ModalTitle id="cron-schedule-title">
-            Новое расписание задания
-          </ModalTitle>
-          <ModalContent>
-            <CronEditor
-              key={cron.toExpression()}
-              cron={cron}
-              onSubmit={handleSubmit}
-              options={editorOptions}
-            />
-          </ModalContent>
-          <ModalButtonPanel>
-            <Button
-              appearance="primary"
-              dimension="m"
-              type="button"
-              onClick={handleModalOk}
-            >
-              ОК
-            </Button>
-            <Button appearance="secondary" dimension="m" onClick={closeModal}>
-              Отмена
-            </Button>
-          </ModalButtonPanel>
+          <ModalTitle id="cron-schedule-title">Редактор расписания</ModalTitle>
+          <ModalContent>{renderCronEditor()}</ModalContent>
+          <ModalButtonPanel>{renderEditorActions()}</ModalButtonPanel>
         </Modal>
       )}
+
     </Page>
   );
 };

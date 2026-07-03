@@ -1,4 +1,4 @@
-import { useMemo, type FC, Fragment } from 'react';
+import { useMemo, type FC } from 'react';
 import styled from 'styled-components';
 import {
   LIGHT_THEME,
@@ -15,6 +15,10 @@ const Panel = styled.section`
   border: 1px solid ${LIGHT_THEME.color['Neutral/Neutral 20']};
   border-radius: 8px;
   background: ${LIGHT_THEME.color['Neutral/Neutral 05']};
+
+  @media (max-width: 767px) {
+    padding: 16px;
+  }
 `;
 
 const InputWrap = styled.div`
@@ -36,6 +40,36 @@ const PartsTable = styled.div`
   border-radius: 4px;
   background: ${LIGHT_THEME.color['Neutral/Neutral 00']};
   border: 1px solid ${LIGHT_THEME.color['Neutral/Neutral 20']};
+
+  @media (max-width: 767px) {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+`;
+
+const PartRow = styled.div`
+  display: contents;
+
+  @media (max-width: 767px) {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 4px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid ${LIGHT_THEME.color['Neutral/Neutral 20']};
+
+    &:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+  }
+`;
+
+const PartHeaderRow = styled.div`
+  display: contents;
+
+  @media (max-width: 767px) {
+    display: none;
+  }
 `;
 
 const PartHeader = styled(T)`
@@ -106,18 +140,20 @@ export const CronChecker: FC<CronCheckerProps> = ({
       {parseResult?.valid && (
         <Breakdown>
           <PartsTable>
-            <PartHeader font="Body/Body 2 Short" color="Neutral/Neutral 50">
-              Поле
-            </PartHeader>
-            <PartHeader font="Body/Body 2 Short" color="Neutral/Neutral 50">
-              Значение
-            </PartHeader>
-            <PartHeader font="Body/Body 2 Short" color="Neutral/Neutral 50">
-              Расшифровка
-            </PartHeader>
+            <PartHeaderRow>
+              <PartHeader font="Body/Body 2 Short" color="Neutral/Neutral 50">
+                Поле
+              </PartHeader>
+              <PartHeader font="Body/Body 2 Short" color="Neutral/Neutral 50">
+                Значение
+              </PartHeader>
+              <PartHeader font="Body/Body 2 Short" color="Neutral/Neutral 50">
+                Расшифровка
+              </PartHeader>
+            </PartHeaderRow>
 
             {parseResult.parts.map((part) => (
-              <Fragment key={part.key}>
+              <PartRow key={part.key}>
                 <T font="Body/Body 2 Long" color="Neutral/Neutral 90">
                   {part.label}
                 </T>
@@ -125,7 +161,7 @@ export const CronChecker: FC<CronCheckerProps> = ({
                 <T font="Body/Body 2 Long" color="Neutral/Neutral 50">
                   {part.hint}
                 </T>
-              </Fragment>
+              </PartRow>
             ))}
           </PartsTable>
 
