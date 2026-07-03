@@ -28,6 +28,13 @@ jobs:
       - run: npm ci
       - run: npm run build
 
+      - name: Verify production build
+        run: |
+          grep -q '/cron-ui/assets/' dist/index.html
+          ! grep -q '/src/main.tsx' dist/index.html
+
+      - uses: actions/configure-pages@v5
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

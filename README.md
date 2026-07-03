@@ -59,7 +59,15 @@ npm run preview
 Сайт деплоится через GitHub Actions (`.github/workflows/deploy.yml`) при push в `main`.  
 В `vite.config.ts` задан `base: '/cron-ui/'`.
 
-В репозитории: **Settings → Pages → Source: GitHub Actions**.
+### Настройка GitHub Pages (обязательно)
+
+1. Откройте **Settings → Pages** в репозитории.
+2. В **Build and deployment → Source** выберите **GitHub Actions** (не «Deploy from a branch»).
+3. После смены источника перезапустите деплой: **Actions → Deploy to GitHub Pages → Run workflow**.
+
+Если источник остаётся «ветка `main` / корень», GitHub отдаёт исходный `index.html` со ссылкой на `/src/main.tsx` — страница будет **пустой**.
+
+Проверка: в исходном коде страницы должен быть `<script ... src="/cron-ui/assets/index-....js">`, а не `/src/main.tsx`.
 
 ## Версионирование
 
