@@ -10,6 +10,17 @@ body {
   min-height: 100vh;
   max-width: 100%;
   overflow-x: hidden;
+  font-family: 'VTB Group UI', 'VTBGroupUI', system-ui, -apple-system, 'Segoe UI',
+    'PingFang SC', 'Microsoft YaHei', 'Noto Sans Devanagari', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+input,
+textarea,
+select,
+button {
+  font: inherit;
 }
 
 #root {

@@ -7,6 +7,11 @@ import packageJson from '../../../../package.json';
 import type { Locale } from '@shared/i18n/messages';
 import { useTranslation } from '@shared/i18n/useTranslation';
 import { useMediaQuery } from '@shared/hooks/useMediaQuery';
+import {
+  LanguageFlag,
+  LANGUAGE_NATIVE_NAMES,
+  LOCALES,
+} from '@shared/components/LanguageFlag/LanguageFlag';
 import { useThemePreference } from '@shared/providers/AppThemeProvider';
 
 const HeaderBar = styled.header`
@@ -71,7 +76,19 @@ const HeaderActions = styled.div`
   }
 `;
 
+const LanguageOption = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+`;
+
 const LanguageButton = styled(MenuButton)`
+  color: ${({ theme }) => theme.color['Neutral/Neutral 90']};
+
+  ${LanguageOption} svg {
+    flex-shrink: 0;
+  }
+
   @media (max-width: 767px) {
     min-width: auto;
     padding-left: 8px;
@@ -121,11 +138,6 @@ const ThemeIcon = styled.span<{ $active: boolean }>`
   }
 `;
 
-const LANGUAGE_ITEMS = [
-  { id: 'ru', render: 'RU' },
-  { id: 'en', render: 'EN' },
-] as const;
-
 export const Header: FC = () => {
   const { t, locale, setLocale } = useTranslation();
   const { isDark, onToggleChange } = useThemePreference();
@@ -133,9 +145,14 @@ export const Header: FC = () => {
 
   const languageItems = useMemo(
     () =>
-      LANGUAGE_ITEMS.map((item) => ({
-        id: item.id,
-        render: item.render,
+      LOCALES.map((id) => ({
+        id,
+        render: (
+          <LanguageOption>
+            <LanguageFlag locale={id} />
+            {LANGUAGE_NATIVE_NAMES[id]}
+          </LanguageOption>
+        ),
       })),
     [],
   );
@@ -153,9 +170,12 @@ export const Header: FC = () => {
           selected={locale}
           items={languageItems}
           onSelectItem={(id) => setLocale(id as Locale)}
-          aria-label={locale === 'en' ? t.language.en : t.language.ru}
+          aria-label={LANGUAGE_NATIVE_NAMES[locale]}
         >
-          {locale.toUpperCase()}
+          <LanguageOption>
+            <LanguageFlag locale={locale} />
+            {LANGUAGE_NATIVE_NAMES[locale]}
+          </LanguageOption>
         </LanguageButton>
         <ThemeControl>
           <ThemeIcon $active={!isDark} aria-hidden>

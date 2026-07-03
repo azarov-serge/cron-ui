@@ -9,6 +9,7 @@ import {
 } from '@admiral-ds/react-ui';
 import { parseCronExpression } from '@features/cron/utils/parseCronExpression';
 import { useTranslation } from '@shared/i18n/useTranslation';
+import { MONO_FONT_FAMILY } from '@shared/styles/typography';
 
 const Panel = styled.section`
   padding: 16px 20px;
@@ -78,7 +79,7 @@ const PartHeader = styled(T)`
 `;
 
 const PartValue = styled.code`
-  font-family: ui-monospace, 'Cascadia Code', 'SF Mono', monospace;
+  font-family: ${MONO_FONT_FAMILY};
   font-size: 13px;
   color: ${({ theme }) => theme.color['Neutral/Neutral 90']};
 `;
@@ -87,6 +88,18 @@ const DescriptionBlock = styled.div`
   display: flex;
   flex-direction: column;
   gap: 4px;
+`;
+
+const CronInput = styled(TextInput)`
+  input {
+    font-family: ${MONO_FONT_FAMILY};
+    font-size: 14px;
+    line-height: 20px;
+  }
+`;
+
+const DescriptionText = styled(T)`
+  word-break: break-word;
 `;
 
 const Placeholder = styled(T)`
@@ -115,11 +128,10 @@ export const CronChecker: FC<CronCheckerProps> = ({
       </T>
 
       <InputWrap>
-        <TextInput
+        <CronInput
           value={expression}
           onChange={(event) => onExpressionChange(event.currentTarget.value)}
           placeholder="0 9 * * 1"
-          style={{ fontFamily: "ui-monospace, 'Cascadia Code', 'SF Mono', monospace" }}
         />
       </InputWrap>
 
@@ -208,9 +220,9 @@ export const CronChecker: FC<CronCheckerProps> = ({
             <T font="Body/Body 2 Long" color="Neutral/Neutral 50">
               Прямой перевод cron-строки
             </T>
-            <T font="Body/Body 1 Long" color="Neutral/Neutral 90">
+            <DescriptionText font="Body/Body 1 Long" color="Neutral/Neutral 90">
               {parseResult.cronDescription}
-            </T>
+            </DescriptionText>
           </DescriptionBlock>
 
           <DescriptionBlock>
@@ -220,9 +232,9 @@ export const CronChecker: FC<CronCheckerProps> = ({
             <T font="Body/Body 2 Long" color="Neutral/Neutral 50">
               Как в модалке редактора (через поля формы)
             </T>
-            <T font="Body/Body 1 Long" color="Neutral/Neutral 90">
+            <DescriptionText font="Body/Body 1 Long" color="Neutral/Neutral 90">
               {parseResult.scheduleDescription}
-            </T>
+            </DescriptionText>
           </DescriptionBlock>
 
           {parseResult.oneTimeNotice && (

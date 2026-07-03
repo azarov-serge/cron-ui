@@ -1,6 +1,7 @@
-import { getOneTimeCronYearNotice } from '@features/cron/components/CronEditor/constants';
 import { Cron } from '@features/cron/components/CronEditor/models/cron';
-import type { Locale } from '@shared/i18n/messages';
+import type { Locale, Messages } from '@shared/i18n/messages';
+import { formatMessage, getOneTimeYearNotice, messages } from '@shared/i18n/messages';
+import { describeCronHuman } from '@features/cron/utils/describeCron';
 import { ScheduleModel } from '@features/cron/components/CronEditor/models/schedule';
 
 export type CronPartKey =
@@ -35,68 +36,46 @@ export type CronParseFailure = {
 
 export type CronParseResult = CronParseSuccess | CronParseFailure;
 
-const PART_LABELS: Record<CronPartKey, string> = {
-  minute: 'Минута',
-  hour: 'Час',
-  dayOfMonth: 'День месяца',
-  month: 'Месяц',
-  dayOfWeek: 'День недели',
-};
-
-const MONTH_NAMES: Record<number, string> = {
-  1: 'январь',
-  2: 'февраль',
-  3: 'март',
-  4: 'апрель',
-  5: 'май',
-  6: 'июнь',
-  7: 'июль',
-  8: 'август',
-  9: 'сентябрь',
-  10: 'октябрь',
-  11: 'ноябрь',
-  12: 'декабрь',
-};
-
-const WEEK_DAY_NAMES: Record<number, string> = {
-  0: 'воскресенье',
-  1: 'понедельник',
-  2: 'вторник',
-  3: 'среда',
-  4: 'четверг',
-  5: 'пятница',
-  6: 'суббота',
-};
-
-const describeWildcard = (value: string, anyLabel: string): string => {
+const describeWildcard = (
+  value: string,
+  anyLabel: string,
+  everyNTemplate: string,
+): string => {
   if (value === '*') {
     return anyLabel;
   }
 
   if (value.startsWith('*/')) {
     const step = value.slice(2);
-    return `каждые ${step}`;
+    return formatMessage(everyNTemplate, { step });
   }
 
   return value;
 };
 
-const describeMonth = (value: string): string => {
+const describeMonth = (
+  value: string,
+  parse: Messages['checkerParse'],
+): string => {
   if (value === '*') {
-    return 'каждый месяц';
+    return parse.hints.everyMonth;
   }
 
   const monthNumber = Number.parseInt(value, 10);
-  if (!Number.isNaN(monthNumber) && MONTH_NAMES[monthNumber]) {
-    return MONTH_NAMES[monthNumber];
+  const monthName = parse.months[monthNumber as keyof typeof parse.months];
+  if (!Number.isNaN(monthNumber) && monthName) {
+    return monthName;
   }
 
   return value;
 };
 
-const describeDayOfWeek = (value: string): string => {
+const describeDayOfWeek = (
+  value: string,
+  parse: Messages['checkerParse'],
+): string => {
   if (value === '*') {
-    return 'любой день недели';
+    return parse.hints.anyDayOfWeek;
   }
 
   if (value.includes('#')) {
@@ -104,48 +83,63 @@ const describeDayOfWeek = (value: string): string => {
   }
 
   const dayNumber = Number.parseInt(value, 10);
-  if (!Number.isNaN(dayNumber) && WEEK_DAY_NAMES[dayNumber]) {
-    return WEEK_DAY_NAMES[dayNumber];
+  const dayName = parse.weekDays[dayNumber as keyof typeof parse.weekDays];
+  if (!Number.isNaN(dayNumber) && dayName) {
+    return dayName;
   }
 
   return value;
 };
 
-const describeDayOfMonth = (value: string): string => {
+const describeDayOfMonth = (
+  value: string,
+  parse: Messages['checkerParse'],
+): string => {
   if (value === '*') {
-    return 'каждый день месяца';
+    return parse.hints.everyDayOfMonth;
   }
 
   if (value.startsWith('*/')) {
-    return describeWildcard(value, 'каждый день месяца');
+    return describeWildcard(
+      value,
+      parse.hints.everyDayOfMonth,
+      parse.hints.everyN,
+    );
   }
 
   const dayNumber = Number.parseInt(value, 10);
   if (!Number.isNaN(dayNumber)) {
-    return `${dayNumber}-е число`;
+    return formatMessage(parse.hints.dayOfMonthNth, { day: dayNumber });
   }
 
   return value;
 };
 
-const buildPartHint = (key: CronPartKey, value: string): string => {
+const buildPartHint = (
+  key: CronPartKey,
+  value: string,
+  parse: Messages['checkerParse'],
+): string => {
   switch (key) {
     case 'minute':
-      return describeWildcard(value, 'каждую минуту');
+      return describeWildcard(value, parse.hints.everyMinute, parse.hints.everyN);
     case 'hour':
-      return describeWildcard(value, 'каждый час');
+      return describeWildcard(value, parse.hints.everyHour, parse.hints.everyN);
     case 'dayOfMonth':
-      return describeDayOfMonth(value);
+      return describeDayOfMonth(value, parse);
     case 'month':
-      return describeMonth(value);
+      return describeMonth(value, parse);
     case 'dayOfWeek':
-      return describeDayOfWeek(value);
+      return describeDayOfWeek(value, parse);
     default:
       return value;
   }
 };
 
-const buildParts = (parts: string[]): CronPartBreakdown[] => {
+const buildParts = (
+  parts: string[],
+  parse: Messages['checkerParse'],
+): CronPartBreakdown[] => {
   const keys: CronPartKey[] = [
     'minute',
     'hour',
@@ -159,9 +153,9 @@ const buildParts = (parts: string[]): CronPartBreakdown[] => {
 
     return {
       key,
-      label: PART_LABELS[key],
+      label: parse.partLabels[key],
       value,
-      hint: buildPartHint(key, value),
+      hint: buildPartHint(key, value, parse),
     };
   });
 };
@@ -171,13 +165,15 @@ export const parseCronExpression = (
   expression: string,
   locale: Locale = 'ru',
 ): CronParseResult => {
+  const t = messages[locale];
+  const parse = t.checkerParse;
   const trimmed = expression.trim();
 
   if (!trimmed) {
     return {
       valid: false,
       expression: trimmed,
-      error: 'Введите cron-выражение',
+      error: parse.emptyExpression,
     };
   }
 
@@ -187,24 +183,20 @@ export const parseCronExpression = (
     return {
       valid: false,
       expression: trimmed,
-      error: `Ожидается 5 полей: минута час день_месяца месяц день_недели. Получено: ${parts.length}`,
+      error: formatMessage(parse.wrongFieldCount, { count: parts.length }),
     };
   }
 
   const cron = Cron.fromString(trimmed);
 
-  // Прямой перевод выражения через cronstrue (эталон «как есть»).
   let cronDescription: string;
   try {
-    cronDescription = cron.toString({
-      locale,
-      throwExceptionOnParseError: true,
-    });
+    cronDescription = describeCronHuman(cron, locale);
   } catch {
     return {
       valid: false,
       expression: trimmed,
-      error: 'Не удалось разобрать выражение. Проверьте синтаксис полей.',
+      error: parse.parseFailed,
     };
   }
 
@@ -212,23 +204,22 @@ export const parseCronExpression = (
     return {
       valid: false,
       expression: trimmed,
-      error: 'Выражение не распознано. Проверьте допустимые значения полей.',
+      error: parse.notRecognized,
     };
   }
 
-  // Round-trip через модель редактора — тот же путь, что в CronEditor и на карточке.
   const schedule = ScheduleModel.fromCron(cron);
-  const scheduleDescription = schedule.toDescription();
+  const scheduleDescription = schedule.toDescription(locale);
   const oneTimeNotice =
     schedule.scheduleType === 'one-time'
-      ? getOneTimeCronYearNotice(schedule.oneTimeDate)
+      ? getOneTimeYearNotice(schedule.oneTimeDate, t)
       : undefined;
 
   return {
     valid: true,
     expression: trimmed,
     cron,
-    parts: buildParts(parts),
+    parts: buildParts(parts, parse),
     cronDescription,
     scheduleDescription,
     oneTimeNotice,

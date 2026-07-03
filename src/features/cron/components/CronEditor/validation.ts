@@ -8,6 +8,8 @@ import type { IntervalUnit } from './models/schedule/types';
 import { WEEK_NUMBER_KEYS } from './models/schedule/types';
 import type { CronOptions } from './options';
 import { isCronFieldRequired } from './options';
+import type { Messages } from '@shared/i18n/messages';
+import { formatMessage } from '@shared/i18n/messages';
 
 export type ValidateScheduleOptions = Pick<CronOptions, 'requires' | 'weeklyWeekNumbers'>;
 
@@ -41,15 +43,16 @@ export const normalizeEveryInterval = (
   return value;
 };
 
-/** Текст подсказки под полем интервала: «от N до M минут/часов» */
+/** Текст подсказки под полем интервала */
 export const getEveryIntervalHint = (
   unit: IntervalUnit,
   minuteStep: number,
+  editor: Messages['editor'],
 ): string => {
   const { min, max } = getEveryIntervalLimits(unit, minuteStep);
   return unit === 'minutes'
-    ? `от ${min} до ${max} минут`
-    : `от ${min} до ${max} часов`;
+    ? formatMessage(editor.intervalMinutes, { min, max })
+    : formatMessage(editor.intervalHours, { min, max });
 };
 
 /** Проверяет расписание перед отправкой формы */
@@ -57,6 +60,7 @@ export const validateSchedule = (
   schedule: ScheduleModel,
   minuteStep: number,
   editorOptions: ValidateScheduleOptions = {},
+  editor: Messages['editor'],
 ): { valid: boolean; message: string | null } => {
   const requireFields = editorOptions.requires ?? [];
   const weeklyWeekNumbersEnabled =
@@ -71,7 +75,7 @@ export const validateSchedule = (
     if (isCronFieldRequired(requireFields, 'weeklyWeekDays') && !hasDay) {
       return {
         valid: false,
-        message: 'Выберите хотя бы один день недели',
+        message: editor.pickWeekDay,
       };
     }
 
@@ -83,7 +87,7 @@ export const validateSchedule = (
       ) {
         return {
           valid: false,
-          message: 'Выберите хотя бы одну неделю месяца',
+          message: editor.pickWeekNumber,
         };
       }
     }
@@ -95,7 +99,7 @@ export const validateSchedule = (
     if (schedule.everyInterval < min || schedule.everyInterval > max) {
       return {
         valid: false,
-        message: getEveryIntervalHint(schedule.everyUnit, minuteStep),
+        message: getEveryIntervalHint(schedule.everyUnit, minuteStep, editor),
       };
     }
   }

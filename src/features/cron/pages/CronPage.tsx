@@ -44,6 +44,7 @@ import { EditOutlined } from '@ant-design/icons';
 import CopyOutline from '@admiral-ds/icons/build/documents/CopyOutline.svg?react';
 import { useMediaQuery } from '@shared/hooks/useMediaQuery';
 import { useTranslation } from '@shared/i18n/useTranslation';
+import { describeCronHuman } from '@features/cron/utils/describeCron';
 
 const Page = styled.main`
   width: 100%;
@@ -54,6 +55,12 @@ const Page = styled.main`
   @media (max-width: 767px) {
     padding: 16px 12px;
   }
+`;
+
+const PageDescription = styled(T)`
+  display: block;
+  margin-top: 8px;
+  max-width: 720px;
 `;
 
 const CronSummaryCard = styled.section`
@@ -88,6 +95,8 @@ const CronExpressionRow = styled.div`
   min-width: 0;
 `;
 
+import { MONO_FONT_FAMILY } from '@shared/styles/typography';
+
 const CronExpression = styled.code`
   display: inline-block;
   width: fit-content;
@@ -96,7 +105,7 @@ const CronExpression = styled.code`
   border-radius: 4px;
   background: ${({ theme }) => theme.color['Neutral/Neutral 10']};
   border: 1px solid ${({ theme }) => theme.color['Neutral/Neutral 20']};
-  font-family: ui-monospace, 'Cascadia Code', 'SF Mono', monospace;
+  font-family: ${MONO_FONT_FAMILY};
   font-size: 13px;
   line-height: 1.4;
   color: ${({ theme }) => theme.color['Neutral/Neutral 90']};
@@ -328,12 +337,9 @@ export const CronPage: FC = (_props) => {
     () => ({ ...DEFAULT_CRON_OPTIONS }),
   );
 
-  useEffect(() => {
-    if (!isEditorOpen || !isMobile) {
-      return;
-    }
-    editorPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, [isEditorOpen, isMobile]);
+  const openEditor = () => {
+    setIsEditorOpen(true);
+  };
 
   const closeEditor = () => {
     setIsEditorOpen(false);
@@ -343,6 +349,13 @@ export const CronPage: FC = (_props) => {
     submitCron(nextCron);
     closeEditor();
   };
+
+  useEffect(() => {
+    if (!isEditorOpen || !isMobile) {
+      return;
+    }
+    editorPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [isEditorOpen, isMobile]);
 
   const handleEditorOk = () => {
     const cronForm = document.getElementById(CRON_FORM_ID);
@@ -468,6 +481,9 @@ export const CronPage: FC = (_props) => {
       <T font="Header/H4" as="h3">
         {t.pageTitle}
       </T>
+      <PageDescription font="Body/Body 1 Long" color="Neutral/Neutral 50" as="p">
+        {t.pageDescription}
+      </PageDescription>
 
       <HorizontalTabs
         selectedTabId={activeTab}
@@ -504,7 +520,7 @@ export const CronPage: FC = (_props) => {
       <CronSummaryCard>
         <CronSummaryContent>
           <T font="Body/Body 1 Long" color="Neutral/Neutral 90">
-            {cron.toString({ locale })}
+            {describeCronHuman(cron, locale)}
           </T>
           <CronExpressionRow>
             <CronExpression>{cron.toExpression()}</CronExpression>
@@ -525,24 +541,48 @@ export const CronPage: FC = (_props) => {
             dimension="m"
             type="button"
             aria-expanded={isEditorOpen}
-            onClick={() => setIsEditorOpen(true)}
+            onClick={openEditor}
           >
             <ButtonContent>
               <EditOutlined />
-              {isEditorOpen && isMobile ? t.editorOpenBelow : t.editSchedule}
+              {t.editSchedule}
             </ButtonContent>
           </EditScheduleButton>
         </CronActions>
       </CronSummaryCard>
 
-      {isEditorOpen && isMobile && (
+      {isMobile && isEditorOpen && (
         <InlineEditorPanel ref={editorPanelRef}>
           <InlineEditorTitle font="Header/H6" as="h4">
             {t.editorTitle}
           </InlineEditorTitle>
           {renderCronEditor()}
-          <EditorActions>{renderEditorActions()}</EditorActions>
+          <EditorActions>
+            <Button
+              appearance="primary"
+              dimension="m"
+              type="button"
+              onClick={handleEditorOk}
+            >
+              {t.saveSchedule}
+            </Button>
+            <Button appearance="secondary" dimension="m" onClick={closeEditor}>
+              {t.closeEditor}
+            </Button>
+          </EditorActions>
         </InlineEditorPanel>
+      )}
+
+      {!isMobile && isEditorOpen && (
+          <Modal
+            dimension="xl"
+            onClose={closeEditor}
+            aria-labelledby="cron-schedule-title"
+          >
+            <ModalTitle id="cron-schedule-title">{t.editorTitle}</ModalTitle>
+            <ModalContent>{renderCronEditor()}</ModalContent>
+            <ModalButtonPanel>{renderEditorActions()}</ModalButtonPanel>
+          </Modal>
       )}
 
       <ControlsPanel>
@@ -682,18 +722,6 @@ export const CronPage: FC = (_props) => {
             onExpressionChange={changeCheckerExpression}
           />
         </TabContent>
-      )}
-
-      {isEditorOpen && !isMobile && (
-        <Modal
-          dimension="xl"
-          onClose={closeEditor}
-          aria-labelledby="cron-schedule-title"
-        >
-          <ModalTitle id="cron-schedule-title">{t.editorTitle}</ModalTitle>
-          <ModalContent>{renderCronEditor()}</ModalContent>
-          <ModalButtonPanel>{renderEditorActions()}</ModalButtonPanel>
-        </Modal>
       )}
 
     </Page>

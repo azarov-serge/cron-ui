@@ -1,5 +1,4 @@
 import { Cron } from '../cron';
-import { CRON_RU_TO_STRING_OPTIONS } from '../cron/types';
 import type { ScheduleInterface, WeekDays } from './types';
 import {
   createDefaultWeekDays,
@@ -15,6 +14,9 @@ import {
   parseDayOfWeekField,
   parseTime,
 } from './utils';
+import type { Locale } from '@shared/i18n/messages';
+import { formatMessage, messages } from '@shared/i18n/messages';
+import { describeCronHuman } from '@features/cron/utils/describeCron';
 
 const clearDateFields = {
   dayOfWeek: null,
@@ -206,14 +208,18 @@ export class ScheduleModel implements ScheduleInterface {
     }
   };
 
-  /** Краткое описание расписания на русском */
-  public toDescription = (): string => {
+  /** Краткое описание расписания */
+  public toDescription = (locale: Locale = 'ru'): string => {
+    const t = messages[locale];
+
     if (this.scheduleType === 'one-time') {
-      return `Выполняется один раз ${this.oneTimeDate} в ${this.oneTimeTime}.`;
+      return formatMessage(t.editor.oneTimeDescription, {
+        date: this.oneTimeDate,
+        time: this.oneTimeTime,
+      });
     }
 
-    const text = this.toCron().toString(CRON_RU_TO_STRING_OPTIONS);
-    return text.charAt(0).toUpperCase() + text.slice(1);
+    return describeCronHuman(this.toCron(), locale);
   };
 
   /** Возвращает копию с частично заменёнными полями */

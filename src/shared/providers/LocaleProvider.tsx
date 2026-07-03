@@ -24,7 +24,7 @@ const readLocale = (): Locale => {
   }
 
   const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved === 'ru' || saved === 'en') {
+  if (saved === 'ru' || saved === 'en' || saved === 'zh' || saved === 'hi') {
     return saved;
   }
 

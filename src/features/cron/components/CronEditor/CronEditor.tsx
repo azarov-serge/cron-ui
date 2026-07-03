@@ -12,14 +12,9 @@ import {
 } from '@admiral-ds/react-ui';
 import { Cron } from './models/cron';
 import type { ScheduleInterface, WeekDayKey, WeekNumberKey } from './models/schedule/types';
-import {
-  WEEK_DAY_LABELS,
-  WEEK_NUMBER_KEYS,
-  WEEK_NUMBER_LABELS,
-} from './models/schedule/types';
+import { WEEK_NUMBER_KEYS } from './models/schedule/types';
 import {
   CRON_FORM_ID,
-  getOneTimeCronYearNotice,
   INTERVAL_UNIT_OPTIONS,
   OCCURS_OPTIONS,
   SCHEDULE_TYPE_OPTIONS,
@@ -29,6 +24,8 @@ import {
   Form,
   DateFieldWrap,
   DescriptionSection,
+  CronCodeText,
+  DescriptionText,
   FrequencyGroup,
   FieldHint,
   InlineRow,
@@ -58,6 +55,8 @@ import {
   validateSchedule,
 } from './validation';
 import styled from 'styled-components';
+import { useTranslation } from '@shared/i18n/useTranslation';
+import { getOneTimeYearNotice } from '@shared/i18n/messages';
 
 export const Legend = styled.legend`
   width: auto;
@@ -70,6 +69,7 @@ export interface CronEditorProps {
 }
 
 export const CronEditor: React.FC<CronEditorProps> = (props) => {
+  const { t, locale } = useTranslation();
   const { cron, onSubmit } = props;
   const options = React.useMemo(
     () => resolveCronOptions(props.options),
@@ -90,11 +90,22 @@ export const CronEditor: React.FC<CronEditorProps> = (props) => {
   const showScheduleTypeChoice = options.scheduleTypes.length > 1;
   const scheduleTypeOptions = SCHEDULE_TYPE_OPTIONS.filter((option) =>
     options.scheduleTypes.includes(option.value),
-  );
+  ).map((option) => ({
+    ...option,
+    label: t.scheduleTypes[option.value],
+  }));
   const showOccursChoice = options.occursFrequencies.length > 1;
   const occursOptions = OCCURS_OPTIONS.filter((option) =>
     options.occursFrequencies.includes(option.value),
-  );
+  ).map((option) => ({
+    ...option,
+    label: t.occurs[option.value],
+  }));
+  const intervalUnitOptions = INTERVAL_UNIT_OPTIONS.map((option) => ({
+    ...option,
+    label: t.editor.intervalUnits[option.value],
+  }));
+  const weekDayKeys = Object.keys(t.editor.weekDaysLabels) as WeekDayKey[];
   const showDailyFrequencyChoice = options.dailyFrequencies.length > 1;
   const allowOnceDaily = options.dailyFrequencies.includes('once');
   const allowEveryDaily = options.dailyFrequencies.includes('every');
@@ -139,8 +150,8 @@ export const CronEditor: React.FC<CronEditorProps> = (props) => {
       validateSchedule(schedule, options.minuteStep, {
         requires: options.requires,
         weeklyWeekNumbers: options.weeklyWeekNumbers,
-      }),
-    [schedule, options],
+      }, t.editor),
+    [schedule, options, t.editor],
   );
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -171,7 +182,7 @@ export const CronEditor: React.FC<CronEditorProps> = (props) => {
     <Form id={CRON_FORM_ID} onSubmit={handleSubmit}>
       {showScheduleTypeChoice && (
         <Section>
-          <Legend>Тип расписания</Legend>
+          <Legend>{t.editor.scheduleTypeLegend}</Legend>
           <InlineRow>
             {scheduleTypeOptions.map((option) => (
               <RadioButton
@@ -197,11 +208,11 @@ export const CronEditor: React.FC<CronEditorProps> = (props) => {
 
       {schedule.scheduleType === 'one-time' && (
         <Section>
-          <Legend>Однократное выполнение</Legend>
+          <Legend>{t.editor.oneTimeSection}</Legend>
           <InlineRow>
             <DateFieldWrap>
               <DateField
-                label="Дата"
+                label={t.editor.date}
                 value={schedule.oneTimeDate}
                 onChange={(event) =>
                   setSchedule((prevSchedule) =>
@@ -212,7 +223,7 @@ export const CronEditor: React.FC<CronEditorProps> = (props) => {
             </DateFieldWrap>
             <TimeFieldWrap>
               <TimePickerField
-                label="Время"
+                label={t.editor.time}
                 value={schedule.oneTimeTime}
                 minuteStep={options.minuteStep}
                 onChange={(oneTimeTime) =>
@@ -223,9 +234,9 @@ export const CronEditor: React.FC<CronEditorProps> = (props) => {
           </InlineRow>
           <NoticeWrap>
             <NotificationItem status="warning" displayStatusIcon>
-              <NotificationItemTitle>Год не входит в cron</NotificationItemTitle>
+              <NotificationItemTitle>{t.editor.yearNotInCronTitle}</NotificationItemTitle>
               <NotificationItemContent>
-                {getOneTimeCronYearNotice(schedule.oneTimeDate)}
+                {getOneTimeYearNotice(schedule.oneTimeDate, t)}
               </NotificationItemContent>
             </NotificationItem>
           </NoticeWrap>
@@ -235,7 +246,7 @@ export const CronEditor: React.FC<CronEditorProps> = (props) => {
       {isRecurring && (
         <>
           <Section>
-            <Legend>Частота</Legend>
+            <Legend>{t.editor.frequency}</Legend>
             {showOccursChoice && (
               <InlineRow>
                 <T
@@ -243,7 +254,7 @@ export const CronEditor: React.FC<CronEditorProps> = (props) => {
                   color="Neutral/Neutral 90"
                   as="span"
                 >
-                  Выполняется
+                  {t.editor.occurs}
                 </T>
                 <SelectField
                   value={schedule.occurs}
@@ -268,7 +279,7 @@ export const CronEditor: React.FC<CronEditorProps> = (props) => {
             {schedule.occurs === 'monthly' && (
               <InlineRow style={{ marginTop: 12 }}>
                 <T font="Body/Body 2 Long" color="Neutral/Neutral 90">
-                  День
+                  {t.editor.day}
                 </T>
                 <NarrowField>
                   <NumberInputField
@@ -286,7 +297,7 @@ export const CronEditor: React.FC<CronEditorProps> = (props) => {
                   />
                 </NarrowField>
                 <T font="Body/Body 2 Long" color="Neutral/Neutral 90">
-                  месяца
+                  {t.editor.ofMonth}
                 </T>
               </InlineRow>
             )}
@@ -299,11 +310,11 @@ export const CronEditor: React.FC<CronEditorProps> = (props) => {
                   style={{ display: 'block', marginBottom: 8 }}
                 >
                   {isCronFieldRequired(options.requires, 'weeklyWeekDays')
-                    ? 'Дни недели'
-                    : 'Дни недели (необязательно)'}
+                    ? t.editor.weekDays
+                    : t.editor.weekDaysOptional}
                 </T>
                 <WeekDaysGrid>
-                  {(Object.keys(WEEK_DAY_LABELS) as WeekDayKey[]).map((day) => (
+                  {weekDayKeys.map((day) => (
                     <CheckboxField
                       key={day}
                       checked={schedule.weekDays[day]}
@@ -311,18 +322,18 @@ export const CronEditor: React.FC<CronEditorProps> = (props) => {
                         setWeekDay(day, event.target.checked)
                       }
                     >
-                      {WEEK_DAY_LABELS[day]}
+                      {t.editor.weekDaysLabels[day]}
                     </CheckboxField>
                   ))}
                 </WeekDaysGrid>
                 {isWeekDaysInvalid && (
                   <FieldHint $error $inSection>
-                    Выберите хотя бы один день недели
+                    {t.editor.pickWeekDay}
                   </FieldHint>
                 )}
                 {!isCronFieldRequired(options.requires, 'weeklyWeekDays') && (
                   <FieldHint $inSection>
-                    Если ничего не выбрано — каждый день недели
+                    {t.editor.weekDaysEmptyHint}
                   </FieldHint>
                 )}
 
@@ -334,8 +345,8 @@ export const CronEditor: React.FC<CronEditorProps> = (props) => {
                       style={{ display: 'block', marginTop: 16 }}
                     >
                       {isCronFieldRequired(options.requires, 'weeklyWeekNumbers')
-                        ? 'Недели месяца'
-                        : 'Недели месяца (необязательно)'}
+                        ? t.editor.weekNumbers
+                        : t.editor.weekNumbersOptional}
                     </T>
                     <WeekDaysGrid>
                       {WEEK_NUMBER_KEYS.map((week) => (
@@ -346,18 +357,18 @@ export const CronEditor: React.FC<CronEditorProps> = (props) => {
                             setWeekNumber(week, event.target.checked)
                           }
                         >
-                          {`${WEEK_NUMBER_LABELS[week]} неделя`}
+                          {`${t.editor.weekNumbersLabels[week]} ${t.editor.weekNumberSuffix}`}
                         </CheckboxField>
                       ))}
                     </WeekDaysGrid>
                     {isWeekNumbersInvalid && (
                       <FieldHint $error $inSection>
-                        Выберите хотя бы одну неделю месяца
+                        {t.editor.pickWeekNumber}
                       </FieldHint>
                     )}
                     {!isCronFieldRequired(options.requires, 'weeklyWeekNumbers') && (
                       <FieldHint $inSection>
-                        Если ничего не выбрано — запуск каждую неделю
+                        {t.editor.weekNumbersEmptyHint}
                       </FieldHint>
                     )}
                   </>
@@ -367,7 +378,7 @@ export const CronEditor: React.FC<CronEditorProps> = (props) => {
           </Section>
 
           <Section>
-            <Legend>Ежедневная частота</Legend>
+            <Legend>{t.editor.dailyFrequency}</Legend>
             <FrequencyGroup>
               {allowOnceDaily && (
                 <RadioRow>
@@ -383,7 +394,7 @@ export const CronEditor: React.FC<CronEditorProps> = (props) => {
                           )
                         }
                       >
-                        Выполняется один раз в
+                        {t.editor.onceAt}
                       </RadioButton>
                     </RadioLabel>
                   ) : (
@@ -392,7 +403,7 @@ export const CronEditor: React.FC<CronEditorProps> = (props) => {
                       color="Neutral/Neutral 90"
                       as="span"
                     >
-                      Выполняется один раз в
+                      {t.editor.onceAt}
                     </T>
                   )}
                   <IntervalField>
@@ -425,7 +436,7 @@ export const CronEditor: React.FC<CronEditorProps> = (props) => {
                             )
                           }
                         >
-                          Выполняется каждые
+                          {t.editor.every}
                         </RadioButton>
                       </RadioLabel>
                     ) : (
@@ -434,7 +445,7 @@ export const CronEditor: React.FC<CronEditorProps> = (props) => {
                         color="Neutral/Neutral 90"
                         as="span"
                       >
-                        Выполняется каждые
+                        {t.editor.every}
                       </T>
                     )}
                     <IntervalControls>
@@ -485,7 +496,7 @@ export const CronEditor: React.FC<CronEditorProps> = (props) => {
                           }
                           disabled={showDailyFrequencyChoice && isOnceDaily}
                         >
-                          {INTERVAL_UNIT_OPTIONS.map((option) => (
+                          {intervalUnitOptions.map((option) => (
                             <Option key={option.value} value={option.value}>
                               {option.label}
                             </Option>
@@ -499,6 +510,7 @@ export const CronEditor: React.FC<CronEditorProps> = (props) => {
                       {getEveryIntervalHint(
                         schedule.everyUnit,
                         options.minuteStep,
+                        t.editor,
                       )}
                     </FieldHint>
                   )}
@@ -510,13 +522,13 @@ export const CronEditor: React.FC<CronEditorProps> = (props) => {
       )}
 
       <DescriptionSection>
-        <Legend>cron</Legend>
-        <span>{schedule.toCron().toString() ?? ''}</span>
+        <Legend>{t.editor.cronLegend}</Legend>
+        <CronCodeText>{schedule.toCron().toExpression()}</CronCodeText>
       </DescriptionSection>
 
       <DescriptionSection>
-        <Legend>Описание</Legend>
-        <span>{schedule.toDescription() ?? ''}</span>
+        <Legend>{t.editor.descriptionLegend}</Legend>
+        <DescriptionText>{schedule.toDescription(locale) ?? ''}</DescriptionText>
       </DescriptionSection>
     </Form>
   );

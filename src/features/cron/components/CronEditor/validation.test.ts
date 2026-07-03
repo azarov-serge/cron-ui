@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { ScheduleModel } from './models/schedule';
 import { createEmptyWeekDays } from './models/schedule/types';
 import { validateSchedule } from './validation';
+import { messages } from '@shared/i18n/messages';
+
+const editor = messages.ru.editor;
 
 describe('validateSchedule weekly requiredness', () => {
   const weeklySchedule = new ScheduleModel({
@@ -10,7 +13,7 @@ describe('validateSchedule weekly requiredness', () => {
   });
 
   it('не требует дни недели по умолчанию', () => {
-    expect(validateSchedule(weeklySchedule, 1, { requires: [] })).toEqual({
+    expect(validateSchedule(weeklySchedule, 1, { requires: [] }, editor)).toEqual({
       valid: true,
       message: null,
     });
@@ -20,7 +23,7 @@ describe('validateSchedule weekly requiredness', () => {
     expect(
       validateSchedule(weeklySchedule, 1, {
         requires: ['weeklyWeekDays'],
-      }),
+      }, editor),
     ).toEqual({
       valid: false,
       message: 'Выберите хотя бы один день недели',
@@ -37,7 +40,7 @@ describe('validateSchedule weekly requiredness', () => {
       validateSchedule(schedule, 1, {
         weeklyWeekNumbers: true,
         requires: ['weeklyWeekNumbers'],
-      }),
+      }, editor),
     ).toEqual({
       valid: false,
       message: 'Выберите хотя бы одну неделю месяца',
