@@ -3,21 +3,19 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
-    paths-ignore:
-      - 'assets/**'
-      - 'docs/**'
-      - 'index.html'
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 
 concurrency:
   group: pages
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -29,23 +27,20 @@ jobs:
 
       - run: npm ci
       - run: npm run build
+      - run: cp dist/dev.html dist/index.html
 
-      - name: Copy build for GitHub Pages (root and docs)
-        run: |
-          cp dist/dev.html index.html
-          rm -rf assets docs
-          cp -r dist/assets assets
-          mkdir -p docs
-          cp dist/dev.html docs/index.html
-          cp -r dist/assets docs/assets
-          cp dist/favicon.svg favicon.svg 2>/dev/null || true
-          cp dist/icons.svg icons.svg 2>/dev/null || true
-          cp dist/favicon.svg docs/favicon.svg 2>/dev/null || true
-          cp dist/icons.svg docs/icons.svg 2>/dev/null || true
-          touch .nojekyll docs/.nojekyll
+      - uses: actions/configure-pages@v5
 
-      - name: Commit and push production files
-        uses: stefanzweifel/git-auto-commit-action@v5
+      - uses: actions/upload-pages-artifact@v3
         with:
-          commit_message: 'chore: update GitHub Pages site'
-          file_pattern: 'index.html assets/** docs/** favicon.svg icons.svg .nojekyll'
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

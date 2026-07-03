@@ -56,16 +56,16 @@ npm run preview
 
 ## Публикация
 
-Сайт деплоится в **корень репозитория** (`index.html`, `assets/`) через GitHub Actions при push в `main`.  
+**Демо:** https://azarov-serge.github.io/cron-ui/
+
+Сайт деплоится через GitHub Actions (`.github/workflows/deploy.yml`) при push в `main`.  
 В `vite.config.ts` задан `base: '/cron-ui/'`. Локальная разработка: `npm run dev` (точка входа — `dev.html`).
 
-### Настройка GitHub Pages
+### Настройка GitHub Pages (один раз)
 
-1. **Settings → Pages** → **Deploy from a branch**
-2. **Branch:** `main`, папка **`/ (root)`** или **`/docs`** — оба варианта работают
-3. Сохраните и подождите 1–2 минуты
-
-После каждого push в `main` workflow собирает проект и коммитит `index.html` + `assets/` в корень.
+1. Откройте **Settings → Pages**: https://github.com/azarov-serge/cron-ui/settings/pages
+2. **Build and deployment → Source** → выберите **GitHub Actions**
+3. Дождитесь зелёного workflow **Deploy to GitHub Pages** в **Actions**
 
 Проверка: в исходном коде страницы должен быть `<script ... src="/cron-ui/assets/...">`, а не `/src/main.tsx`.
 
