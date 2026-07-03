@@ -1,6 +1,6 @@
 import { getOneTimeCronYearNotice } from '@features/cron/components/CronEditor/constants';
 import { Cron } from '@features/cron/components/CronEditor/models/cron';
-import { CRON_RU_TO_STRING_OPTIONS } from '@features/cron/components/CronEditor/models/cron/types';
+import type { Locale } from '@shared/i18n/messages';
 import { ScheduleModel } from '@features/cron/components/CronEditor/models/schedule';
 
 export type CronPartKey =
@@ -167,7 +167,10 @@ const buildParts = (parts: string[]): CronPartBreakdown[] => {
 };
 
 /** Проверяет cron-выражение и возвращает расшифровку полей */
-export const parseCronExpression = (expression: string): CronParseResult => {
+export const parseCronExpression = (
+  expression: string,
+  locale: Locale = 'ru',
+): CronParseResult => {
   const trimmed = expression.trim();
 
   if (!trimmed) {
@@ -194,7 +197,7 @@ export const parseCronExpression = (expression: string): CronParseResult => {
   let cronDescription: string;
   try {
     cronDescription = cron.toString({
-      ...CRON_RU_TO_STRING_OPTIONS,
+      locale,
       throwExceptionOnParseError: true,
     });
   } catch {

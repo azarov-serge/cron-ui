@@ -5,11 +5,6 @@ export const PAGE_TAB_IDS = ['constructor', 'checker'] as const;
 
 export type PageTabId = (typeof PAGE_TAB_IDS)[number];
 
-export const PAGE_TABS: ReadonlyArray<{ id: PageTabId; label: string }> = [
-  { id: 'constructor', label: 'Конструктор cron' },
-  { id: 'checker', label: 'Проверка cron' },
-];
-
 export const DEFAULT_PAGE_TAB: PageTabId = 'constructor';
 
 export type CronPageUrlState = {

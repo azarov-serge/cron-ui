@@ -8,6 +8,7 @@ import {
   T,
 } from '@admiral-ds/react-ui';
 import { parseCronExpression } from '@features/cron/utils/parseCronExpression';
+import { useTranslation } from '@shared/i18n/useTranslation';
 
 const Panel = styled.section`
   padding: 16px 20px;
@@ -101,15 +102,16 @@ export const CronChecker: FC<CronCheckerProps> = ({
   expression,
   onExpressionChange,
 }) => {
+  const { t, locale } = useTranslation();
   const parseResult = useMemo(
-    () => (expression.trim() ? parseCronExpression(expression) : null),
-    [expression],
+    () => (expression.trim() ? parseCronExpression(expression, locale) : null),
+    [expression, locale],
   );
 
   return (
     <Panel>
       <T font="Body/Body 2 Long" color="Neutral/Neutral 50">
-        Вставьте пятичастное выражение: минута час день_месяца месяц день_недели
+        {t.checker.hint}
       </T>
 
       <InputWrap>
@@ -123,14 +125,14 @@ export const CronChecker: FC<CronCheckerProps> = ({
 
       {!parseResult && (
         <Placeholder font="Body/Body 2 Long" color="Neutral/Neutral 50">
-          Например: <code>0 9 * * 1</code> — по понедельникам в 09:00
+          {t.checker.placeholderExample}
         </Placeholder>
       )}
 
       {parseResult && !parseResult.valid && (
         <Breakdown>
           <NotificationItem status="error" displayStatusIcon>
-            <NotificationItemTitle>Ошибка разбора</NotificationItemTitle>
+            <NotificationItemTitle>{t.checker.parseError}</NotificationItemTitle>
             <NotificationItemContent>{parseResult.error}</NotificationItemContent>
           </NotificationItem>
         </Breakdown>
@@ -141,13 +143,13 @@ export const CronChecker: FC<CronCheckerProps> = ({
           <PartsTable>
             <PartHeaderRow>
               <PartHeader font="Body/Body 2 Short" color="Neutral/Neutral 50">
-                Поле
+                {t.checker.field}
               </PartHeader>
               <PartHeader font="Body/Body 2 Short" color="Neutral/Neutral 50">
-                Значение
+                {t.checker.value}
               </PartHeader>
               <PartHeader font="Body/Body 2 Short" color="Neutral/Neutral 50">
-                Расшифровка
+                {t.checker.meaning}
               </PartHeader>
             </PartHeaderRow>
 

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FC } from 'react';
+import { useEffect, useMemo, useRef, useState, type FC } from 'react';
 import styled from 'styled-components';
 import {
   HorizontalTab,
@@ -37,18 +37,16 @@ import {
   SCHEDULE_TYPE_OPTIONS,
 } from '@features/cron/components/CronEditor/constants';
 import {
-  PAGE_TABS,
+  PAGE_TAB_IDS,
   type PageTabId,
 } from '@features/cron/utils/cronPageSearchParams';
 import { EditOutlined } from '@ant-design/icons';
 import CopyOutline from '@admiral-ds/icons/build/documents/CopyOutline.svg?react';
-import packageJson from '../../../../package.json';
 import { useMediaQuery } from '@shared/hooks/useMediaQuery';
+import { useTranslation } from '@shared/i18n/useTranslation';
 
 const Page = styled.main`
   width: 100%;
-  max-width: 720px;
-  margin: 0 auto;
   padding: 48px 24px;
   min-width: 0;
   overflow-x: hidden;
@@ -232,18 +230,12 @@ const UrlErrorNotice = styled(NotificationItem)`
 
 const MINUTE_STEP_OPTIONS = [1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30] as const;
 
-const DAILY_FREQUENCY_OPTIONS = [
-  { value: 'once', label: 'Один раз в день' },
-  { value: 'every', label: 'Каждые N минут/часов' },
-] as const;
+const DAILY_FREQUENCY_VALUES = ['once', 'every'] as const;
 
-const REQUIRE_OPTIONS = [
-  { value: 'weeklyWeekDays', label: 'Дни недели обязательны' },
-  { value: 'weeklyWeekNumbers', label: 'Недели месяца обязательны' },
-] as const satisfies ReadonlyArray<{
-  value: CronRequireField;
-  label: string;
-}>;
+const REQUIRE_FIELD_VALUES = [
+  'weeklyWeekDays',
+  'weeklyWeekNumbers',
+] as const satisfies readonly CronRequireField[];
 
 const toggleMultiSelect = <OptionValue extends string>(
   selectedValues: OptionValue[],
@@ -277,6 +269,48 @@ const toggleRequireField = (
 };
 
 export const CronPage: FC = (_props) => {
+  const { t, locale } = useTranslation();
+  const pageTabs = useMemo(
+    () =>
+      PAGE_TAB_IDS.map((id) => ({
+        id,
+        label: t.tabs[id],
+      })),
+    [t],
+  );
+  const scheduleTypeOptions = useMemo(
+    () =>
+      SCHEDULE_TYPE_OPTIONS.map((option) => ({
+        ...option,
+        label: t.scheduleTypes[option.value],
+      })),
+    [t],
+  );
+  const occursOptions = useMemo(
+    () =>
+      OCCURS_OPTIONS.map((option) => ({
+        ...option,
+        label: t.occurs[option.value],
+      })),
+    [t],
+  );
+  const dailyFrequencyOptions = useMemo(
+    () =>
+      DAILY_FREQUENCY_VALUES.map((value) => ({
+        value,
+        label: t.dailyFrequencies[value],
+      })),
+    [t],
+  );
+  const requireOptions = useMemo(
+    () =>
+      REQUIRE_FIELD_VALUES.map((value) => ({
+        value,
+        label: t.requireFields[value],
+      })),
+    [t],
+  );
+
   const {
     activeTab,
     cron,
@@ -393,10 +427,10 @@ export const CronPage: FC = (_props) => {
         type="button"
         onClick={handleEditorOk}
       >
-        Сохранить расписание
+        {t.saveSchedule}
       </Button>
       <Button appearance="secondary" dimension="m" onClick={closeEditor}>
-        Отмена
+        {t.cancel}
       </Button>
     </>
   );
@@ -415,7 +449,7 @@ export const CronPage: FC = (_props) => {
     selected?: boolean,
     onSelectTab?: (nextTabId: string) => void,
   ) => {
-    const tab = PAGE_TABS.find((item) => item.id === tabId);
+    const tab = pageTabs.find((item) => item.id === tabId);
 
     return (
       <HorizontalTab
@@ -432,22 +466,22 @@ export const CronPage: FC = (_props) => {
   return (
     <Page>
       <T font="Header/H4" as="h3">
-        Расписание заданий (v{packageJson.version})
+        {t.pageTitle}
       </T>
 
       <HorizontalTabs
         selectedTabId={activeTab}
         onSelectTab={(tabId) => selectTab(tabId as PageTabId)}
-        tabsId={PAGE_TABS.map((tab) => tab.id)}
+        tabsId={pageTabs.map((tab) => tab.id)}
         renderTab={renderPageTab}
         tabIsDisabled={() => false}
       />
 
       {cronParamError && (
         <UrlErrorNotice status="error" displayStatusIcon>
-          <NotificationItemTitle>Некорректный cron в адресе</NotificationItemTitle>
+          <NotificationItemTitle>{t.urlError.title}</NotificationItemTitle>
           <NotificationItemContent>
-            {cronParamError}. Используется расписание по умолчанию (
+            {cronParamError}. {t.urlError.defaultUsed} (
             {Cron.createEmpty().toExpression()}).
           </NotificationItemContent>
         </UrlErrorNotice>
@@ -456,25 +490,13 @@ export const CronPage: FC = (_props) => {
       {activeTab === 'constructor' && (
         <TabContent>
           <HelpNotice status="info" displayStatusIcon>
-            <NotificationItemTitle>Как пользоваться</NotificationItemTitle>
+            <NotificationItemTitle>{t.help.title}</NotificationItemTitle>
             <NotificationItemContent>
               <ol style={{ margin: '8px 0 0', paddingLeft: 20 }}>
-                <li>
-                  Карточка ниже показывает <strong>текущее</strong> расписание. Сама
-                  по себе она не меняется.
-                </li>
-                <li>
-                  Чекбоксы «Параметры редактора» настраивают форму — какие поля
-                  будут в редакторе.
-                </li>
-                <li>
-                  Нажмите <strong>«Изменить расписание»</strong>, заполните форму и
-                  сохраните — карточка обновится.
-                </li>
-                <li>
-                  Чтобы разобрать готовое выражение, перейдите на вкладку{' '}
-                  <strong>«Проверка cron»</strong>.
-                </li>
+                <li>{t.help.step1}</li>
+                <li>{t.help.step2}</li>
+                <li>{t.help.step3}</li>
+                <li>{t.help.step4}</li>
               </ol>
             </NotificationItemContent>
           </HelpNotice>
@@ -482,7 +504,7 @@ export const CronPage: FC = (_props) => {
       <CronSummaryCard>
         <CronSummaryContent>
           <T font="Body/Body 1 Long" color="Neutral/Neutral 90">
-            {cron.toString({ locale: 'ru' })}
+            {cron.toString({ locale })}
           </T>
           <CronExpressionRow>
             <CronExpression>{cron.toExpression()}</CronExpression>
@@ -490,8 +512,8 @@ export const CronPage: FC = (_props) => {
               appearance="ghost"
               dimension="m"
               onClick={handleCopyCronExpression}
-              aria-label="Копировать cron-выражение"
-              title="Копировать cron-выражение"
+              aria-label={t.copyCron}
+              title={t.copyCron}
             >
               <CopyOutline />
             </CopyButton>
@@ -507,7 +529,7 @@ export const CronPage: FC = (_props) => {
           >
             <ButtonContent>
               <EditOutlined />
-              {isEditorOpen && isMobile ? 'Редактор открыт ниже' : 'Изменить расписание'}
+              {isEditorOpen && isMobile ? t.editorOpenBelow : t.editSchedule}
             </ButtonContent>
           </EditScheduleButton>
         </CronActions>
@@ -516,7 +538,7 @@ export const CronPage: FC = (_props) => {
       {isEditorOpen && isMobile && (
         <InlineEditorPanel ref={editorPanelRef}>
           <InlineEditorTitle font="Header/H6" as="h4">
-            Редактор расписания
+            {t.editorTitle}
           </InlineEditorTitle>
           {renderCronEditor()}
           <EditorActions>{renderEditorActions()}</EditorActions>
@@ -524,18 +546,17 @@ export const CronPage: FC = (_props) => {
       )}
 
       <ControlsPanel>
-        <Legend>Параметры редактора</Legend>
+        <Legend>{t.editorParams}</Legend>
         <ParamsHint font="Body/Body 2 Long" color="Neutral/Neutral 50">
-          Влияют только на форму редактора. Чтобы применить расписание, откройте
-          «Изменить расписание» и нажмите «Сохранить».
+          {t.editorParamsHint}
         </ParamsHint>
         <ControlsGrid>
           <ControlGroup>
             <T font="Body/Body 2 Short" color="Neutral/Neutral 50">
-              Тип расписания
+              {t.scheduleType}
             </T>
             <CheckboxList>
-              {SCHEDULE_TYPE_OPTIONS.map((option) => (
+              {scheduleTypeOptions.map((option) => (
                 <CheckboxField
                   key={option.value}
                   checked={editorOptions.scheduleTypes.includes(option.value)}
@@ -551,10 +572,10 @@ export const CronPage: FC = (_props) => {
 
           <ControlGroup>
             <T font="Body/Body 2 Short" color="Neutral/Neutral 50">
-              Частота (выполняется)
+              {t.occursFrequency}
             </T>
             <CheckboxList>
-              {OCCURS_OPTIONS.map((option) => (
+              {occursOptions.map((option) => (
                 <CheckboxField
                   key={option.value}
                   checked={editorOptions.occursFrequencies.includes(
@@ -572,10 +593,10 @@ export const CronPage: FC = (_props) => {
 
           <ControlGroup>
             <T font="Body/Body 2 Short" color="Neutral/Neutral 50">
-              Ежедневная частота
+              {t.dailyFrequency}
             </T>
             <CheckboxList>
-              {DAILY_FREQUENCY_OPTIONS.map((option) => (
+              {dailyFrequencyOptions.map((option) => (
                 <CheckboxField
                   key={option.value}
                   checked={editorOptions.dailyFrequencies.includes(
@@ -593,7 +614,7 @@ export const CronPage: FC = (_props) => {
 
           <ControlGroup>
             <T font="Body/Body 2 Short" color="Neutral/Neutral 50">
-              Еженедельно
+              {t.weeklySection}
             </T>
             <CheckboxList>
               <CheckboxField
@@ -602,14 +623,14 @@ export const CronPage: FC = (_props) => {
                   patchWeeklyWeekNumbers(event.target.checked)
                 }
               >
-                Показывать недели месяца (1–5)
+                {t.showMonthWeeks}
               </CheckboxField>
             </CheckboxList>
           </ControlGroup>
 
           <ControlGroup>
             <SelectField
-              label="Шаг минут"
+              label={t.minuteStep}
               value={String(editorOptions.minuteStep)}
               onChange={(event) => patchMinuteStep(Number(event.target.value))}
             >
@@ -620,20 +641,20 @@ export const CronPage: FC = (_props) => {
               ))}
             </SelectField>
             <T font="Body/Body 2 Long" color="Neutral/Neutral 50">
-              Делители 60: TimePicker и интервал «каждые N минут»
+              {t.minuteStepHint}
             </T>
           </ControlGroup>
         </ControlsGrid>
       </ControlsPanel>
 
       <ControlsPanel>
-        <Legend>Обязательные поля</Legend>
+        <Legend>{t.requiredFields}</Legend>
         <ControlGroup>
           <T font="Body/Body 2 Long" color="Neutral/Neutral 50">
-            Пустой список — все поля необязательны при сохранении расписания
+            {t.requiredFieldsHint}
           </T>
           <CheckboxList>
-            {REQUIRE_OPTIONS.map((option) => (
+            {requireOptions.map((option) => (
               <CheckboxField
                 key={option.value}
                 checked={editorOptions.requires.includes(option.value)}
@@ -669,7 +690,7 @@ export const CronPage: FC = (_props) => {
           onClose={closeEditor}
           aria-labelledby="cron-schedule-title"
         >
-          <ModalTitle id="cron-schedule-title">Редактор расписания</ModalTitle>
+          <ModalTitle id="cron-schedule-title">{t.editorTitle}</ModalTitle>
           <ModalContent>{renderCronEditor()}</ModalContent>
           <ModalButtonPanel>{renderEditorActions()}</ModalButtonPanel>
         </Modal>
