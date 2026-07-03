@@ -121,3 +121,7 @@ export const DateFieldWrap = styled.div`
 export const UnitSelectWrap = styled.div`
   width: 180px;
 `;
+
+export const NoticeWrap = styled.div`
+  margin-top: 12px;
+`;

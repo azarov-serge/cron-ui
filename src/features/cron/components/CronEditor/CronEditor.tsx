@@ -1,6 +1,9 @@
 import {
   CheckboxField,
   DateField,
+  NotificationItem,
+  NotificationItemContent,
+  NotificationItemTitle,
   NumberInputField,
   Option,
   RadioButton,
@@ -16,6 +19,7 @@ import {
 } from './models/schedule/types';
 import {
   CRON_FORM_ID,
+  getOneTimeCronYearNotice,
   INTERVAL_UNIT_OPTIONS,
   OCCURS_OPTIONS,
   SCHEDULE_TYPE_OPTIONS,
@@ -32,6 +36,7 @@ import {
   IntervalField,
   EveryFrequencyBlock,
   EveryFrequencyRow,
+  NoticeWrap,
   NarrowField,
   RadioLabel,
   RadioRow,
@@ -216,6 +221,14 @@ export const CronEditor: React.FC<CronEditorProps> = (props) => {
               />
             </TimeFieldWrap>
           </InlineRow>
+          <NoticeWrap>
+            <NotificationItem status="warning" displayStatusIcon>
+              <NotificationItemTitle>Год не входит в cron</NotificationItemTitle>
+              <NotificationItemContent>
+                {getOneTimeCronYearNotice(schedule.oneTimeDate)}
+              </NotificationItemContent>
+            </NotificationItem>
+          </NoticeWrap>
         </Section>
       )}
 
