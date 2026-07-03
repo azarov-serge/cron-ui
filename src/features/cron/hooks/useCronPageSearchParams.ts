@@ -3,6 +3,7 @@ import { Cron } from '@features/cron/components/CronEditor/models/cron';
 import {
   readCronPageUrlState,
   buildCronPageSearch,
+  resolveUrlCronExpression,
   type PageTabId,
   writeCronPageUrl,
 } from '@features/cron/utils/cronPageSearchParams';
@@ -19,9 +20,15 @@ export const useCronPageSearchParams = () => {
     () => readCronPageUrlState().cronParamError,
   );
 
-  const syncUrl = useCallback((tab: PageTabId, expression: string) => {
-    writeCronPageUrl(tab, expression);
-  }, []);
+  const syncUrl = useCallback(
+    (tab: PageTabId, cronState: Cron, checkerExpr: string) => {
+      writeCronPageUrl(
+        tab,
+        resolveUrlCronExpression(tab, cronState, checkerExpr),
+      );
+    },
+    [],
+  );
 
   const applyUrlState = useCallback((search: string) => {
     const state = readCronPageUrlState(search);
@@ -43,11 +50,11 @@ export const useCronPageSearchParams = () => {
   useEffect(() => {
     const state = readCronPageUrlState();
     const params = new URLSearchParams(window.location.search);
-
-    let expression =
-      state.tab === 'checker'
-        ? state.checkerExpression.trim() || state.cron.toExpression()
-        : state.cron.toExpression();
+    const expression = resolveUrlCronExpression(
+      state.tab,
+      state.cron,
+      state.checkerExpression,
+    );
 
     if (state.tab === 'checker' && !state.checkerExpression.trim()) {
       setCheckerExpression(expression);
@@ -55,20 +62,22 @@ export const useCronPageSearchParams = () => {
 
     const expectedQuery = buildCronPageSearch(state.tab, expression);
     if (params.toString() !== expectedQuery) {
-      syncUrl(state.tab, expression);
+      syncUrl(state.tab, state.cron, state.checkerExpression);
     }
   }, [syncUrl]);
 
   const selectTab = useCallback(
     (tab: PageTabId) => {
       setActiveTab(tab);
+
       if (tab === 'checker' && !checkerExpression.trim()) {
         const expression = cron.toExpression();
         setCheckerExpression(expression);
-        syncUrl(tab, expression);
+        syncUrl(tab, cron, expression);
         return;
       }
-      syncUrl(tab, checkerExpression);
+
+      syncUrl(tab, cron, checkerExpression);
     },
     [checkerExpression, cron, syncUrl],
   );
@@ -77,9 +86,9 @@ export const useCronPageSearchParams = () => {
     (expression: string) => {
       setCheckerExpression(expression);
       setCronParamError(undefined);
-      syncUrl(activeTab, expression);
+      syncUrl(activeTab, cron, expression);
     },
-    [activeTab, syncUrl],
+    [activeTab, cron, syncUrl],
   );
 
   const submitCron = useCallback(
@@ -88,7 +97,7 @@ export const useCronPageSearchParams = () => {
       setCron(nextCron);
       setCheckerExpression(expression);
       setCronParamError(undefined);
-      syncUrl(activeTab, expression);
+      syncUrl(activeTab, nextCron, expression);
     },
     [activeTab, syncUrl],
   );

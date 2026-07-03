@@ -59,18 +59,31 @@ export const readCronPageUrlState = (
   };
 };
 
+/** Cron string for the URL query param (never empty). */
+export const resolveUrlCronExpression = (
+  tab: PageTabId,
+  cron: Cron,
+  checkerExpression: string,
+): string => {
+  if (tab === 'checker') {
+    const trimmed = checkerExpression.trim();
+    if (trimmed) {
+      return trimmed;
+    }
+  }
+
+  return cron.toExpression();
+};
+
 export const buildCronPageSearch = (
   tab: PageTabId,
   cronExpression: string,
 ): string => {
   const params = new URLSearchParams();
-  const trimmed = cronExpression.trim();
+  const trimmed = cronExpression.trim() || Cron.createEmpty().toExpression();
 
   params.set('tab', tab);
-
-  if (trimmed) {
-    params.set('cron', trimmed);
-  }
+  params.set('cron', trimmed);
 
   return params.toString();
 };
