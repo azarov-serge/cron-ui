@@ -2,7 +2,7 @@
 
 Демо-приложение и UI-библиотека для редактирования и проверки cron-расписаний в стиле SQL Server Agent (SSMS).
 
-**Версия приложения:** `1.0.2`
+**Версия приложения:** `1.0.5` (в UI — в шапке рядом с логотипом)
 
 **Демо:** https://azarov-serge.github.io/cron-ui/
 
@@ -10,6 +10,7 @@
 
 | Что           | Путь                                                                                               |
 | ------------- | -------------------------------------------------------------------------------------------------- |
+| `Header`      | `src/shared/components/Header/` — логотип, версия, язык RU/EN, переключатель темы                  |
 | `CronEditor`  | `src/features/cron/components/CronEditor/`                                                         |
 | `CronChecker` | `src/features/cron/components/CronChecker/`                                                        |
 | `CronPage`    | `src/features/cron/pages/CronPage.tsx`                                                             |
@@ -20,7 +21,7 @@
 
 ```text
 src/
-├── App.tsx
+├── App.tsx                  # Shell + Layout (max-width 1920px, рамка)
 ├── features/cron/
 │   ├── components/
 │   │   ├── CronEditor/      # форма расписания, модели cron/schedule
@@ -29,8 +30,12 @@ src/
 │   ├── pages/CronPage.tsx   # вкладки «Конструктор» и «Проверка»
 │   └── utils/               # parseCronExpression, query-параметры
 └── shared/
-    ├── components/TimePicker/
-    └── utils/time.ts
+    ├── components/
+    │   ├── Header/
+    │   └── TimePicker/
+    ├── constants/layout.ts  # LAYOUT_MAX_WIDTH_PX = 1920
+    ├── i18n/                # messages RU/EN, useTranslation
+    └── providers/           # AppThemeProvider, LocaleProvider
 ```
 
 Алиасы: `@features/*`, `@shared/*` (`tsconfig.app.json`, `vite.config.ts`).
@@ -82,17 +87,18 @@ npm run preview
 Нет — отдельный номер вроде «SRS 1.5» быстро расходится с `package.json`. Достаточно:
 
 1. поднимать `version` в `package.json` при релизе;
-2. при необходимости — краткий `CHANGELOG.md` или GitHub Release с тем же тегом (`v1.0.2`);
+2. при необходимости — краткий `CHANGELOG.md` или GitHub Release с тем же тегом (`v1.0.5`);
 3. в SRS описывать поведение без собственной нумерации.
 
 Для внутреннего демо без внешних потребителей changelog не обязателен.
 
 ## Зависимости
 
-- `@admiral-ds/react-ui` — UI-компоненты (нужен `DropdownProvider` в `main.tsx`)
-- `@admiral-ds/icons` — иконка копирования на `CronPage`
+- `@admiral-ds/react-ui` — UI-компоненты (`DropdownProvider`, `MenuButton`, `Toggle` в `main.tsx` / `Header`)
+- `@admiral-ds/icons` — иконки темы и копирования
 - `@ant-design/icons` — иконка редактирования на `CronPage`
-- `cronstrue` — человекочитаемое описание расписания
+- `@vitejs/plugin-basic-ssl` — HTTPS для `npm run dev` (`https://localhost:5173`)
+- `cronstrue` — человекочитаемое описание расписания (RU/EN)
 - `styled-components`
 
 ---
@@ -270,12 +276,18 @@ Submit блокируется, если:
 
 ## 5. CronPage
 
-### 5.1. Вкладки и URL
+### 5.1. Оболочка и шапка
 
-| Вкладка          | `tab` в URL      | Содержимое                             |
-| ---------------- | ---------------- | -------------------------------------- |
-| Конструктор cron | _(по умолчанию)_ | карточка, параметры редактора, модалка |
-| Проверка cron    | `checker`        | `CronChecker`                          |
+- **Layout:** контейнер `1920px` по центру, рамка `1px` (`LAYOUT_MAX_WIDTH_PX`)
+- **Header:** логотип `cron`, версия из `package.json`, `MenuButton` RU/EN, переключатель светлой/тёмной темы (по умолчанию — системная)
+- **i18n:** `src/shared/i18n/messages.ts`, выбор языка в `localStorage` (`cron-ui-locale`)
+
+### 5.2. Вкладки и URL
+
+| Вкладка          | `tab` в URL      | Содержимое                                      |
+| ---------------- | ---------------- | ----------------------------------------------- |
+| Конструктор cron | _(по умолчанию)_ | карточка, параметры редактора, редактор         |
+| Проверка cron    | `checker`        | `CronChecker`                                   |
 
 Query-параметры:
 
@@ -284,23 +296,23 @@ Query-параметры:
 
 Пример: `/cron-ui/?tab=checker&cron=0+9+*+*+1`
 
-### 5.2. Состояние
+### 5.3. Состояние
 
 | Состояние           | Назначение                                                   |
 | ------------------- | ------------------------------------------------------------ |
-| `cron`              | Текущее расписание (карточка + начальное значение в модалке) |
+| `cron`              | Текущее расписание (карточка + начальное значение редактора) |
 | `checkerExpression` | Выражение на вкладке проверки                                |
 | `editorOptions`     | `CronOptions` для `CronEditor`                               |
-| `isModalOpen`       | Открыта ли модалка                                           |
+| `isEditorOpen`      | Открыт ли редактор (модалка на desktop, inline на mobile)    |
 
-### 5.3. Карточка
+### 5.4. Карточка
 
-- Описание на русском: `cron.toString({ locale: 'ru' })`
+- Описание: `cron.toString({ locale })` — RU/EN по выбранному языку
 - Выражение: `cron.toExpression()` (моноширинный блок)
 - Кнопка копирования cron-выражения в буфер обмена
-- Кнопка редактирования → модалка
+- Кнопка «Изменить расписание» → модалка (desktop) или inline-панель (mobile)
 
-### 5.4. Панель «Параметры редактора»
+### 5.5. Панель «Параметры редактора»
 
 | UI                 | Поле `editorOptions` |
 | ------------------ | -------------------- |
@@ -312,22 +324,24 @@ Query-параметры:
 
 Минимум один пункт в каждой группе чекбоксов всегда выбран.
 
-### 5.5. Панель «Обязательные поля»
+### 5.6. Панель «Обязательные поля»
 
 | Чекбокс                   | `requires`                                            |
 | ------------------------- | ----------------------------------------------------- |
 | Дни недели обязательны    | `weeklyWeekDays`                                      |
 | Недели месяца обязательны | `weeklyWeekNumbers` (disabled, если недели выключены) |
 
-### 5.6. Модалка
+### 5.7. Редактор расписания
 
+- Desktop: модалка с `CronEditor`
+- Mobile: inline-панель под карточкой
 - Только `CronEditor` (`key={cron.toExpression()}`, `cron`, `options={editorOptions}`, `onSubmit`)
-- «ОК» → `requestSubmit()` формы `cron-schedule-form`
-- Заголовок: «Новое расписание задания»
+- «Сохранить» → `requestSubmit()` формы `cron-schedule-form`
+- Заголовок: «Редактор расписания»
 
-При успешном submit: `setCron(nextCron)`, закрытие модалки.
+При успешном submit: `setCron(nextCron)`, закрытие редактора.
 
-### 5.7. Использование вне демо
+### 5.8. Использование вне демо
 
 В продукте `CronOptions` задаётся кодом, без панелей `CronPage`:
 
@@ -373,6 +387,7 @@ import { Cron } from '@features/cron/components/CronEditor/models/cron';
 
 11. Вкладки переключают конструктор и проверку.
 12. `?cron=` в URL восстанавливает выражение; некорректный `cron` — уведомление.
-13. Панели меняют поведение `CronEditor` в модалке без перезагрузки.
+13. Панели меняют поведение `CronEditor` в редакторе без перезагрузки.
 14. Карточка показывает описание и выражение; после submit они обновляются.
-15. Модалка содержит только `CronEditor`, без дополнительных полей.
+15. Редактор содержит только `CronEditor`, без дополнительных полей.
+16. Header: версия, RU/EN, переключение темы; layout 1920px с рамкой.
