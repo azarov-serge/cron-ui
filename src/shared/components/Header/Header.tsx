@@ -6,6 +6,7 @@ import DarkModeOutline from '@admiral-ds/icons/build/system/DarkModeOutline.svg?
 import packageJson from '../../../../package.json';
 import type { Locale } from '@shared/i18n/messages';
 import { useTranslation } from '@shared/i18n/useTranslation';
+import { useMediaQuery } from '@shared/hooks/useMediaQuery';
 import { useThemePreference } from '@shared/providers/AppThemeProvider';
 
 const HeaderBar = styled.header`
@@ -17,10 +18,11 @@ const HeaderBar = styled.header`
   border-bottom: 1px solid ${({ theme }) => theme.color['Neutral/Neutral 20']};
   background: ${({ theme }) => theme.color['Neutral/Neutral 00']};
   min-width: 0;
+  flex-wrap: nowrap;
 
   @media (max-width: 767px) {
-    padding: 12px 16px;
-    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px 12px;
   }
 `;
 
@@ -29,16 +31,33 @@ const LogoGroup = styled.div`
   align-items: baseline;
   gap: 12px;
   min-width: 0;
+  flex-shrink: 1;
+
+  @media (max-width: 767px) {
+    gap: 6px;
+  }
 `;
 
 const Logo = styled(T)`
   font-size: 20px;
   line-height: 24px;
   color: ${({ theme }) => theme.color['Neutral/Neutral 90']};
+  white-space: nowrap;
+
+  @media (max-width: 767px) {
+    font-size: 18px;
+    line-height: 22px;
+  }
 `;
 
 const Version = styled(T)`
   color: ${({ theme }) => theme.color['Neutral/Neutral 50']};
+  white-space: nowrap;
+
+  @media (max-width: 767px) {
+    font-size: 11px;
+    line-height: 14px;
+  }
 `;
 
 const HeaderActions = styled.div`
@@ -48,7 +67,15 @@ const HeaderActions = styled.div`
   flex-shrink: 0;
 
   @media (max-width: 767px) {
-    gap: 12px;
+    gap: 6px;
+  }
+`;
+
+const LanguageButton = styled(MenuButton)`
+  @media (max-width: 767px) {
+    min-width: auto;
+    padding-left: 8px;
+    padding-right: 8px;
   }
 `;
 
@@ -56,6 +83,10 @@ const ThemeControl = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
+
+  @media (max-width: 767px) {
+    gap: 4px;
+  }
 `;
 
 const ThemeIcon = styled.span<{ $active: boolean }>`
@@ -64,6 +95,7 @@ const ThemeIcon = styled.span<{ $active: boolean }>`
   justify-content: center;
   width: 20px;
   height: 20px;
+  flex-shrink: 0;
   color: ${({ theme, $active }) =>
     $active
       ? theme.color['Primary/Primary 60 Main']
@@ -77,6 +109,16 @@ const ThemeIcon = styled.span<{ $active: boolean }>`
   svg *[fill^='#'] {
     fill: currentColor;
   }
+
+  @media (max-width: 767px) {
+    width: 16px;
+    height: 16px;
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
 `;
 
 const LANGUAGE_ITEMS = [
@@ -87,6 +129,7 @@ const LANGUAGE_ITEMS = [
 export const Header: FC = () => {
   const { t, locale, setLocale } = useTranslation();
   const { isDark, onToggleChange } = useThemePreference();
+  const isCompact = useMediaQuery('(max-width: 767px)');
 
   const languageItems = useMemo(
     () =>
@@ -104,16 +147,16 @@ export const Header: FC = () => {
         <Version font="Body/Body 2 Short">v{packageJson.version}</Version>
       </LogoGroup>
       <HeaderActions>
-        <MenuButton
+        <LanguageButton
           appearance="ghost"
-          dimension="m"
+          dimension={isCompact ? 's' : 'm'}
           selected={locale}
           items={languageItems}
           onSelectItem={(id) => setLocale(id as Locale)}
           aria-label={locale === 'en' ? t.language.en : t.language.ru}
         >
           {locale.toUpperCase()}
-        </MenuButton>
+        </LanguageButton>
         <ThemeControl>
           <ThemeIcon $active={!isDark} aria-hidden>
             <LightModeOutline />
