@@ -10,6 +10,9 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+# Legacy manual Pages deploy (use GitHub Actions artifact)
+/docs/
+/assets/
 *.local
 
 # Editor directories and files
