@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths-ignore:
       - 'assets/**'
+      - 'docs/**'
       - 'index.html'
   workflow_dispatch:
 
@@ -29,17 +30,22 @@ jobs:
       - run: npm ci
       - run: npm run build
 
-      - name: Copy build to repository root for GitHub Pages
+      - name: Copy build for GitHub Pages (root and docs)
         run: |
           cp dist/dev.html index.html
-          rm -rf assets
+          rm -rf assets docs
           cp -r dist/assets assets
+          mkdir -p docs
+          cp dist/dev.html docs/index.html
+          cp -r dist/assets docs/assets
           cp dist/favicon.svg favicon.svg 2>/dev/null || true
           cp dist/icons.svg icons.svg 2>/dev/null || true
-          touch .nojekyll
+          cp dist/favicon.svg docs/favicon.svg 2>/dev/null || true
+          cp dist/icons.svg docs/icons.svg 2>/dev/null || true
+          touch .nojekyll docs/.nojekyll
 
       - name: Commit and push production files
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: 'chore: update GitHub Pages site'
-          file_pattern: 'index.html assets/** favicon.svg icons.svg .nojekyll'
+          file_pattern: 'index.html assets/** docs/** favicon.svg icons.svg .nojekyll'

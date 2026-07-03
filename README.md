@@ -62,7 +62,7 @@ npm run preview
 ### Настройка GitHub Pages
 
 1. **Settings → Pages** → **Deploy from a branch**
-2. **Branch:** `main`, папка **`/ (root)`**
+2. **Branch:** `main`, папка **`/ (root)`** или **`/docs`** — оба варианта работают
 3. Сохраните и подождите 1–2 минуты
 
 После каждого push в `main` workflow собирает проект и коммитит `index.html` + `assets/` в корень.
