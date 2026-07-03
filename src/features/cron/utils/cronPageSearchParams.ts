@@ -65,13 +65,10 @@ export const buildCronPageSearch = (
 ): string => {
   const params = new URLSearchParams();
   const trimmed = cronExpression.trim();
-  const defaultExpression = Cron.createEmpty().toExpression();
 
-  if (tab !== DEFAULT_PAGE_TAB) {
-    params.set('tab', tab);
-  }
+  params.set('tab', tab);
 
-  if (trimmed && trimmed !== defaultExpression) {
+  if (trimmed) {
     params.set('cron', trimmed);
   }
 

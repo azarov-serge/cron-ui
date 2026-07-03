@@ -18,6 +18,7 @@ export const hiMessages = {
     step4: 'अभिव्यक्ति पार्स करने के लिए «Cron जाँच» टैब खोलें।',
   },
   editSchedule: 'cron बदलें',
+  editCron: 'cron संपादित करें',
   editorOpenBelow: 'संपादक नीचे खुला है',
   editorTitle: 'अनुसूची संपादक',
   closeEditor: 'संपादक बंद करें',

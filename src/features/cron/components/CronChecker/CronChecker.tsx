@@ -1,4 +1,4 @@
-import { useMemo, type FC } from 'react';
+import { useEffect, useMemo, useState, type FC } from 'react';
 import styled from 'styled-components';
 import {
   NotificationItem,
@@ -49,10 +49,13 @@ const PartsTable = styled.div`
 `;
 
 const PartRow = styled.div`
-  display: contents;
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1 / -1;
+  gap: 8px 12px;
+  align-items: start;
 
   @media (max-width: 767px) {
-    display: grid;
     grid-template-columns: 1fr;
     gap: 4px;
     padding-bottom: 12px;
@@ -116,10 +119,24 @@ export const CronChecker: FC<CronCheckerProps> = ({
   onExpressionChange,
 }) => {
   const { t, locale } = useTranslation();
+  const [draftExpression, setDraftExpression] = useState(expression);
+
+  useEffect(() => {
+    setDraftExpression(expression);
+  }, [expression]);
+
   const parseResult = useMemo(
-    () => (expression.trim() ? parseCronExpression(expression, locale) : null),
-    [expression, locale],
+    () =>
+      draftExpression.trim()
+        ? parseCronExpression(draftExpression, locale)
+        : null,
+    [draftExpression, locale],
   );
+
+  const handleExpressionChange = (value: string) => {
+    setDraftExpression(value);
+    onExpressionChange(value);
+  };
 
   return (
     <Panel>
@@ -129,8 +146,11 @@ export const CronChecker: FC<CronCheckerProps> = ({
 
       <InputWrap>
         <CronInput
-          value={expression}
-          onChange={(event) => onExpressionChange(event.currentTarget.value)}
+          value={draftExpression}
+          onChange={(event) => handleExpressionChange(event.target.value)}
+          onInput={(event) =>
+            handleExpressionChange(event.currentTarget.value)
+          }
           placeholder="0 9 * * 1"
         />
       </InputWrap>
@@ -151,7 +171,7 @@ export const CronChecker: FC<CronCheckerProps> = ({
       )}
 
       {parseResult?.valid && (
-        <Breakdown>
+        <Breakdown key={parseResult.expression}>
           <PartsTable>
             <PartHeaderRow>
               <PartHeader font="Body/Body 2 Short" color="Neutral/Neutral 50">
@@ -166,7 +186,7 @@ export const CronChecker: FC<CronCheckerProps> = ({
             </PartHeaderRow>
 
             {parseResult.parts.map((part) => (
-              <PartRow key={part.key}>
+              <PartRow key={`${parseResult.expression}-${part.key}`}>
                 <T font="Body/Body 2 Long" color="Neutral/Neutral 90">
                   {part.label}
                 </T>

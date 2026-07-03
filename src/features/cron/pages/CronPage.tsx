@@ -48,6 +48,7 @@ import { EditOutlined } from '@ant-design/icons';
 import { useMediaQuery } from '@shared/hooks/useMediaQuery';
 import { useTranslation } from '@shared/i18n/useTranslation';
 import { describeCronHuman } from '@features/cron/utils/describeCron';
+import { parseCronExpression } from '@features/cron/utils/parseCronExpression';
 
 const Page = styled.main`
   width: 100%;
@@ -88,6 +89,15 @@ const CronActions = styled.div`
 
   @media (min-width: 768px) {
     width: auto;
+  }
+`;
+
+const CheckerActions = styled(CronActions)`
+  margin-bottom: 16px;
+
+  &:last-child {
+    margin-bottom: 0;
+    margin-top: 16px;
   }
 `;
 
@@ -303,6 +313,37 @@ export const CronPage: FC = (_props) => {
     }
   };
 
+  const canEditFromChecker = useMemo(() => {
+    const trimmed = checkerExpression.trim();
+    if (!trimmed) {
+      return false;
+    }
+    return parseCronExpression(trimmed, locale).valid;
+  }, [checkerExpression, locale]);
+
+  const editCronFromChecker = () => {
+    const trimmed = checkerExpression.trim();
+    if (!trimmed || !parseCronExpression(trimmed, locale).valid) {
+      return;
+    }
+    submitCron(Cron.fromString(trimmed));
+    setIsEditorOpen(true);
+  };
+
+  const renderEditCronButton = () => (
+    <EditScheduleButton
+      appearance="primary"
+      dimension="m"
+      type="button"
+      disabled={!canEditFromChecker}
+      onClick={editCronFromChecker}
+    >
+      <ButtonContent>
+        <EditOutlined />
+        {t.editCron}
+      </ButtonContent>
+    </EditScheduleButton>
+  );
 
   const patchScheduleTypes = (value: ScheduleType, checked: boolean) => {
     setEditorOptions((prevOptions) => ({
@@ -408,8 +449,7 @@ export const CronPage: FC = (_props) => {
     );
   };
 
-  const showMobileEditorOnly =
-    isMobile && isEditorOpen && activeTab === 'constructor';
+  const showMobileEditorOnly = isMobile && isEditorOpen;
 
   const renderEditorParamsPanels = () => (
     <>
@@ -630,29 +670,31 @@ export const CronPage: FC = (_props) => {
           </CronActions>
         </CronSummary>
 
-      {!isMobile && isEditorOpen && (
-          <Modal
-            dimension="xl"
-            onClose={closeEditor}
-            aria-labelledby="cron-schedule-title"
-          >
-            <ModalTitle id="cron-schedule-title">{t.editorTitle}</ModalTitle>
-            <ModalContent>{renderCronEditor()}</ModalContent>
-            <ModalButtonPanel>{renderEditorActions()}</ModalButtonPanel>
-          </Modal>
-      )}
-
       {renderEditorParamsPanels()}
         </TabContent>
       )}
 
       {activeTab === 'checker' && (
         <TabContent>
+          <CheckerActions>{renderEditCronButton()}</CheckerActions>
           <CronChecker
             expression={checkerExpression}
             onExpressionChange={changeCheckerExpression}
           />
+          <CheckerActions>{renderEditCronButton()}</CheckerActions>
         </TabContent>
+      )}
+
+      {!isMobile && isEditorOpen && (
+        <Modal
+          dimension="xl"
+          onClose={closeEditor}
+          aria-labelledby="cron-schedule-title"
+        >
+          <ModalTitle id="cron-schedule-title">{t.editorTitle}</ModalTitle>
+          <ModalContent>{renderCronEditor()}</ModalContent>
+          <ModalButtonPanel>{renderEditorActions()}</ModalButtonPanel>
+        </Modal>
       )}
         </>
       )}

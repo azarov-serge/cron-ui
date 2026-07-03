@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Cron } from '@features/cron/components/CronEditor/models/cron';
 import {
   readCronPageUrlState,
+  buildCronPageSearch,
   type PageTabId,
   writeCronPageUrl,
 } from '@features/cron/utils/cronPageSearchParams';
@@ -39,12 +40,37 @@ export const useCronPageSearchParams = () => {
     return () => window.removeEventListener('popstate', handlePopState);
   }, [applyUrlState]);
 
+  useEffect(() => {
+    const state = readCronPageUrlState();
+    const params = new URLSearchParams(window.location.search);
+
+    let expression =
+      state.tab === 'checker'
+        ? state.checkerExpression.trim() || state.cron.toExpression()
+        : state.cron.toExpression();
+
+    if (state.tab === 'checker' && !state.checkerExpression.trim()) {
+      setCheckerExpression(expression);
+    }
+
+    const expectedQuery = buildCronPageSearch(state.tab, expression);
+    if (params.toString() !== expectedQuery) {
+      syncUrl(state.tab, expression);
+    }
+  }, [syncUrl]);
+
   const selectTab = useCallback(
     (tab: PageTabId) => {
       setActiveTab(tab);
+      if (tab === 'checker' && !checkerExpression.trim()) {
+        const expression = cron.toExpression();
+        setCheckerExpression(expression);
+        syncUrl(tab, expression);
+        return;
+      }
       syncUrl(tab, checkerExpression);
     },
-    [checkerExpression, syncUrl],
+    [checkerExpression, cron, syncUrl],
   );
 
   const changeCheckerExpression = useCallback(
