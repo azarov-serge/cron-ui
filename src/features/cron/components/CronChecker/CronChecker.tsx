@@ -147,6 +147,7 @@ export const CronChecker: FC<CronCheckerProps> = ({
 
       <InputWrap>
         <CronInput
+          dimension="s"
           value={draftExpression}
           onChange={(event) => handleExpressionChange(event.target.value)}
           onInput={(event) =>
@@ -162,7 +163,7 @@ export const CronChecker: FC<CronCheckerProps> = ({
         </Placeholder>
       )}
 
-      {parseResult && !parseResult.valid && (
+      {parseResult !== null && parseResult.valid === false && (
         <Breakdown>
           <NotificationItem status="error" displayStatusIcon>
             <NotificationItemTitle>{t.checker.parseError}</NotificationItemTitle>
@@ -171,7 +172,7 @@ export const CronChecker: FC<CronCheckerProps> = ({
         </Breakdown>
       )}
 
-      {parseResult?.valid && (
+      {parseResult?.valid === true && (
         <Breakdown key={parseResult.expression}>
           <PartsTable>
             <PartHeaderRow>

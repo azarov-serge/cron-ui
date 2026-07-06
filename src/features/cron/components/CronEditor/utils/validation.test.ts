@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { ScheduleModel } from './models/schedule';
-import { createEmptyWeekDays } from './models/schedule/types';
+import { Schedule } from '../models/schedule';
+import { createEmptyWeekDays } from '../models/schedule/types';
 import { validateSchedule } from './validation';
 import { messages } from '@shared/i18n/messages';
 
 const editor = messages.ru.editor;
 
 describe('validateSchedule weekly requiredness', () => {
-  const weeklySchedule = new ScheduleModel({
+  const weeklySchedule = new Schedule({
     occurs: 'weekly',
     weekDays: createEmptyWeekDays(),
   });

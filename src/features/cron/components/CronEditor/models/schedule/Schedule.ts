@@ -25,7 +25,7 @@ const clearDateFields = {
 } as const;
 
 /** Состояние формы расписания (SSMS-стиль) ↔ cron */
-export class ScheduleModel implements ScheduleInterface {
+export class Schedule implements ScheduleInterface {
   scheduleType: ScheduleInterface['scheduleType'];
   oneTimeDate: string;
   oneTimeTime: string;
@@ -57,11 +57,11 @@ export class ScheduleModel implements ScheduleInterface {
   }
 
   /** Состояние формы по умолчанию: еженедельно, понедельник, 00:00 */
-  static createEmpty = (): ScheduleModel => new ScheduleModel();
+  static createEmpty = (): Schedule => new Schedule();
 
   /** Восстанавливает состояние формы из cron-выражения */
-  static fromCron = (cron: Cron): ScheduleModel => {
-    const defaults = ScheduleModel.createEmpty();
+  static fromCron = (cron: Cron): Schedule => {
+    const defaults = Schedule.createEmpty();
     const { minute, hour, dayOfMonth, month, dayOfWeek } = cron;
 
     if (minute.startsWith('*/')) {
@@ -223,6 +223,6 @@ export class ScheduleModel implements ScheduleInterface {
   };
 
   /** Возвращает копию с частично заменёнными полями */
-  public clone = (patch?: Partial<ScheduleInterface>): ScheduleModel =>
-    new ScheduleModel({ ...this, ...patch });
+  public clone = (patch?: Partial<ScheduleInterface>): Schedule =>
+    new Schedule({ ...this, ...patch });
 }

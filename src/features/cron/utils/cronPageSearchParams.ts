@@ -1,7 +1,7 @@
 import { Cron } from '@features/cron/components/CronEditor/models/cron';
 import { parseCronExpression } from '@features/cron/utils/parseCronExpression';
 
-export const PAGE_TAB_IDS = ['constructor', 'checker'] as const;
+export const PAGE_TAB_IDS = ['constructor', 'editorParams', 'checker'] as const;
 
 export type PageTabId = (typeof PAGE_TAB_IDS)[number];
 
@@ -15,7 +15,7 @@ export type CronPageUrlState = {
 };
 
 export const isPageTabId = (value: string | null): value is PageTabId =>
-  value === 'constructor' || value === 'checker';
+  PAGE_TAB_IDS.includes(value as PageTabId);
 
 export const parseTabParam = (value: string | null): PageTabId =>
   isPageTabId(value) ? value : DEFAULT_PAGE_TAB;
@@ -34,7 +34,7 @@ export const resolveCronFromSearchParam = (
   const expression = raw.trim();
   const result = parseCronExpression(expression);
 
-  if (!result.valid) {
+  if (result.valid === false) {
     return {
       cron: Cron.createEmpty(),
       checkerExpression: expression,

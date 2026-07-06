@@ -5,6 +5,7 @@ export const hiMessages = {
   tabs: {
     constructor: 'Cron कंस्ट्रक्टर',
     checker: 'Cron जाँच',
+    editorParams: 'संपादक पैरामीटर',
   },
   urlError: {
     title: 'URL में अमान्य cron',
@@ -12,13 +13,13 @@ export const hiMessages = {
   },
   help: {
     title: 'कैसे उपयोग करें',
-    step1: 'नीचे के cron और विवरण फ़ील्ड वर्तमान अनुसूची दिखाते हैं। ये अपने आप नहीं बदलते।',
-    step2: '«संपादक पैरामीटर» चेकबॉक्स फ़ॉर्म में कौन से फ़ील्ड दिखेंगे, यह तय करते हैं।',
-    step3: 'संपादक भरें और «अनुसूची सहेजें» दबाएँ — cron और विवरण अपडेट हो जाएँगे।',
+    step1: 'नीचे का cron संपादक वर्तमान अनुसूची दिखाता है। फ़ील्ड बदलते ही परिवर्तन लागू होते हैं।',
+    step2: '«संपादक पैरामीटर» टैब पर फ़ॉर्म में कौन से फ़ील्ड दिखेंगे, यह तय करें।',
+    step3: 'cron तुरंत पेज URL में जाएगा और विवरण संपादक में अपडेट होगा।',
     step4: 'अभिव्यक्ति पार्स करने के लिए «Cron जाँच» टैब खोलें।',
   },
-  editSchedule: 'cron बदलें',
-  editCron: 'cron संपादित करें',
+  editSchedule: 'cron संपादक',
+  editCron: 'cron संपादक',
   editorOpenBelow: 'संपादक नीचे खुला है',
   editorTitle: 'cron संपादक',
   closeEditor: 'संपादक बंद करें',
@@ -27,8 +28,7 @@ export const hiMessages = {
   copyCron: 'cron अभिव्यक्ति कॉपी करें',
   copyCronShort: 'कॉपी करें',
   editorParams: 'संपादक पैरामीटर',
-  editorParamsHint:
-    'केवल संपादक फ़ॉर्म को प्रभावित करते हैं। cron लागू करने के लिए «cron बदलें» खोलें और «सहेजें» दबाएँ।',
+  editorParamsHint: 'सेटिंग «Cron कंस्ट्रक्टर» टैब की फ़ॉर्म पर लागू होती हैं।',
   scheduleType: 'अनुसूची प्रकार',
   occursFrequency: 'आवृत्ति (चलता है)',
   dailyFrequency: 'दैनिक आवृत्ति',

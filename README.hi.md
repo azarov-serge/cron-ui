@@ -3,7 +3,7 @@
 पाँच-भागीय cron अभिव्यक्तियों (मिनट, घंटा, महीने का दिन, महीना, सप्ताह का दिन — सेकंड नहीं) के लिए डेमो ऐप और UI लाइब्रेरी।
 
 **डेमो:** https://azarov-serge.github.io/cron-ui/  
-**संस्करण:** `1.0.7` (ऐप हेडर में लोगो के बगल में)
+**संस्करण:** `1.0.9` (ऐप हेडर में लोगो के बगल में)
 
 **भाषाएँ:** [English](README.md) · [Русский](README.ru.md) · [中文](README.zh.md) · हिन्दी (यह फ़ाइल)
 
@@ -12,8 +12,8 @@
 | घटक | पथ |
 | ---- | --- |
 | `Header` | `src/shared/components/Header/` — लोगो, संस्करण, भाषा मेनू (RU / EN / ZH / HI), थीम |
-| `CronExpressionField` | `src/features/cron/components/CronFields/` — cron अभिव्यक्ति और कॉपी |
-| `CronDescriptionField` | `src/features/cron/components/CronFields/` — मानव-पठनीय विवरण |
+| `CronExpressionField` | `src/features/cron/components/CronEditor/components/CronFields/` — cron अभिव्यक्ति और कॉपी |
+| `CronDescriptionField` | `src/features/cron/components/CronEditor/components/CronFields/` — मानव-पठनीय विवरण |
 | `CronEditor` | `src/features/cron/components/CronEditor/` |
 | `CronChecker` | `src/features/cron/components/CronChecker/` |
 | `CronPage` | `src/features/cron/pages/CronPage.tsx` |
@@ -27,15 +27,14 @@ src/
 ├── App.tsx
 ├── features/cron/
 │   ├── components/
-│   │   ├── CronEditor/
-│   │   ├── CronChecker/
-│   │   └── CronFields/       # CronExpressionField, CronDescriptionField
+│   │   ├── CronEditor/       # CronEditor, CronFields/, सेक्शन
+│   │   └── CronChecker/
 │   ├── hooks/
 │   ├── pages/CronPage.tsx
 │   └── utils/
 └── shared/
     ├── components/Header/, TimePicker/
-    ├── constants/layout.ts   # LAYOUT_MAX_WIDTH_PX = 1920
+    ├── constants/layout.ts   # LAYOUT_MAX_WIDTH_PX = 1280
     ├── i18n/                 # ru, en, zh, hi
     └── providers/            # AppThemeProvider, LocaleProvider
 ```
@@ -74,22 +73,24 @@ GitHub Actions (`.github/workflows/deploy.yml`) `main` पर push होने 
 
 ## CronPage (डेमो)
 
-दो टैब, URL के साथ सिंक (`?cron=0+9+*+*+1`, `?tab=checker`):
+तीन टैब, URL के साथ सिंक (`?cron=0+9+*+*+1`, `?tab=checker`):
 
 | टैब | URL | सामग्री |
 | --- | --- | ------- |
-| Cron कंस्ट्रक्टर | _(डिफ़ॉल्ट)_ | cron और विवरण फ़ील्ड, संपादक विकल्प, `CronEditor` |
-| Cron जाँच | `checker` | `CronChecker` |
+| Cron कंस्ट्रक्टर | _(डिफ़ॉल्ट)_ | इनलाइन `CronEditor` (नीचे cron और विवरण) |
+| संपादक पैरामीटर | `editorParams` | `CronOptions` पैनल |
+| Cron जाँच | `checker` | `CronChecker`, **cron बदलें** → कंस्ट्रक्टर पर ले जाता है |
 
-- **cron** और **विवरण** फ़ील्ड वर्तमान अनुसूची दिखाते हैं; अपने आप नहीं बदलते।
-- **cron बदलें** संपादक खोलता है (डेस्कटॉप पर मोडल, मोबाइल पर पूर्ण स्क्रीन)।
+- `CronEditor` में बदलाव `onChange` से तुरंत URL में जाते हैं।
+- जाँच टैब पर **cron बदलें** मान्य अभिव्यक्ति को कंस्ट्रक्टर पर ले जाता है।
 - **कॉपी करें** — मोबाइल पर स्थानीयकृत लेबल वाला `TextButton`।
 - भाषा (`cron-ui-locale`) और थीम (`cron-ui-theme`) `localStorage` में सहेजी जाती है; पहली विज़िट पर समर्थित होने पर ब्राउज़र भाषा।
 
 ## CronEditor
 
-प्रॉप्स: `cron`, `onSubmit`, `options` (`CronOptions`)।  
-फ़ॉर्म id: `cron-schedule-form` — बाहरी submit: `form="cron-schedule-form"`।
+प्रॉप्स: `cron`, `onChange`, `options` (`CronOptions`)।
+
+हर बदलाव पर `onChange` चलता है (सहेजें बटन नहीं)।
 
 `CronOptions` दृश्य अनुभाग, `minuteStep`, `weeklyWeekNumbers` और `requires` सत्यापन नियंत्रित करते हैं। विकल्प केवल UI के लिए हैं, बैकएंड पर नहीं भेजे जाते।
 
@@ -168,6 +169,6 @@ import { Cron } from '@features/cron/components/CronEditor/models/cron';
     dailyFrequencies: ['once'],
     minuteStep: 5,
   }}
-  onSubmit={saveCron}
+  onChange={saveCron}
 />;
 ```

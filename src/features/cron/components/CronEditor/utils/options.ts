@@ -2,7 +2,7 @@ import type {
   DailyFrequencyType,
   OccursFrequency,
   ScheduleType,
-} from './models/schedule/types';
+} from '../models/schedule/types';
 
 /** Поля формы, которые можно сделать обязательными */
 export type CronRequireField = 'weeklyWeekDays' | 'weeklyWeekNumbers';
@@ -13,6 +13,7 @@ const ALLOWED_REQUIRE_FIELDS: CronRequireField[] = [
 ];
 
 export interface CronOptions {
+  /** Конфигурация редактора: UI через useCronEditorConfig; поля модели — через schedule.clone() в store */
   /** Доступные типы расписания. Один элемент — блок выбора скрыт */
   scheduleTypes?: ScheduleType[];
   /** Доступные значения «Частота» (Выполняется). Один элемент — выбор скрыт */

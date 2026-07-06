@@ -2,14 +2,14 @@ import {
   clampCronInterval,
   CRON_HOUR_INTERVAL_MAX,
   getAlignedMinuteIntervalMax,
-} from './models/schedule/utils';
-import { ScheduleModel } from './models/schedule';
-import type { IntervalUnit } from './models/schedule/types';
-import { WEEK_NUMBER_KEYS } from './models/schedule/types';
+} from '../models/schedule/utils';
+import { Schedule } from '../models/schedule';
+import type { IntervalUnit } from '../models/schedule/types';
+import { WEEK_NUMBER_KEYS } from '../models/schedule/types';
 import type { CronOptions } from './options';
 import { isCronFieldRequired } from './options';
-import type { Messages } from '@shared/i18n/messages';
-import { formatMessage } from '@shared/i18n/messages';
+import type { EditorStrings } from '../strings';
+import { formatMessage, editorStrings } from '../strings';
 
 export type ValidateScheduleOptions = Pick<CronOptions, 'requires' | 'weeklyWeekNumbers'>;
 
@@ -47,7 +47,7 @@ export const normalizeEveryInterval = (
 export const getEveryIntervalHint = (
   unit: IntervalUnit,
   minuteStep: number,
-  editor: Messages['editor'],
+  editor: EditorStrings = editorStrings,
 ): string => {
   const { min, max } = getEveryIntervalLimits(unit, minuteStep);
   return unit === 'minutes'
@@ -57,10 +57,10 @@ export const getEveryIntervalHint = (
 
 /** Проверяет расписание перед отправкой формы */
 export const validateSchedule = (
-  schedule: ScheduleModel,
+  schedule: Schedule,
   minuteStep: number,
   editorOptions: ValidateScheduleOptions = {},
-  editor: Messages['editor'],
+  editor: EditorStrings = editorStrings,
 ): { valid: boolean; message: string | null } => {
   const requireFields = editorOptions.requires ?? [];
   const weeklyWeekNumbersEnabled =

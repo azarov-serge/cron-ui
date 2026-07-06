@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 import { T } from '@admiral-ds/react-ui';
 import { MONO_FONT_FAMILY } from '@shared/styles/typography';
-import { Section } from '../CronEditor/styles';
+import { Section } from '../../styles';
 
 export const CronFieldSection = styled(Section)`
   margin-bottom: 0;

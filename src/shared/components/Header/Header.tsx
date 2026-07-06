@@ -19,7 +19,7 @@ const HeaderBar = styled.header`
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 12px 24px;
+  padding: 12px 32px;
   border-bottom: 1px solid ${({ theme }) => theme.color['Neutral/Neutral 20']};
   background: ${({ theme }) => theme.color['Neutral/Neutral 00']};
   min-width: 0;

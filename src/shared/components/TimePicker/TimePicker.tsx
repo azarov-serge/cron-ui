@@ -29,7 +29,7 @@ import {
   snapMinuteToStep,
   splitTimeString,
 } from '@shared/utils/time';
-import { timePickerInputHandle } from './timePickerInputHandle';
+import { timePickerInputHandle } from './utils';
 
 const StyledInputBox = styled(InputBox)`
   width: 100%;
@@ -365,7 +365,7 @@ export const TimePicker: FC<TimePickerProps> = (props) => {
     <>
       <StyledInputBox
         ref={containerRef}
-        $dimension="m"
+        $dimension="s"
         disabled={disabled}
         $iconsAfterCount={1}
         className="time-picker"

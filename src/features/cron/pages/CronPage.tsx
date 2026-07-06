@@ -3,10 +3,6 @@ import styled from 'styled-components';
 import {
   HorizontalTab,
   HorizontalTabs,
-  Modal,
-  ModalButtonPanel,
-  ModalContent,
-  ModalTitle,
   NotificationItem,
   NotificationItemContent,
   NotificationItemTitle,
@@ -20,15 +16,10 @@ import {
 import { CronChecker } from '@features/cron/components/CronChecker';
 import {
   CronEditor,
-  CRON_FORM_ID,
   DEFAULT_CRON_OPTIONS,
   type CronOptions,
   type CronRequireField,
 } from '@features/cron/components/CronEditor';
-import {
-  CronDescriptionField,
-  CronExpressionField,
-} from '@features/cron/components/CronFields';
 import { useCronPageSearchParams } from '@features/cron/hooks/useCronPageSearchParams';
 import { Cron } from '@features/cron/components/CronEditor/models/cron';
 import type {
@@ -39,69 +30,70 @@ import type {
 import {
   OCCURS_OPTIONS,
   SCHEDULE_TYPE_OPTIONS,
-} from '@features/cron/components/CronEditor/constants';
+} from '@features/cron/components/CronEditor/utils/constants';
 import {
   PAGE_TAB_IDS,
   type PageTabId,
 } from '@features/cron/utils/cronPageSearchParams';
 import { EditOutlined } from '@ant-design/icons';
-import { useMediaQuery } from '@shared/hooks/useMediaQuery';
 import { useTranslation } from '@shared/i18n/useTranslation';
-import { describeCronHuman } from '@features/cron/utils/describeCron';
 import { parseCronExpression } from '@features/cron/utils/parseCronExpression';
 
 const Page = styled.main`
+  flex: 1;
   width: 100%;
-  padding: 48px 24px;
+  padding: 40px 32px 48px;
   min-width: 0;
   overflow-x: hidden;
 
   @media (max-width: 767px) {
-    padding: 16px 12px;
+    padding: 16px 12px 24px;
   }
+`;
+
+const PageHeader = styled.div`
+  margin-bottom: 8px;
 `;
 
 const PageDescription = styled(T)`
   display: block;
   margin-top: 8px;
-  max-width: 720px;
+  max-width: 56rem;
 `;
 
-const CronSummary = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-top: 20px;
+const HelpNotice = styled(NotificationItem)`
+  margin-top: 16px;
 `;
 
-const CronSummaryFields = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+const ParamsHint = styled(T)`
+  display: block;
+  margin-bottom: 12px;
+`;
+
+const ConstructorEditor = styled.div`
+  margin-top: 24px;
   min-width: 0;
+  max-width: 100%;
 `;
 
-const CronActions = styled.div`
+const CheckerActions = styled.div`
   display: flex;
   flex-shrink: 0;
   gap: 8px;
   width: 100%;
-
-  @media (min-width: 768px) {
-    width: auto;
-  }
-`;
-
-const CheckerActions = styled(CronActions)`
   margin-bottom: 16px;
 
   &:last-child {
     margin-bottom: 0;
     margin-top: 16px;
   }
+
+  @media (min-width: 768px) {
+    width: auto;
+  }
 `;
 
-const EditScheduleButton = styled(Button)`
+const EditCronButton = styled(Button)`
   flex: 1;
   justify-content: center;
 
@@ -118,37 +110,15 @@ const ButtonContent = styled.span`
   pointer-events: none;
 `;
 
-const HelpNotice = styled(NotificationItem)`
-  margin-top: 16px;
-`;
-
-const ParamsHint = styled(T)`
-  display: block;
-  margin-bottom: 12px;
-`;
-
-const MobileEditorOnly = styled.div`
-  min-width: 0;
-  max-width: 100%;
-`;
-
-const EditorActions = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 16px;
-
-  @media (min-width: 768px) {
-    flex-direction: row;
-    justify-content: flex-end;
-  }
-`;
-
 const ControlsPanel = styled.fieldset`
   border: 1px solid ${({ theme }) => theme.color['Neutral/Neutral 20']};
   border-radius: 4px;
-  margin: 24px 0;
+  margin: 0 0 24px;
   padding: 12px 16px 16px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
 
   legend {
     padding: 0 6px;
@@ -159,8 +129,12 @@ const ControlsPanel = styled.fieldset`
 
 const ControlsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 16px 24px;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
 
   @media (max-width: 767px) {
     grid-template-columns: 1fr;
@@ -287,53 +261,31 @@ export const CronPage: FC = (_props) => {
     submitCron,
   } = useCronPageSearchParams();
 
-  const [isEditorOpen, setIsEditorOpen] = useState(false);
-  const isMobile = useMediaQuery('(max-width: 767px)');
   const [editorOptions, setEditorOptions] = useState<Required<CronOptions>>(
     () => ({ ...DEFAULT_CRON_OPTIONS }),
   );
-
-  const openEditor = () => {
-    setIsEditorOpen(true);
-  };
-
-  const closeEditor = () => {
-    setIsEditorOpen(false);
-  };
-
-  const handleSubmit = (nextCron: Cron) => {
-    submitCron(nextCron);
-    closeEditor();
-  };
-
-  const handleEditorOk = () => {
-    const cronForm = document.getElementById(CRON_FORM_ID);
-    if (cronForm instanceof HTMLFormElement) {
-      cronForm.requestSubmit();
-    }
-  };
 
   const canEditFromChecker = useMemo(() => {
     const trimmed = checkerExpression.trim();
     if (!trimmed) {
       return false;
     }
-    return parseCronExpression(trimmed, locale).valid;
+    return parseCronExpression(trimmed, locale).valid === true;
   }, [checkerExpression, locale]);
 
   const editCronFromChecker = () => {
     const trimmed = checkerExpression.trim();
-    if (!trimmed || !parseCronExpression(trimmed, locale).valid) {
+    if (!trimmed || parseCronExpression(trimmed, locale).valid === false) {
       return;
     }
     submitCron(Cron.fromString(trimmed));
-    setIsEditorOpen(true);
+    selectTab('constructor');
   };
 
   const renderEditCronButton = () => (
-    <EditScheduleButton
+    <EditCronButton
       appearance="primary"
-      dimension="m"
+      dimension="s"
       type="button"
       disabled={!canEditFromChecker}
       onClick={editCronFromChecker}
@@ -342,7 +294,7 @@ export const CronPage: FC = (_props) => {
         <EditOutlined />
         {t.editCron}
       </ButtonContent>
-    </EditScheduleButton>
+    </EditCronButton>
   );
 
   const patchScheduleTypes = (value: ScheduleType, checked: boolean) => {
@@ -405,27 +357,10 @@ export const CronPage: FC = (_props) => {
     }));
   };
 
-  const renderEditorActions = () => (
-    <>
-      <Button
-        appearance="primary"
-        dimension="m"
-        type="button"
-        onClick={handleEditorOk}
-      >
-        {t.saveSchedule}
-      </Button>
-      <Button appearance="secondary" dimension="m" onClick={closeEditor}>
-        {t.cancel}
-      </Button>
-    </>
-  );
-
   const renderCronEditor = () => (
     <CronEditor
-      key={cron.toExpression()}
       cron={cron}
-      onSubmit={handleSubmit}
+      onChange={submitCron}
       options={editorOptions}
     />
   );
@@ -449,8 +384,6 @@ export const CronPage: FC = (_props) => {
     );
   };
 
-  const showMobileEditorOnly = isMobile && isEditorOpen;
-
   const renderEditorParamsPanels = () => (
     <>
       <ControlsPanel>
@@ -467,6 +400,7 @@ export const CronPage: FC = (_props) => {
               {scheduleTypeOptions.map((option) => (
                 <CheckboxField
                   key={option.value}
+                  dimension="s"
                   checked={editorOptions.scheduleTypes.includes(option.value)}
                   onChange={(event) =>
                     patchScheduleTypes(option.value, event.target.checked)
@@ -486,6 +420,7 @@ export const CronPage: FC = (_props) => {
               {occursOptions.map((option) => (
                 <CheckboxField
                   key={option.value}
+                  dimension="s"
                   checked={editorOptions.occursFrequencies.includes(
                     option.value,
                   )}
@@ -507,6 +442,7 @@ export const CronPage: FC = (_props) => {
               {dailyFrequencyOptions.map((option) => (
                 <CheckboxField
                   key={option.value}
+                  dimension="s"
                   checked={editorOptions.dailyFrequencies.includes(
                     option.value,
                   )}
@@ -526,6 +462,7 @@ export const CronPage: FC = (_props) => {
             </T>
             <CheckboxList>
               <CheckboxField
+                dimension="s"
                 checked={editorOptions.weeklyWeekNumbers}
                 onChange={(event) =>
                   patchWeeklyWeekNumbers(event.target.checked)
@@ -538,6 +475,7 @@ export const CronPage: FC = (_props) => {
 
           <ControlGroup>
             <SelectField
+              dimension="s"
               label={t.minuteStep}
               value={String(editorOptions.minuteStep)}
               onChange={(event) => patchMinuteStep(Number(event.target.value))}
@@ -565,6 +503,7 @@ export const CronPage: FC = (_props) => {
             {requireOptions.map((option) => (
               <CheckboxField
                 key={option.value}
+                dimension="s"
                 checked={editorOptions.requires.includes(option.value)}
                 disabled={
                   option.value === 'weeklyWeekNumbers' &&
@@ -583,37 +522,20 @@ export const CronPage: FC = (_props) => {
     </>
   );
 
-  const renderMobileEditorActions = () => (
-    <EditorActions>
-      <Button
-        appearance="primary"
-        dimension="m"
-        type="button"
-        onClick={handleEditorOk}
-      >
-        {t.saveSchedule}
-      </Button>
-      <Button appearance="secondary" dimension="m" onClick={closeEditor}>
-        {t.closeEditor}
-      </Button>
-    </EditorActions>
-  );
-
   return (
     <Page>
-      {showMobileEditorOnly ? (
-        <MobileEditorOnly>
-          {renderCronEditor()}
-          {renderMobileEditorActions()}
-        </MobileEditorOnly>
-      ) : (
-        <>
-      <T font="Header/H4" as="h3">
-        {t.pageTitle}
-      </T>
-      <PageDescription font="Body/Body 1 Long" color="Neutral/Neutral 50" as="p">
-        {t.pageDescription}
-      </PageDescription>
+      <PageHeader>
+        <T font="Header/H4" as="h3">
+          {t.pageTitle}
+        </T>
+        <PageDescription
+          font="Body/Body 1 Long"
+          color="Neutral/Neutral 50"
+          as="p"
+        >
+          {t.pageDescription}
+        </PageDescription>
+      </PageHeader>
 
       <HorizontalTabs
         selectedTabId={activeTab}
@@ -647,30 +569,7 @@ export const CronPage: FC = (_props) => {
             </NotificationItemContent>
           </HelpNotice>
 
-        <CronSummary>
-          <CronSummaryFields>
-            <CronExpressionField expression={cron.toExpression()} />
-            <CronDescriptionField
-              description={describeCronHuman(cron, locale)}
-            />
-          </CronSummaryFields>
-          <CronActions>
-            <EditScheduleButton
-              appearance="primary"
-              dimension="m"
-              type="button"
-              aria-expanded={isEditorOpen}
-              onClick={openEditor}
-            >
-              <ButtonContent>
-                <EditOutlined />
-                {t.editSchedule}
-              </ButtonContent>
-            </EditScheduleButton>
-          </CronActions>
-        </CronSummary>
-
-      {renderEditorParamsPanels()}
+          <ConstructorEditor>{renderCronEditor()}</ConstructorEditor>
         </TabContent>
       )}
 
@@ -685,20 +584,9 @@ export const CronPage: FC = (_props) => {
         </TabContent>
       )}
 
-      {!isMobile && isEditorOpen && (
-        <Modal
-          dimension="xl"
-          onClose={closeEditor}
-          aria-labelledby="cron-schedule-title"
-        >
-          <ModalTitle id="cron-schedule-title">{t.editorTitle}</ModalTitle>
-          <ModalContent>{renderCronEditor()}</ModalContent>
-          <ModalButtonPanel>{renderEditorActions()}</ModalButtonPanel>
-        </Modal>
+      {activeTab === 'editorParams' && (
+        <TabContent>{renderEditorParamsPanels()}</TabContent>
       )}
-        </>
-      )}
-
     </Page>
   );
 };

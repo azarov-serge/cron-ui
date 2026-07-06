@@ -3,7 +3,7 @@
 Demo app and UI library for building and validating five-field cron schedules (minute, hour, day of month, month, day of week — no seconds).
 
 **Demo:** https://azarov-serge.github.io/cron-ui/  
-**Version:** `1.0.7` (shown in the app header next to the logo)
+**Version:** `1.0.9` (shown in the app header next to the logo)
 
 **Languages:** English (this file) · [Русский](README.ru.md) · [中文](README.zh.md) · [हिन्दी](README.hi.md)
 
@@ -12,8 +12,8 @@ Demo app and UI library for building and validating five-field cron schedules (m
 | Item | Path |
 | ---- | ---- |
 | `Header` | `src/shared/components/Header/` — logo, version, language menu (RU / EN / ZH / HI), theme toggle |
-| `CronExpressionField` | `src/features/cron/components/CronFields/` — cron expression + copy |
-| `CronDescriptionField` | `src/features/cron/components/CronFields/` — human-readable schedule |
+| `CronExpressionField` | `src/features/cron/components/CronEditor/components/CronFields/` — cron expression + copy |
+| `CronDescriptionField` | `src/features/cron/components/CronEditor/components/CronFields/` — human-readable schedule |
 | `CronEditor` | `src/features/cron/components/CronEditor/` |
 | `CronChecker` | `src/features/cron/components/CronChecker/` |
 | `CronPage` | `src/features/cron/pages/CronPage.tsx` |
@@ -27,15 +27,14 @@ src/
 ├── App.tsx
 ├── features/cron/
 │   ├── components/
-│   │   ├── CronEditor/
-│   │   ├── CronChecker/
-│   │   └── CronFields/       # CronExpressionField, CronDescriptionField
+│   │   ├── CronEditor/       # CronEditor, CronFields/, sections
+│   │   └── CronChecker/
 │   ├── hooks/
 │   ├── pages/CronPage.tsx
 │   └── utils/
 └── shared/
     ├── components/Header/, TimePicker/
-    ├── constants/layout.ts   # LAYOUT_MAX_WIDTH_PX = 1920
+    ├── constants/layout.ts   # LAYOUT_MAX_WIDTH_PX = 1280
     ├── i18n/                 # ru, en, zh, hi
     └── providers/            # AppThemeProvider, LocaleProvider
 ```
@@ -74,22 +73,24 @@ GitHub Actions (`.github/workflows/deploy.yml`) deploys on push to `main`.
 
 ## CronPage (demo)
 
-Two tabs, state synced with URL (`?cron=0+9+*+*+1`, `?tab=checker`):
+Three tabs, state synced with URL (`?cron=0+9+*+*+1`, `?tab=checker`):
 
 | Tab | URL | Content |
 | --- | --- | ------- |
-| Cron constructor | _(default)_ | cron & description fields, editor options, `CronEditor` |
-| Cron checker | `checker` | `CronChecker` |
+| Cron constructor | _(default)_ | inline `CronEditor` (cron expression + description at the bottom) |
+| Editor parameters | `editorParams` | `CronOptions` panels |
+| Cron checker | `checker` | `CronChecker`, **Edit cron** → opens constructor with parsed schedule |
 
-- **cron** and **Description** fields show the current schedule; they do not change until you save from the editor.
-- **Edit cron** opens the cron editor (window on desktop, full-screen on mobile).
-- **Copy** — `TextButton` with localized label on mobile.
+- Changes in `CronEditor` apply immediately via `onChange` and update the page URL.
+- **Edit cron** on the checker tab copies a valid expression into the constructor.
+- **Copy** in the cron block — `TextButton` with localized label on mobile.
 - Locale (`cron-ui-locale`) and theme (`cron-ui-theme`) persist in `localStorage`; first visit uses browser language when supported.
 
 ## CronEditor
 
-Props: `cron`, `onSubmit`, `options` (`CronOptions`).  
-Form id: `cron-schedule-form` — external submit via `form="cron-schedule-form"`.
+Props: `cron`, `onChange`, `options` (`CronOptions`).
+
+`onChange` is called on every schedule change (live updates, no submit button).
 
 `CronOptions` control visible sections, `minuteStep`, `weeklyWeekNumbers`, and `requires` validation. Options are UI-only and are not sent to a backend.
 
@@ -168,6 +169,6 @@ import { Cron } from '@features/cron/components/CronEditor/models/cron';
     dailyFrequencies: ['once'],
     minuteStep: 5,
   }}
-  onSubmit={saveCron}
+  onChange={saveCron}
 />;
 ```

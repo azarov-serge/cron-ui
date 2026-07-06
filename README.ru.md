@@ -3,7 +3,7 @@
 Демо-приложение и UI-библиотека для создания и проверки пятичастных cron-выражений (минута, час, день месяца, месяц, день недели — без секунд).
 
 **Демо:** https://azarov-serge.github.io/cron-ui/  
-**Версия:** `1.0.7` (в шапке приложения рядом с логотипом)
+**Версия:** `1.0.9` (в шапке приложения рядом с логотипом)
 
 **Языки:** [English](README.md) · Русский (этот файл) · [中文](README.zh.md) · [हिन्दी](README.hi.md)
 
@@ -12,8 +12,8 @@
 | Что | Путь |
 | --- | ---- |
 | `Header` | `src/shared/components/Header/` — логотип, версия, язык RU / EN / ZH / HI, переключатель темы |
-| `CronExpressionField` | `src/features/cron/components/CronFields/` — cron-выражение и копирование |
-| `CronDescriptionField` | `src/features/cron/components/CronFields/` — описание расписания |
+| `CronExpressionField` | `src/features/cron/components/CronEditor/components/CronFields/` — cron-выражение и копирование |
+| `CronDescriptionField` | `src/features/cron/components/CronEditor/components/CronFields/` — описание расписания |
 | `CronEditor` | `src/features/cron/components/CronEditor/` |
 | `CronChecker` | `src/features/cron/components/CronChecker/` |
 | `CronPage` | `src/features/cron/pages/CronPage.tsx` |
@@ -27,15 +27,14 @@ src/
 ├── App.tsx
 ├── features/cron/
 │   ├── components/
-│   │   ├── CronEditor/
-│   │   ├── CronChecker/
-│   │   └── CronFields/       # CronExpressionField, CronDescriptionField
+│   │   ├── CronEditor/       # CronEditor, CronFields/, секции
+│   │   └── CronChecker/
 │   ├── hooks/
 │   ├── pages/CronPage.tsx
 │   └── utils/
 └── shared/
     ├── components/Header/, TimePicker/
-    ├── constants/layout.ts   # LAYOUT_MAX_WIDTH_PX = 1920
+    ├── constants/layout.ts   # LAYOUT_MAX_WIDTH_PX = 1280
     ├── i18n/                 # ru, en, zh, hi
     └── providers/            # AppThemeProvider, LocaleProvider
 ```
@@ -74,22 +73,24 @@ GitHub Actions (`.github/workflows/deploy.yml`) деплоит при push в `m
 
 ## CronPage (демо)
 
-Две вкладки, состояние синхронизируется с URL (`?cron=0+9+*+*+1`, `?tab=checker`):
+Три вкладки, состояние синхронизируется с URL (`?cron=0+9+*+*+1`, `?tab=checker`):
 
 | Вкладка | URL | Содержимое |
 | ------- | --- | ---------- |
-| Конструктор cron | _(по умолчанию)_ | поля cron и «Описание», параметры редактора, `CronEditor` |
-| Проверка cron | `checker` | `CronChecker` |
+| Конструктор cron | _(по умолчанию)_ | inline `CronEditor` (cron и «Описание» внизу формы) |
+| Параметры редактора | `editorParams` | панели `CronOptions` |
+| Проверка cron | `checker` | `CronChecker`, **Редактор cron** → переход на конструктор с разобранным расписанием |
 
-- Поля **cron** и **Описание** показывают текущее расписание; сами по себе не меняются.
-- **Изменить cron** открывает редактор cron (окно на desktop, на весь экран на mobile).
-- **Копировать** — `TextButton` с локализованной подписью на mobile.
+- Изменения в `CronEditor` сразу попадают в URL через `onChange`.
+- **Редактор cron** на вкладке проверки переносит валидное выражение на конструктор.
+- **Копировать** в блоке cron — `TextButton` с локализованной подписью на mobile.
 - Язык (`cron-ui-locale`) и тема (`cron-ui-theme`) сохраняются в `localStorage`; при первом визите — язык браузера, если поддерживается.
 
 ## CronEditor
 
-Пропсы: `cron`, `onSubmit`, `options` (`CronOptions`).  
-Форма: `cron-schedule-form` — внешний submit через `form="cron-schedule-form"`.
+Пропсы: `cron`, `onChange`, `options` (`CronOptions`).
+
+`onChange` вызывается при каждом изменении расписания (без кнопки «Сохранить»).
 
 `CronOptions` управляют видимыми секциями, `minuteStep`, `weeklyWeekNumbers` и валидацией `requires`. Опции только для UI и на бэкенд не отправляются.
 
@@ -168,6 +169,6 @@ import { Cron } from '@features/cron/components/CronEditor/models/cron';
     dailyFrequencies: ['once'],
     minuteStep: 5,
   }}
-  onSubmit={saveCron}
+  onChange={saveCron}
 />;
 ```

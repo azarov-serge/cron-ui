@@ -40,7 +40,7 @@ export const CronExpressionField: React.FC<CronExpressionFieldProps> = ({
         <CronCodeText>{expression}</CronCodeText>
         <CopyButton
           appearance="primary"
-          dimension={isCompact ? 's' : 'm'}
+          dimension="s"
           type="button"
           iconStart={<CopyOutline />}
           text={isCompact ? t.copyCronShort : undefined}

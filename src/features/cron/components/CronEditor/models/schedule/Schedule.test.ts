@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Cron } from '../cron';
-import { ScheduleModel } from './ScheduleModel';
+import { Schedule } from './Schedule';
 import {
   createDefaultWeekDays,
   createDefaultWeekNumbers,
@@ -8,9 +8,9 @@ import {
   createEmptyWeekNumbers,
 } from './types';
 
-describe('ScheduleModel weekly month weeks', () => {
+describe('Schedule weekly month weeks', () => {
   it('собирает cron с нотацией день#неделя', () => {
-    const schedule = new ScheduleModel({
+    const schedule = new Schedule({
       occurs: 'weekly',
       dailyFrequency: 'once',
       onceAtTime: '09:00',
@@ -23,7 +23,7 @@ describe('ScheduleModel weekly month weeks', () => {
   });
 
   it('восстанавливает недели месяца из cron', () => {
-    const schedule = ScheduleModel.fromCron(Cron.fromString('0 9 * * 1#1,1#3'));
+    const schedule = Schedule.fromCron(Cron.fromString('0 9 * * 1#1,1#3'));
 
     expect(schedule.useMonthWeekNumbers).toBe(true);
     expect(schedule.weekNumbers).toEqual({
@@ -37,7 +37,7 @@ describe('ScheduleModel weekly month weeks', () => {
   });
 
   it('без выбранных дней — каждый день недели (*)', () => {
-    const schedule = new ScheduleModel({
+    const schedule = new Schedule({
       occurs: 'weekly',
       dailyFrequency: 'once',
       onceAtTime: '09:00',
@@ -50,7 +50,7 @@ describe('ScheduleModel weekly month weeks', () => {
   });
 
   it('без выбранных недель после снятия всех — обычное еженедельное выражение', () => {
-    const schedule = new ScheduleModel({
+    const schedule = new Schedule({
       occurs: 'weekly',
       dailyFrequency: 'once',
       onceAtTime: '09:00',
@@ -63,7 +63,7 @@ describe('ScheduleModel weekly month weeks', () => {
   });
 
   it('с 1-й неделей по умолчанию собирает cron с нотацией день#неделя', () => {
-    const schedule = new ScheduleModel({
+    const schedule = new Schedule({
       occurs: 'weekly',
       dailyFrequency: 'once',
       onceAtTime: '09:00',
@@ -76,7 +76,7 @@ describe('ScheduleModel weekly month weeks', () => {
   });
 
   it('без useMonthWeekNumbers оставляет классическое еженедельное выражение', () => {
-    const schedule = new ScheduleModel({
+    const schedule = new Schedule({
       occurs: 'weekly',
       dailyFrequency: 'once',
       onceAtTime: '09:00',

@@ -110,6 +110,7 @@ export const messages = {
     tabs: {
       constructor: 'Конструктор cron',
       checker: 'Проверка cron',
+      editorParams: 'Параметры редактора',
     },
     urlError: {
       title: 'Некорректный cron в адресе',
@@ -118,16 +119,16 @@ export const messages = {
     help: {
       title: 'Как пользоваться',
       step1:
-        'Поля «cron» и «Описание» ниже показывают текущее расписание. Сами по себе они не меняются.',
+        'Редактор cron ниже показывает текущее расписание. Изменения применяются сразу при редактировании полей.',
       step2:
-        'Чекбоксы «Параметры редактора» настраивают форму — какие поля будут в редакторе.',
+        'На вкладке «Параметры редактора» настройте, какие поля будут в форме.',
       step3:
-        'Заполните редактор и нажмите «Сохранить расписание» — cron и описание обновятся.',
+        'Cron сразу попадает в адрес страницы, а описание обновляется в редакторе.',
       step4:
         'Чтобы разобрать готовое выражение, перейдите на вкладку «Проверка cron».',
     },
-    editSchedule: 'Изменить cron',
-    editCron: 'Редактировать cron',
+    editSchedule: 'Редактор cron',
+    editCron: 'Редактор cron',
     editorOpenBelow: 'Редактор открыт ниже',
     editorTitle: 'Редактор cron',
     closeEditor: 'Закрыть редактор',
@@ -137,7 +138,7 @@ export const messages = {
     copyCronShort: 'Копировать',
     editorParams: 'Параметры редактора',
     editorParamsHint:
-      'Влияют только на форму редактора. Чтобы применить cron, откройте «Изменить cron» и нажмите «Сохранить».',
+      'Настройки применяются к форме на вкладке «Конструктор cron».',
     scheduleType: 'Тип расписания',
     occursFrequency: 'Частота (выполняется)',
     dailyFrequency: 'Ежедневная частота',
@@ -218,6 +219,7 @@ export const messages = {
     tabs: {
       constructor: 'Cron builder',
       checker: 'Cron checker',
+      editorParams: 'Editor parameters',
     },
     urlError: {
       title: 'Invalid cron in URL',
@@ -226,15 +228,15 @@ export const messages = {
     help: {
       title: 'How to use',
       step1:
-        'The cron and description fields below show the current schedule. They do not change on their own.',
+        'The cron editor below shows the current schedule. Changes apply immediately as you edit the fields.',
       step2:
-        'Editor parameters checkboxes configure which fields appear in the editor form.',
+        'On the «Editor parameters» tab, configure which fields appear in the form.',
       step3:
-        'Fill in the editor and click «Save schedule» — the cron and description will update.',
+        'Cron is written to the page URL immediately and the description updates in the editor.',
       step4: 'To parse an expression, open the «Cron checker» tab.',
     },
-    editSchedule: 'Edit cron',
-    editCron: 'Edit cron',
+    editSchedule: 'Cron editor',
+    editCron: 'Cron editor',
     editorOpenBelow: 'Editor open below',
     editorTitle: 'Cron editor',
     closeEditor: 'Close editor',
@@ -244,7 +246,7 @@ export const messages = {
     copyCronShort: 'Copy',
     editorParams: 'Editor parameters',
     editorParamsHint:
-      'Affect only the editor form. To apply cron, open «Edit cron» and click «Save».',
+      'Settings apply to the form on the «Cron builder» tab.',
     scheduleType: 'Schedule type',
     occursFrequency: 'Frequency (occurs)',
     dailyFrequency: 'Daily frequency',
@@ -420,6 +422,7 @@ export const messages = {
     tabs: {
       constructor: 'Cron 构造器',
       checker: 'Cron 校验',
+      editorParams: '编辑器参数',
     },
     urlError: {
       title: 'URL 中的 cron 无效',
@@ -427,13 +430,13 @@ export const messages = {
     },
     help: {
       title: '使用说明',
-      step1: '下方的 cron 和描述字段显示当前计划，不会自动更改。',
-      step2: '「编辑器参数」复选框配置表单中显示的字段。',
-      step3: '填写编辑器并点击「保存计划」— cron 和描述将更新。',
+      step1: '下方的 cron 编辑器显示当前计划。修改字段后立即生效。',
+      step2: '在「编辑器参数」标签页配置表单中显示的字段。',
+      step3: 'cron 会立即写入页面地址，描述会在编辑器中更新。',
       step4: '要解析表达式，请打开「Cron 校验」标签页。',
     },
-    editSchedule: '修改 cron',
-    editCron: '编辑 cron',
+    editSchedule: 'cron 编辑器',
+    editCron: 'cron 编辑器',
     editorOpenBelow: '编辑器已在下方打开',
     editorTitle: 'cron 编辑器',
     closeEditor: '关闭编辑器',
@@ -442,8 +445,7 @@ export const messages = {
     copyCron: '复制 cron 表达式',
     copyCronShort: '复制',
     editorParams: '编辑器参数',
-    editorParamsHint:
-      '仅影响编辑器表单。要应用 cron，请打开「修改 cron」并点击「保存」。',
+    editorParamsHint: '设置应用于「Cron 构造器」标签页中的表单。',
     scheduleType: '计划类型',
     occursFrequency: '频率（执行）',
     dailyFrequency: '每日频率',

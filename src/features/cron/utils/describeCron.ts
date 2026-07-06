@@ -1,5 +1,5 @@
 import { Cron } from '@features/cron/components/CronEditor/models/cron';
-import { ScheduleModel } from '@features/cron/components/CronEditor/models/schedule';
+import { Schedule } from '@features/cron/components/CronEditor/models/schedule';
 import type { WeekDayKey } from '@features/cron/components/CronEditor/models/schedule/types';
 import type { Locale } from '@shared/i18n/messages';
 import { formatMessage, messages } from '@shared/i18n/messages';
@@ -18,7 +18,7 @@ const describeCronWithCronstrue = (cron: Cron, locale: Locale): string => {
   return capitalize(text);
 };
 
-const getSelectedWeekDays = (schedule: ScheduleModel): string => {
+const getSelectedWeekDays = (schedule: Schedule): string => {
   const labels = messages.hi.editor.weekDaysLabels;
 
   return (Object.keys(schedule.weekDays) as WeekDayKey[])
@@ -30,7 +30,7 @@ const getSelectedWeekDays = (schedule: ScheduleModel): string => {
 /** Hindi: cronstrue не поддерживает hi — описание через модель расписания */
 const describeCronInHindi = (cron: Cron): string => {
   const t = messages.hi.cronDescribe;
-  const schedule = ScheduleModel.fromCron(cron);
+  const schedule = Schedule.fromCron(cron);
 
   if (schedule.scheduleType === 'one-time') {
     return formatMessage(messages.hi.editor.oneTimeDescription, {
