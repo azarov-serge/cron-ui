@@ -9,13 +9,13 @@ import {
   ScheduleTypeSection,
 } from './components';
 
-export interface CronEditorProps {
+export interface CronEditorRUProps {
   value?: Cron;
   onChange?: (value: Cron) => void;
   options?: CronOptions;
 }
 
-export const CronEditor: React.FC<CronEditorProps> = (props) => {
+export const CronEditorRU: React.FC<CronEditorRUProps> = (props) => {
   const { value, onChange } = props;
   const currentValue = value ?? Cron.createEmpty();
   const options = resolveCronOptions(props.options);

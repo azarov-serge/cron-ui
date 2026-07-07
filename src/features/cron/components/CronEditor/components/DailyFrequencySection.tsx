@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   NumberInputField,
   Option,
@@ -5,107 +6,100 @@ import {
   SelectField,
   T,
 } from '@admiral-ds/react-ui';
-import type { ScheduleInterface } from '../models/schedule/types';
-import {
-  patchEveryInterval,
-  patchEveryUnit,
-  useCronEditorStore,
-} from '../hooks/useCronEditorStore';
-import {
-  EveryFrequencyBlock,
-  EveryFrequencyRow,
-  FieldHint,
-  FrequencyGroup,
-  IntervalControls,
-  IntervalField,
-  RadioLabel,
-  RadioRow,
-  Section,
-  UnitSelectWrap,
-} from '../styles';
-import { Legend } from './Legend';
 import { TimePickerField } from '@shared/components/TimePicker';
-import { useCronEditorConfig } from '../hooks/useCronEditorConfig';
-import { useCronEditorValidation } from '../hooks/useCronEditorValidation';
-import { getEveryIntervalHint } from '../utils/validation';
+import * as Styled from '../styles';
+import { Legend } from './Legend';
+import {
+  getDailyFrequencySchedule,
+  getEveryIntervalHint,
+  setDailyFrequency,
+  setEveryInterval,
+  setEveryUnit,
+  setOnceAtTime,
+  type ScheduleInterface,
+} from '../utils';
+import {
+  useCronEditorConfig,
+  useCronEditorValidation,
+} from '../hooks';
 import { useTranslation } from '@shared/i18n/useTranslation';
+import type { CronSectionProps } from './types';
 
-export const DailyFrequencySection = () => {
+export const DailyFrequencySection: React.FC<CronSectionProps> = (props) => {
+  const { value, options, onChange } = props;
   const { t } = useTranslation();
   const {
     showDailyFrequencyChoice,
     allowOnceDaily,
     allowEveryDaily,
     intervalUnitOptions,
-    options,
-  } = useCronEditorConfig();
+  } = useCronEditorConfig(options);
   const { everyIntervalLimits, isOnceDaily, isIntervalInvalid } =
-    useCronEditorValidation();
-
-  const onceAtTime = useCronEditorStore((state) => state.schedule.onceAtTime);
-  const everyInterval = useCronEditorStore(
-    (state) => state.schedule.everyInterval,
-  );
-  const everyUnit = useCronEditorStore((state) => state.schedule.everyUnit);
-  const patchSchedule = useCronEditorStore((state) => state.patchSchedule);
-  const patchTime = useCronEditorStore((state) => state.patchTime);
+    useCronEditorValidation(value, options);
+  const { onceAtTime, everyInterval, everyUnit } = getDailyFrequencySchedule(value);
 
   return (
-    <Section>
+    <Styled.Section>
       <Legend>{t.editor.dailyFrequency}</Legend>
-      <FrequencyGroup>
+      <Styled.FrequencyGroup>
         {allowOnceDaily && (
-          <RadioRow>
+          <Styled.RadioRow>
             {showDailyFrequencyChoice ? (
-              <RadioLabel>
+              <Styled.RadioLabel>
                 <RadioButton
                   name="dailyFrequency"
                   dimension="s"
                   value="once"
                   checked={isOnceDaily}
-                  onChange={() => patchSchedule({ dailyFrequency: 'once' })}
+                  onChange={() => onChange(setDailyFrequency(value, 'once'))}
                 >
                   {t.editor.onceAt}
                 </RadioButton>
-              </RadioLabel>
+              </Styled.RadioLabel>
             ) : (
               <T font="Body/Body 1 Short" color="Neutral/Neutral 90" as="span">
                 {t.editor.onceAt}
               </T>
             )}
-            <IntervalField>
+            <Styled.IntervalField>
               <TimePickerField
                 value={onceAtTime}
                 disabled={showDailyFrequencyChoice && !isOnceDaily}
                 minuteStep={options.minuteStep}
-                onChange={(time) => patchTime('onceAtTime', time)}
+                onChange={(time) =>
+                  onChange(setOnceAtTime(value, time, options.minuteStep))
+                }
               />
-            </IntervalField>
-          </RadioRow>
+            </Styled.IntervalField>
+          </Styled.RadioRow>
         )}
 
         {allowEveryDaily && (
-          <EveryFrequencyBlock>
-            <EveryFrequencyRow>
+          <Styled.EveryFrequencyBlock>
+            <Styled.EveryFrequencyRow>
               {showDailyFrequencyChoice ? (
-                <RadioLabel>
+                <Styled.RadioLabel>
                   <RadioButton
                     name="dailyFrequency"
                     dimension="s"
                     value="every"
                     checked={!isOnceDaily}
-                    onChange={() => patchSchedule({ dailyFrequency: 'every' })}
+                    onChange={() => onChange(setDailyFrequency(value, 'every'))}
                   >
                     {t.editor.every}
                   </RadioButton>
-                </RadioLabel>
+                </Styled.RadioLabel>
               ) : (
-                <T font="Body/Body 1 Short" color="Neutral/Neutral 90" as="span">
+                <T
+                  font="Body/Body 1 Short"
+                  color="Neutral/Neutral 90"
+                  as="span"
+                >
                   {t.editor.every}
                 </T>
               )}
-              <IntervalControls>
-                <IntervalField>
+              <Styled.IntervalControls>
+                <Styled.IntervalField>
                   <NumberInputField
                     dimension="s"
                     minValue={everyIntervalLimits.min}
@@ -113,11 +107,13 @@ export const DailyFrequencySection = () => {
                     precision={0}
                     step={everyIntervalLimits.step}
                     value={everyInterval}
-                    status={!isOnceDaily && isIntervalInvalid ? 'error' : undefined}
+                    status={
+                      !isOnceDaily && isIntervalInvalid ? 'error' : undefined
+                    }
                     onChange={(event) =>
-                      patchSchedule((schedule) =>
-                        patchEveryInterval(
-                          schedule,
+                      onChange(
+                        setEveryInterval(
+                          value,
                           options.minuteStep,
                           Number(event.target.value) || 1,
                         ),
@@ -125,15 +121,15 @@ export const DailyFrequencySection = () => {
                     }
                     disabled={showDailyFrequencyChoice && isOnceDaily}
                   />
-                </IntervalField>
-                <UnitSelectWrap>
+                </Styled.IntervalField>
+                <Styled.UnitSelectWrap>
                   <SelectField
                     dimension="s"
                     value={everyUnit}
                     onChange={(event) =>
-                      patchSchedule((schedule) =>
-                        patchEveryUnit(
-                          schedule,
+                      onChange(
+                        setEveryUnit(
+                          value,
                           options.minuteStep,
                           event.target.value as ScheduleInterface['everyUnit'],
                         ),
@@ -147,21 +143,17 @@ export const DailyFrequencySection = () => {
                       </Option>
                     ))}
                   </SelectField>
-                </UnitSelectWrap>
-              </IntervalControls>
-            </EveryFrequencyRow>
+                </Styled.UnitSelectWrap>
+              </Styled.IntervalControls>
+            </Styled.EveryFrequencyRow>
             {!isOnceDaily && (
-              <FieldHint $inSection $error={isIntervalInvalid}>
-                {getEveryIntervalHint(
-                  everyUnit,
-                  options.minuteStep,
-                  t.editor,
-                )}
-              </FieldHint>
+              <Styled.FieldHint $inSection $error={isIntervalInvalid}>
+                {getEveryIntervalHint(everyUnit, options.minuteStep, t.editor)}
+              </Styled.FieldHint>
             )}
-          </EveryFrequencyBlock>
+          </Styled.EveryFrequencyBlock>
         )}
-      </FrequencyGroup>
-    </Section>
+      </Styled.FrequencyGroup>
+    </Styled.Section>
   );
 };

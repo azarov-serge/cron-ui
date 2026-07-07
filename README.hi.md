@@ -130,6 +130,7 @@ type ScheduleEntity = {
 | `dailyFrequencies` | `once`, `every` | एक मान — दैनिक आवृत्ति रेडियो छुपे |
 | `minuteStep` | `1` | समय फ़ील्ड और «हर N मिनट» के लिए कदम |
 | `weeklyWeekNumbers` | `false` | साप्ताहिक मोड में महीने के सप्ताह (1–5) |
+| `showYearNotice` | `false` | one-time में «वर्ष cron में नहीं» चेतावनी |
 | `requires` | `[]` | आवश्यक: `weeklyWeekDays`, `weeklyWeekNumbers` |
 
 अनुमत `minuteStep`: `1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30`।

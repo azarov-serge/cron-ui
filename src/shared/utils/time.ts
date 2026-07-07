@@ -3,6 +3,10 @@ export const normalizeTimeToMinuteStep = (
   time: string,
   minuteStep: number,
 ): string => {
+  if (!time) {
+    return '';
+  }
+
   if (minuteStep <= 1) {
     return time;
   }

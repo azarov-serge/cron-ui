@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FC } from 'react';
+import React from 'react';
 import styled from 'styled-components';
 import {
   NotificationItem,
@@ -115,18 +115,16 @@ type CronCheckerProps = {
   onExpressionChange: (value: string) => void;
 };
 
-export const CronChecker: FC<CronCheckerProps> = ({
-  expression,
-  onExpressionChange,
-}) => {
+export const CronChecker: React.FC<CronCheckerProps> = (props) => {
+  const { expression, onExpressionChange } = props;
   const { t, locale } = useTranslation();
-  const [draftExpression, setDraftExpression] = useState(expression);
+  const [draftExpression, setDraftExpression] = React.useState(expression);
 
-  useEffect(() => {
+  React.useEffect(() => {
     setDraftExpression(expression);
   }, [expression]);
 
-  const parseResult = useMemo(
+  const parseResult = React.useMemo(
     () =>
       draftExpression.trim()
         ? parseCronExpression(draftExpression, locale)

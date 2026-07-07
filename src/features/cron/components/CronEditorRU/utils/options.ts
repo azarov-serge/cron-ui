@@ -2,7 +2,7 @@ import type {
   DailyFrequencyType,
   OccursFrequency,
   ScheduleType,
-} from '../models/schedule/types';
+} from './scheduleTypes';
 
 /** Поля формы, которые можно сделать обязательными */
 export type CronRequireField = 'weeklyWeekDays' | 'weeklyWeekNumbers';
@@ -13,7 +13,7 @@ const ALLOWED_REQUIRE_FIELDS: CronRequireField[] = [
 ];
 
 export interface CronOptions {
-  /** Конфигурация редактора: UI через useCronEditorConfig; поля модели — через schedule.clone() в store */
+  /** Конфигурация редактора */
   /** Доступные типы расписания. Один элемент — блок выбора скрыт */
   scheduleTypes?: ScheduleType[];
   /** Доступные значения «Частота» (Выполняется). Один элемент — выбор скрыт */
@@ -24,6 +24,8 @@ export interface CronOptions {
   minuteStep?: number;
   /** Показывать выбор недель месяца (1–5) для еженедельного расписания; без выбора — каждую неделю */
   weeklyWeekNumbers?: boolean;
+  /** Показывать предупреждение, что год не входит в cron для one-time режима */
+  showYearNotice?: boolean;
   /** Обязательные поля (пустой массив — всё необязательно) */
   requires?: CronRequireField[];
 }
@@ -34,6 +36,7 @@ export const DEFAULT_CRON_OPTIONS: Required<CronOptions> = {
   dailyFrequencies: ['once', 'every'],
   minuteStep: 1,
   weeklyWeekNumbers: false,
+  showYearNotice: false,
   requires: [],
 };
 
@@ -80,6 +83,8 @@ export const resolveCronOptions = (
 
   const weeklyWeekNumbers =
     options?.weeklyWeekNumbers ?? DEFAULT_CRON_OPTIONS.weeklyWeekNumbers;
+  const showYearNotice =
+    options?.showYearNotice ?? DEFAULT_CRON_OPTIONS.showYearNotice;
 
   let requires = normalizeRequires(options?.requires);
 
@@ -104,6 +109,7 @@ export const resolveCronOptions = (
       ? minuteStep
       : DEFAULT_CRON_OPTIONS.minuteStep,
     weeklyWeekNumbers,
+    showYearNotice,
     requires,
   };
 };

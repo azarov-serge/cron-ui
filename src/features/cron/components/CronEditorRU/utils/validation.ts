@@ -2,14 +2,13 @@ import {
   clampCronInterval,
   CRON_HOUR_INTERVAL_MAX,
   getAlignedMinuteIntervalMax,
-} from '../models/schedule/utils';
-import { Schedule } from '../models/schedule';
-import type { IntervalUnit } from '../models/schedule/types';
-import { WEEK_NUMBER_KEYS } from '../models/schedule/types';
+} from './scheduleFieldUtils';
+import type { IntervalUnit, ScheduleInterface } from './scheduleTypes';
+import { WEEK_NUMBER_KEYS } from './scheduleTypes';
 import type { CronOptions } from './options';
 import { isCronFieldRequired } from './options';
-import type { EditorStrings } from '../strings';
-import { formatMessage, editorStrings } from '../strings';
+import type { Messages } from '@shared/i18n/messages';
+import { formatMessage } from '@shared/i18n/messages';
 
 export type ValidateScheduleOptions = Pick<CronOptions, 'requires' | 'weeklyWeekNumbers'>;
 
@@ -47,7 +46,7 @@ export const normalizeEveryInterval = (
 export const getEveryIntervalHint = (
   unit: IntervalUnit,
   minuteStep: number,
-  editor: EditorStrings = editorStrings,
+  editor: Messages['editor'],
 ): string => {
   const { min, max } = getEveryIntervalLimits(unit, minuteStep);
   return unit === 'minutes'
@@ -57,10 +56,10 @@ export const getEveryIntervalHint = (
 
 /** Проверяет расписание перед отправкой формы */
 export const validateSchedule = (
-  schedule: Schedule,
+  schedule: ScheduleInterface,
   minuteStep: number,
   editorOptions: ValidateScheduleOptions = {},
-  editor: EditorStrings = editorStrings,
+  editor: Messages['editor'],
 ): { valid: boolean; message: string | null } => {
   const requireFields = editorOptions.requires ?? [];
   const weeklyWeekNumbersEnabled =
@@ -79,7 +78,7 @@ export const validateSchedule = (
       };
     }
 
-    if (weeklyWeekNumbersEnabled && schedule.useMonthWeekNumbers) {
+    if (weeklyWeekNumbersEnabled && schedule.monthWeekNumbersEnabled) {
       const hasWeek = WEEK_NUMBER_KEYS.some((week) => schedule.weekNumbers[week]);
       if (
         isCronFieldRequired(requireFields, 'weeklyWeekNumbers') &&

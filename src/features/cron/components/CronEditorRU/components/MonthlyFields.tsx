@@ -1,18 +1,19 @@
+import React from 'react';
 import { NumberInputField, T } from '@admiral-ds/react-ui';
-import { InlineRow, NarrowField } from '../styles';
-import { useCronEditorStore } from '../hooks/useCronEditorStore';
-import { editorStrings } from '../strings';
+import * as Styled from '../styles';
+import { getDayOfMonth, setDayOfMonth } from '../utils';
+import type { CronSectionProps } from './types';
 
-export const MonthlyFields = () => {
-  const dayOfMonth = useCronEditorStore((state) => state.schedule.dayOfMonth);
-  const patchSchedule = useCronEditorStore((state) => state.patchSchedule);
+export const MonthlyFields: React.FC<CronSectionProps> = (props) => {
+  const { value, onChange } = props;
+  const dayOfMonth = getDayOfMonth(value);
 
   return (
-    <InlineRow style={{ marginTop: 12 }}>
+    <Styled.InlineRow style={{ marginTop: 12 }}>
       <T font="Body/Body 2 Long" color="Neutral/Neutral 90">
-        {editorStrings.day}
+        День
       </T>
-      <NarrowField>
+      <Styled.NarrowField>
         <NumberInputField
           dimension="s"
           minValue={1}
@@ -20,15 +21,13 @@ export const MonthlyFields = () => {
           precision={0}
           value={dayOfMonth}
           onChange={(event) =>
-            patchSchedule({
-              dayOfMonth: Number(event.target.value) || 1,
-            })
+            onChange(setDayOfMonth(value, Number(event.target.value) || 1))
           }
         />
-      </NarrowField>
+      </Styled.NarrowField>
       <T font="Body/Body 2 Long" color="Neutral/Neutral 90">
-        {editorStrings.ofMonth}
+        месяца
       </T>
-    </InlineRow>
+    </Styled.InlineRow>
   );
 };

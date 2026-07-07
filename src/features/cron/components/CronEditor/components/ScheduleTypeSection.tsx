@@ -1,24 +1,27 @@
+import React from 'react';
 import { RadioButton } from '@admiral-ds/react-ui';
-import { InlineRow, Section } from '../styles';
+import * as Styled from '../styles';
 import { Legend } from './Legend';
-import { useCronEditorConfig } from '../hooks/useCronEditorConfig';
-import { useCronEditorStore } from '../hooks/useCronEditorStore';
+import { getScheduleType, setScheduleType } from '../utils';
+import { useCronEditorConfig } from '../hooks';
 import { useTranslation } from '@shared/i18n/useTranslation';
+import type { CronSectionProps } from './types';
 
-export const ScheduleTypeSection = () => {
+export const ScheduleTypeSection: React.FC<CronSectionProps> = (props) => {
+  const { value, options, onChange } = props;
   const { t } = useTranslation();
-  const { showScheduleTypeChoice, scheduleTypeOptions } = useCronEditorConfig();
-  const scheduleType = useCronEditorStore((state) => state.schedule.scheduleType);
-  const setScheduleType = useCronEditorStore((state) => state.setScheduleType);
+  const { showScheduleTypeChoice, scheduleTypeOptions } =
+    useCronEditorConfig(options);
+  const scheduleType = getScheduleType(value);
 
   if (!showScheduleTypeChoice) {
     return null;
   }
 
   return (
-    <Section>
+    <Styled.Section>
       <Legend>{t.editor.scheduleTypeLegend}</Legend>
-      <InlineRow>
+      <Styled.InlineRow>
         {scheduleTypeOptions.map((option) => (
           <RadioButton
             key={option.value}
@@ -26,12 +29,12 @@ export const ScheduleTypeSection = () => {
             name="scheduleType"
             value={option.value}
             checked={scheduleType === option.value}
-            onChange={() => setScheduleType(option.value)}
+            onChange={() => onChange(setScheduleType(value, option.value))}
           >
             {option.label}
           </RadioButton>
         ))}
-      </InlineRow>
-    </Section>
+      </Styled.InlineRow>
+    </Styled.Section>
   );
 };

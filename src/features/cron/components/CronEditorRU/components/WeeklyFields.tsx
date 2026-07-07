@@ -1,21 +1,30 @@
+import React from 'react';
 import { CheckboxField, T } from '@admiral-ds/react-ui';
-import { WEEK_NUMBER_KEYS } from '../models/schedule/types';
-import { FieldHint, WeekDaysGrid } from '../styles';
-import { useCronEditorConfig } from '../hooks/useCronEditorConfig';
-import { useCronEditorValidation } from '../hooks/useCronEditorValidation';
-import { useCronEditorStore } from '../hooks/useCronEditorStore';
-import { isCronFieldRequired } from '../utils/options';
-import { editorStrings } from '../strings';
+import * as Styled from '../styles';
+import {
+  isCronFieldRequired,
+  parseScheduleFromCron,
+  toggleWeekDay,
+  toggleWeekNumber,
+  WEEK_NUMBER_KEYS,
+} from '../utils';
+import { useCronEditorConfig, useCronEditorValidation } from '../hooks';
+import { WEEK_DAYS_LABELS, WEEK_NUMBERS_LABELS } from '../strings';
+import type { CronSectionProps } from './types';
 
-export const WeeklyFields = () => {
-  const { options, weekDayKeys } = useCronEditorConfig();
-  const { isWeekDaysInvalid, isWeekNumbersInvalid } = useCronEditorValidation();
-  const weekDays = useCronEditorStore((state) => state.schedule.weekDays);
-  const weekNumbers = useCronEditorStore((state) => state.schedule.weekNumbers);
-  const setWeekDay = useCronEditorStore((state) => state.setWeekDay);
-  const setWeekNumber = useCronEditorStore((state) => state.setWeekNumber);
+export const WeeklyFields: React.FC<CronSectionProps> = (props) => {
+  const { value, options, onChange } = props;
+  const { weekDayKeys } = useCronEditorConfig(options);
+  const { isWeekDaysInvalid, isWeekNumbersInvalid } = useCronEditorValidation(
+    value,
+    options,
+  );
+  const { weekDays, weekNumbers } = parseScheduleFromCron(value);
 
-  const weekDaysRequired = isCronFieldRequired(options.requires, 'weeklyWeekDays');
+  const weekDaysRequired = isCronFieldRequired(
+    options.requires,
+    'weeklyWeekDays',
+  );
   const weekNumbersRequired = isCronFieldRequired(
     options.requires,
     'weeklyWeekNumbers',
@@ -28,29 +37,31 @@ export const WeeklyFields = () => {
         color="Neutral/Neutral 50"
         style={{ display: 'block', marginBottom: 8 }}
       >
-        {weekDaysRequired
-          ? editorStrings.weekDays
-          : editorStrings.weekDaysOptional}
+        {weekDaysRequired ? 'Дни недели' : 'Дни недели (необязательно)'}
       </T>
-      <WeekDaysGrid>
+      <Styled.WeekDaysGrid>
         {weekDayKeys.map((day) => (
           <CheckboxField
             key={day}
             dimension="s"
             checked={weekDays[day]}
-            onChange={(event) => setWeekDay(day, event.target.checked)}
+            onChange={(event) =>
+              onChange(toggleWeekDay(value, day, event.target.checked))
+            }
           >
-            {editorStrings.weekDaysLabels[day]}
+            {WEEK_DAYS_LABELS[day]}
           </CheckboxField>
         ))}
-      </WeekDaysGrid>
+      </Styled.WeekDaysGrid>
       {isWeekDaysInvalid && (
-        <FieldHint $error $inSection>
-          {editorStrings.pickWeekDay}
-        </FieldHint>
+        <Styled.FieldHint $error $inSection>
+          Выберите хотя бы один день недели
+        </Styled.FieldHint>
       )}
       {!weekDaysRequired && (
-        <FieldHint $inSection>{editorStrings.weekDaysEmptyHint}</FieldHint>
+        <Styled.FieldHint $inSection>
+          Если ничего не выбрано — каждый день недели
+        </Styled.FieldHint>
       )}
 
       {options.weeklyWeekNumbers && (
@@ -61,28 +72,32 @@ export const WeeklyFields = () => {
             style={{ display: 'block', marginTop: 16 }}
           >
             {weekNumbersRequired
-              ? editorStrings.weekNumbers
-              : editorStrings.weekNumbersOptional}
+              ? 'Недели месяца'
+              : 'Недели месяца (необязательно)'}
           </T>
-          <WeekDaysGrid>
+          <Styled.WeekDaysGrid>
             {WEEK_NUMBER_KEYS.map((week) => (
               <CheckboxField
                 key={week}
                 dimension="s"
                 checked={weekNumbers[week]}
-                onChange={(event) => setWeekNumber(week, event.target.checked)}
+                onChange={(event) =>
+                  onChange(toggleWeekNumber(value, week, event.target.checked))
+                }
               >
-                {`${editorStrings.weekNumbersLabels[week]} ${editorStrings.weekNumberSuffix}`}
+                {`${WEEK_NUMBERS_LABELS[week]} неделя`}
               </CheckboxField>
             ))}
-          </WeekDaysGrid>
+          </Styled.WeekDaysGrid>
           {isWeekNumbersInvalid && (
-            <FieldHint $error $inSection>
-              {editorStrings.pickWeekNumber}
-            </FieldHint>
+            <Styled.FieldHint $error $inSection>
+              Выберите хотя бы одну неделю месяца
+            </Styled.FieldHint>
           )}
           {!weekNumbersRequired && (
-            <FieldHint $inSection>{editorStrings.weekNumbersEmptyHint}</FieldHint>
+            <Styled.FieldHint $inSection>
+              Если ничего не выбрано — запуск каждую неделю
+            </Styled.FieldHint>
           )}
         </>
       )}

@@ -1,9 +1,9 @@
 import styled from 'styled-components';
 import { T } from '@admiral-ds/react-ui';
 import { MONO_FONT_FAMILY } from '@shared/styles/typography';
-import { Section } from '../../styles';
+import * as Styled from '../styles';
 
-export const CronFieldSection = styled(Section)`
+export const CronFieldSection = styled(Styled.Section)`
   margin-bottom: 0;
 `;
 

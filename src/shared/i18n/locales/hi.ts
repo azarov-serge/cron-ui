@@ -34,6 +34,8 @@ export const hiMessages = {
   dailyFrequency: 'दैनिक आवृत्ति',
   weeklySection: 'साप्ताहिक',
   showMonthWeeks: 'महीने के सप्ताह दिखाएँ (1–5)',
+  oneTimeSection: 'एक बार',
+  showYearNotice: 'चेतावनी: वर्ष cron में नहीं है',
   minuteStep: 'मिनट चरण',
   minuteStepHint: '60 के भाजक: TimePicker और «हर N मिनट» अंतराल',
   requiredFields: 'आवश्यक फ़ील्ड',

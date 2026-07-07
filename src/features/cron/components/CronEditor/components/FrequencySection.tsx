@@ -1,24 +1,25 @@
+import React from 'react';
 import { Option, SelectField, T } from '@admiral-ds/react-ui';
-import type { ScheduleInterface } from '../models/schedule/types';
-import { InlineRow, Section } from '../styles';
+import * as Styled from '../styles';
 import { Legend } from './Legend';
 import { MonthlyFields } from './MonthlyFields';
 import { WeeklyFields } from './WeeklyFields';
-import { useCronEditorConfig } from '../hooks/useCronEditorConfig';
-import { useCronEditorStore } from '../hooks/useCronEditorStore';
+import { getOccurs, setOccurs, type ScheduleInterface } from '../utils';
+import { useCronEditorConfig } from '../hooks';
 import { useTranslation } from '@shared/i18n/useTranslation';
+import type { CronSectionProps } from './types';
 
-export const FrequencySection = () => {
+export const FrequencySection: React.FC<CronSectionProps> = (props) => {
+  const { value, options, onChange } = props;
   const { t } = useTranslation();
-  const { showOccursChoice, occursOptions } = useCronEditorConfig();
-  const occurs = useCronEditorStore((state) => state.schedule.occurs);
-  const patchSchedule = useCronEditorStore((state) => state.patchSchedule);
+  const { showOccursChoice, occursOptions } = useCronEditorConfig(options);
+  const occurs = getOccurs(value);
 
   return (
-    <Section>
+    <Styled.Section>
       <Legend>{t.editor.frequency}</Legend>
       {showOccursChoice && (
-        <InlineRow>
+        <Styled.InlineRow>
           <T font="Body/Body 1 Short" color="Neutral/Neutral 90" as="span">
             {t.editor.occurs}
           </T>
@@ -26,9 +27,12 @@ export const FrequencySection = () => {
             dimension="s"
             value={occurs}
             onChange={(event) =>
-              patchSchedule({
-                occurs: event.target.value as ScheduleInterface['occurs'],
-              })
+              onChange(
+                setOccurs(
+                  value,
+                  event.target.value as ScheduleInterface['occurs'],
+                ),
+              )
             }
           >
             {occursOptions.map((option) => (
@@ -37,11 +41,15 @@ export const FrequencySection = () => {
               </Option>
             ))}
           </SelectField>
-        </InlineRow>
+        </Styled.InlineRow>
       )}
 
-      {occurs === 'monthly' && <MonthlyFields />}
-      {occurs === 'weekly' && <WeeklyFields />}
-    </Section>
+      {occurs === 'monthly' && (
+        <MonthlyFields value={value} options={options} onChange={onChange} />
+      )}
+      {occurs === 'weekly' && (
+        <WeeklyFields value={value} options={options} onChange={onChange} />
+      )}
+    </Styled.Section>
   );
 };

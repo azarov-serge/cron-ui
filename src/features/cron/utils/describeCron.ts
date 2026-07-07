@@ -1,6 +1,12 @@
 import { Cron } from '@features/cron/components/CronEditor/models/cron';
-import { Schedule } from '@features/cron/components/CronEditor/models/schedule';
-import type { WeekDayKey } from '@features/cron/components/CronEditor/models/schedule/types';
+import type {
+  ScheduleInterface,
+  WeekDayKey,
+} from '@features/cron/components/CronEditor/utils/scheduleTypes';
+import {
+  buildCronFromSchedule,
+  parseScheduleFromCron,
+} from '@features/cron/components/CronEditor/utils/cronParsers';
 import type { Locale } from '@shared/i18n/messages';
 import { formatMessage, messages } from '@shared/i18n/messages';
 import { toCronstrueLocale } from '@shared/i18n/cronLocale';
@@ -18,7 +24,7 @@ const describeCronWithCronstrue = (cron: Cron, locale: Locale): string => {
   return capitalize(text);
 };
 
-const getSelectedWeekDays = (schedule: Schedule): string => {
+const getSelectedWeekDays = (schedule: ScheduleInterface): string => {
   const labels = messages.hi.editor.weekDaysLabels;
 
   return (Object.keys(schedule.weekDays) as WeekDayKey[])
@@ -30,7 +36,7 @@ const getSelectedWeekDays = (schedule: Schedule): string => {
 /** Hindi: cronstrue не поддерживает hi — описание через модель расписания */
 const describeCronInHindi = (cron: Cron): string => {
   const t = messages.hi.cronDescribe;
-  const schedule = Schedule.fromCron(cron);
+  const schedule = parseScheduleFromCron(cron);
 
   if (schedule.scheduleType === 'one-time') {
     return formatMessage(messages.hi.editor.oneTimeDescription, {
@@ -72,4 +78,19 @@ export const describeCronHuman = (cron: Cron, locale: Locale): string => {
   }
 
   return describeCronWithCronstrue(cron, locale);
+};
+
+/** Интерпретация расписания из контролов редактора. */
+export const describeScheduleHuman = (
+  schedule: ScheduleInterface,
+  locale: Locale,
+): string => {
+  if (schedule.scheduleType === 'one-time') {
+    return formatMessage(messages[locale].editor.oneTimeDescription, {
+      date: schedule.oneTimeDate,
+      time: schedule.oneTimeTime,
+    });
+  }
+
+  return describeCronHuman(buildCronFromSchedule(schedule), locale);
 };

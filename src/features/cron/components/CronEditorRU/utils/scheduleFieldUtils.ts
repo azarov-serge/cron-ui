@@ -4,8 +4,8 @@ import type {
   WeekDays,
   WeekNumberKey,
   WeekNumbers,
-} from './types';
-import { createEmptyWeekDays } from './types';
+} from './scheduleTypes';
+import { createEmptyWeekDays } from './scheduleTypes';
 
 export const CRON_MINUTE_INTERVAL_MAX = 59;
 export const CRON_HOUR_INTERVAL_MAX = 23;
@@ -20,7 +20,6 @@ export const WEEK_DAY_TO_CRON: Record<WeekDayKey, number> = {
   saturday: 6,
 };
 
-/** Максимальный интервал «каждые N минут», кратный minuteStep и не превышающий 59 */
 export const getAlignedMinuteIntervalMax = (minuteStep: number): number => {
   if (minuteStep <= 1) {
     return CRON_MINUTE_INTERVAL_MAX;
@@ -29,7 +28,6 @@ export const getAlignedMinuteIntervalMax = (minuteStep: number): number => {
   return Math.floor(CRON_MINUTE_INTERVAL_MAX / minuteStep) * minuteStep;
 };
 
-/** Ограничивает интервал допустимым диапазоном cron: 1–59 мин или 1–23 ч */
 export const clampCronInterval = (
   interval: number,
   unit: IntervalUnit,
@@ -39,7 +37,6 @@ export const clampCronInterval = (
   return Math.min(max, Math.max(1, interval));
 };
 
-/** Разбирает строку HH:mm на числовые час и минуту */
 export const parseTime = (time: string): { hour: number; minute: number } => {
   const [hourPart, minutePart] = time.split(':');
   return {
@@ -48,7 +45,6 @@ export const parseTime = (time: string): { hour: number; minute: number } => {
   };
 };
 
-/** Раскрывает поле day-of-week cron: «1,3», «1-5» → список номеров дней */
 export const expandDayOfWeek = (dow: string): number[] =>
   dow.split(',').flatMap((part) => {
     if (part.includes('#')) {
@@ -75,7 +71,6 @@ export interface DayOfWeekCronPart {
   weekNumber?: WeekNumberKey;
 }
 
-/** Разбирает day-of-week: «1,3» и «1#1,1#3» */
 export const parseDayOfWeekField = (dow: string): DayOfWeekCronPart[] =>
   dow.split(',').flatMap((part) => {
     const trimmed = part.trim();
@@ -105,16 +100,15 @@ export const parseDayOfWeekField = (dow: string): DayOfWeekCronPart[] =>
     return [{ day }];
   });
 
-/** Собирает поле day-of-week для еженедельного расписания */
 export const buildWeeklyDayOfWeek = ({
   weekDays,
   weekNumbers,
-  useMonthWeekNumbers,
+  monthWeekNumbersEnabled,
   weekNumberKeys,
 }: {
   weekDays: WeekDays;
   weekNumbers: WeekNumbers;
-  useMonthWeekNumbers: boolean;
+  monthWeekNumbersEnabled: boolean;
   weekNumberKeys: WeekNumberKey[];
 }): string | null => {
   const selectedDays = (Object.keys(weekDays) as WeekDayKey[])
@@ -127,7 +121,7 @@ export const buildWeeklyDayOfWeek = ({
 
   const selectedWeeks = weekNumberKeys.filter((week) => weekNumbers[week]);
 
-  if (useMonthWeekNumbers && selectedWeeks.length > 0) {
+  if (monthWeekNumbersEnabled && selectedWeeks.length > 0) {
     return selectedDays
       .flatMap((day) => selectedWeeks.map((week) => `${day}#${week}`))
       .join(',');
@@ -136,7 +130,6 @@ export const buildWeeklyDayOfWeek = ({
   return selectedDays.join(',');
 };
 
-/** Восстанавливает чекбоксы недель месяца из частей cron */
 export const cronPartsToWeekNumbers = (
   parts: DayOfWeekCronPart[],
   weekNumberKeys: WeekNumberKey[],
@@ -154,7 +147,6 @@ export const cronPartsToWeekNumbers = (
   return weekNumbers;
 };
 
-/** Преобразует номера дней cron (0 = вс, 1 = пн, …) в чекбоксы формы */
 export const cronDaysToWeekDays = (cronDays: number[]): WeekDays => {
   const weekDays = createEmptyWeekDays();
   const cronToKey = Object.entries(WEEK_DAY_TO_CRON) as [WeekDayKey, number][];

@@ -1,8 +1,11 @@
 import { Cron } from '@features/cron/components/CronEditor/models/cron';
 import type { Locale, Messages } from '@shared/i18n/messages';
 import { formatMessage, getOneTimeYearNotice, messages } from '@shared/i18n/messages';
-import { describeCronHuman } from '@features/cron/utils/describeCron';
-import { Schedule } from '@features/cron/components/CronEditor/models/schedule';
+import {
+  describeCronHuman,
+  describeScheduleHuman,
+} from '@features/cron/utils/describeCron';
+import { parseScheduleFromCron } from '@features/cron/components/CronEditor/utils/cronParsers';
 
 export type CronPartKey =
   | 'minute'
@@ -208,8 +211,8 @@ export const parseCronExpression = (
     };
   }
 
-  const schedule = Schedule.fromCron(cron);
-  const scheduleDescription = schedule.toDescription(locale);
+  const schedule = parseScheduleFromCron(cron);
+  const scheduleDescription = describeScheduleHuman(schedule, locale);
   const oneTimeNotice =
     schedule.scheduleType === 'one-time'
       ? getOneTimeYearNotice(schedule.oneTimeDate, t)

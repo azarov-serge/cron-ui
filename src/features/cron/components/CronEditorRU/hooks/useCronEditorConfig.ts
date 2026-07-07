@@ -1,23 +1,25 @@
-import { useMemo } from 'react';
+import React from 'react';
 import {
   INTERVAL_UNIT_OPTIONS,
   OCCURS_OPTIONS,
   SCHEDULE_TYPE_OPTIONS,
 } from '../utils/constants';
-import { useCronEditorStore } from './useCronEditorStore';
-import { editorStrings, occursLabels, scheduleTypeLabels } from '../strings';
-import type { WeekDayKey } from '../models/schedule/types';
+import type { CronOptions, WeekDayKey } from '../utils';
+import {
+  INTERVAL_UNIT_LABELS,
+  OCCURS_LABELS,
+  SCHEDULE_TYPE_LABELS,
+  WEEK_DAYS_LABELS,
+} from '../strings';
 
-export const useCronEditorConfig = () => {
-  const options = useCronEditorStore((state) => state.options);
-
-  return useMemo(() => {
+export const useCronEditorConfig = (options: Required<CronOptions>) => {
+  return React.useMemo(() => {
     const showScheduleTypeChoice = options.scheduleTypes.length > 1;
     const scheduleTypeOptions = SCHEDULE_TYPE_OPTIONS.filter((option) =>
       options.scheduleTypes.includes(option.value),
     ).map((option) => ({
       ...option,
-      label: scheduleTypeLabels[option.value],
+      label: SCHEDULE_TYPE_LABELS[option.value],
     }));
 
     const showOccursChoice = options.occursFrequencies.length > 1;
@@ -25,17 +27,15 @@ export const useCronEditorConfig = () => {
       options.occursFrequencies.includes(option.value),
     ).map((option) => ({
       ...option,
-      label: occursLabels[option.value],
+      label: OCCURS_LABELS[option.value],
     }));
 
     const intervalUnitOptions = INTERVAL_UNIT_OPTIONS.map((option) => ({
       ...option,
-      label: editorStrings.intervalUnits[option.value],
+      label: INTERVAL_UNIT_LABELS[option.value],
     }));
 
-    const weekDayKeys = Object.keys(
-      editorStrings.weekDaysLabels,
-    ) as WeekDayKey[];
+    const weekDayKeys = Object.keys(WEEK_DAYS_LABELS) as WeekDayKey[];
     const showDailyFrequencyChoice = options.dailyFrequencies.length > 1;
     const allowOnceDaily = options.dailyFrequencies.includes('once');
     const allowEveryDaily = options.dailyFrequencies.includes('every');

@@ -130,6 +130,7 @@ type ScheduleEntity = {
 | `dailyFrequencies` | `once`、`every` | 仅一项时隐藏每日频率单选 |
 | `minuteStep` | `1` | 时间字段与「每 N 分钟」的步长 |
 | `weeklyWeekNumbers` | `false` | 周模式下月份周次复选框（1–5） |
+| `showYearNotice` | `false` | one-time 模式下显示「年份不在 cron 中」警告 |
 | `requires` | `[]` | 必填：`weeklyWeekDays`、`weeklyWeekNumbers` |
 
 允许的 `minuteStep`：`1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30`。

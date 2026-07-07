@@ -1,16 +1,25 @@
 import { describe, expect, it } from 'vitest';
-import { Schedule } from '../models/schedule';
-import { createEmptyWeekDays } from '../models/schedule/types';
+import { createEmptyWeekDays } from './scheduleTypes';
 import { validateSchedule } from './validation';
-import { editorStrings } from '../strings';
+import { messages } from '@shared/i18n/messages';
 
-const editor = editorStrings;
+const editor = messages.ru.editor;
 
 describe('validateSchedule weekly requiredness', () => {
-  const weeklySchedule = new Schedule({
+  const weeklySchedule = {
+    scheduleType: 'recurring' as const,
     occurs: 'weekly',
     weekDays: createEmptyWeekDays(),
-  });
+    weekNumbers: { 1: false, 2: false, 3: false, 4: false, 5: false },
+    monthWeekNumbersEnabled: false,
+    dayOfMonth: 1,
+    dailyFrequency: 'once' as const,
+    onceAtTime: '',
+    oneTimeDate: '',
+    oneTimeTime: '',
+    everyInterval: 1,
+    everyUnit: 'hours' as const,
+  };
 
   it('не требует дни недели по умолчанию', () => {
     expect(validateSchedule(weeklySchedule, 1, { requires: [] }, editor)).toEqual({
@@ -31,10 +40,11 @@ describe('validateSchedule weekly requiredness', () => {
   });
 
   it('требует недели месяца при requires: weeklyWeekNumbers', () => {
-    const schedule = weeklySchedule.clone({
-      useMonthWeekNumbers: true,
+    const schedule = {
+      ...weeklySchedule,
+      monthWeekNumbersEnabled: true,
       weekDays: { ...createEmptyWeekDays(), monday: true },
-    });
+    };
 
     expect(
       validateSchedule(schedule, 1, {

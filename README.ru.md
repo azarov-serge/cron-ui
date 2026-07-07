@@ -130,6 +130,7 @@ type ScheduleEntity = {
 | `dailyFrequencies` | `once`, `every` | Один элемент — радиокнопки «Ежедневная частота» скрыты |
 | `minuteStep` | `1` | Шаг минут в полях времени и в «каждые N минут» |
 | `weeklyWeekNumbers` | `false` | Чекбоксы недель месяца (1–5) для еженедельного режима |
+| `showYearNotice` | `false` | Предупреждение «Год не входит в cron» для one-time |
 | `requires` | `[]` | Обязательные поля: `weeklyWeekDays`, `weeklyWeekNumbers` |
 
 Допустимые `minuteStep`: `1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30`.

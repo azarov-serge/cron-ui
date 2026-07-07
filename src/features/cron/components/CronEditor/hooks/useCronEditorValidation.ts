@@ -1,17 +1,21 @@
-import { useMemo } from 'react';
-import { WEEK_NUMBER_KEYS } from '../models/schedule/types';
-import { useCronEditorStore } from './useCronEditorStore';
-import { isCronFieldRequired } from '../utils/options';
+import React from 'react';
+import { useTranslation } from '@shared/i18n/useTranslation';
 import {
   getEveryIntervalLimits,
+  isCronFieldRequired,
+  parseScheduleFromCron,
   validateSchedule,
-} from '../utils/validation';
-import { useTranslation } from '@shared/i18n/useTranslation';
+  WEEK_NUMBER_KEYS,
+} from '../utils';
+import { Cron } from '../models/cron';
+import type { CronOptions } from '../utils';
 
-export const useCronEditorValidation = () => {
+export const useCronEditorValidation = (
+  value: Cron,
+  options: Required<CronOptions>,
+) => {
   const { t } = useTranslation();
-  const schedule = useCronEditorStore((state) => state.schedule);
-  const options = useCronEditorStore((state) => state.options);
+  const schedule = parseScheduleFromCron(value);
 
   const everyIntervalLimits = getEveryIntervalLimits(
     schedule.everyUnit,
@@ -33,10 +37,10 @@ export const useCronEditorValidation = () => {
     isCronFieldRequired(options.requires, 'weeklyWeekNumbers') &&
     options.weeklyWeekNumbers &&
     schedule.occurs === 'weekly' &&
-    schedule.useMonthWeekNumbers &&
+    schedule.monthWeekNumbersEnabled &&
     !WEEK_NUMBER_KEYS.some((week) => schedule.weekNumbers[week]);
 
-  const validation = useMemo(
+  const validation = React.useMemo(
     () =>
       validateSchedule(
         schedule,

@@ -1,22 +1,34 @@
+import React from 'react';
 import { CheckboxField, T } from '@admiral-ds/react-ui';
-import { WEEK_NUMBER_KEYS } from '../models/schedule/types';
-import { FieldHint, WeekDaysGrid } from '../styles';
-import { useCronEditorConfig } from '../hooks/useCronEditorConfig';
-import { useCronEditorValidation } from '../hooks/useCronEditorValidation';
-import { useCronEditorStore } from '../hooks/useCronEditorStore';
-import { isCronFieldRequired } from '../utils/options';
+import * as Styled from '../styles';
+import {
+  isCronFieldRequired,
+  parseScheduleFromCron,
+  toggleWeekDay,
+  toggleWeekNumber,
+  WEEK_NUMBER_KEYS,
+} from '../utils';
+import {
+  useCronEditorConfig,
+  useCronEditorValidation,
+} from '../hooks';
 import { useTranslation } from '@shared/i18n/useTranslation';
+import type { CronSectionProps } from './types';
 
-export const WeeklyFields = () => {
+export const WeeklyFields: React.FC<CronSectionProps> = (props) => {
+  const { value, options, onChange } = props;
   const { t } = useTranslation();
-  const { options, weekDayKeys } = useCronEditorConfig();
-  const { isWeekDaysInvalid, isWeekNumbersInvalid } = useCronEditorValidation();
-  const weekDays = useCronEditorStore((state) => state.schedule.weekDays);
-  const weekNumbers = useCronEditorStore((state) => state.schedule.weekNumbers);
-  const setWeekDay = useCronEditorStore((state) => state.setWeekDay);
-  const setWeekNumber = useCronEditorStore((state) => state.setWeekNumber);
+  const { weekDayKeys } = useCronEditorConfig(options);
+  const { isWeekDaysInvalid, isWeekNumbersInvalid } = useCronEditorValidation(
+    value,
+    options,
+  );
+  const { weekDays, weekNumbers } = parseScheduleFromCron(value);
 
-  const weekDaysRequired = isCronFieldRequired(options.requires, 'weeklyWeekDays');
+  const weekDaysRequired = isCronFieldRequired(
+    options.requires,
+    'weeklyWeekDays',
+  );
   const weekNumbersRequired = isCronFieldRequired(
     options.requires,
     'weeklyWeekNumbers',
@@ -31,25 +43,29 @@ export const WeeklyFields = () => {
       >
         {weekDaysRequired ? t.editor.weekDays : t.editor.weekDaysOptional}
       </T>
-      <WeekDaysGrid>
+      <Styled.WeekDaysGrid>
         {weekDayKeys.map((day) => (
           <CheckboxField
             key={day}
             dimension="s"
             checked={weekDays[day]}
-            onChange={(event) => setWeekDay(day, event.target.checked)}
+            onChange={(event) =>
+              onChange(toggleWeekDay(value, day, event.target.checked))
+            }
           >
             {t.editor.weekDaysLabels[day]}
           </CheckboxField>
         ))}
-      </WeekDaysGrid>
+      </Styled.WeekDaysGrid>
       {isWeekDaysInvalid && (
-        <FieldHint $error $inSection>
+        <Styled.FieldHint $error $inSection>
           {t.editor.pickWeekDay}
-        </FieldHint>
+        </Styled.FieldHint>
       )}
       {!weekDaysRequired && (
-        <FieldHint $inSection>{t.editor.weekDaysEmptyHint}</FieldHint>
+        <Styled.FieldHint $inSection>
+          {t.editor.weekDaysEmptyHint}
+        </Styled.FieldHint>
       )}
 
       {options.weeklyWeekNumbers && (
@@ -63,25 +79,29 @@ export const WeeklyFields = () => {
               ? t.editor.weekNumbers
               : t.editor.weekNumbersOptional}
           </T>
-          <WeekDaysGrid>
+          <Styled.WeekDaysGrid>
             {WEEK_NUMBER_KEYS.map((week) => (
               <CheckboxField
                 key={week}
                 dimension="s"
                 checked={weekNumbers[week]}
-                onChange={(event) => setWeekNumber(week, event.target.checked)}
+                onChange={(event) =>
+                  onChange(toggleWeekNumber(value, week, event.target.checked))
+                }
               >
                 {`${t.editor.weekNumbersLabels[week]} ${t.editor.weekNumberSuffix}`}
               </CheckboxField>
             ))}
-          </WeekDaysGrid>
+          </Styled.WeekDaysGrid>
           {isWeekNumbersInvalid && (
-            <FieldHint $error $inSection>
+            <Styled.FieldHint $error $inSection>
               {t.editor.pickWeekNumber}
-            </FieldHint>
+            </Styled.FieldHint>
           )}
           {!weekNumbersRequired && (
-            <FieldHint $inSection>{t.editor.weekNumbersEmptyHint}</FieldHint>
+            <Styled.FieldHint $inSection>
+              {t.editor.weekNumbersEmptyHint}
+            </Styled.FieldHint>
           )}
         </>
       )}

@@ -88,7 +88,7 @@ Three tabs, state synced with URL (`?cron=0+9+*+*+1`, `?tab=checker`):
 
 ## CronEditor
 
-Props: `cron`, `onChange`, `options` (`CronOptions`).
+Props: `value`, `onChange`, `options` (`CronOptions`).
 
 `onChange` is called on every schedule change (live updates, no submit button).
 
@@ -130,6 +130,7 @@ type ScheduleEntity = {
 | `dailyFrequencies` | `once`, `every` | Single value hides daily-frequency radios |
 | `minuteStep` | `1` | Minute step for time fields and “every N minutes” |
 | `weeklyWeekNumbers` | `false` | Week-of-month checkboxes (1–5) for weekly mode |
+| `showYearNotice` | `false` | Shows one-time warning that year is not part of cron |
 | `requires` | `[]` | Required fields: `weeklyWeekDays`, `weeklyWeekNumbers` |
 
 Allowed `minuteStep`: `1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30`.
@@ -162,7 +163,7 @@ import {
 import { Cron } from '@features/cron/components/CronEditor/models/cron';
 
 <CronEditor
-  cron={task.cron}
+  value={task.cron}
   options={{
     scheduleTypes: ['recurring'],
     occursFrequencies: ['daily', 'weekly'],

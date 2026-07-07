@@ -1,4 +1,4 @@
-import { useMemo, useState, type FC } from 'react';
+import React from 'react';
 import styled from 'styled-components';
 import {
   HorizontalTab,
@@ -26,7 +26,7 @@ import type {
   DailyFrequencyType,
   OccursFrequency,
   ScheduleType,
-} from '@features/cron/components/CronEditor/models/schedule/types';
+} from '@features/cron/components/CronEditor/utils/scheduleTypes';
 import {
   OCCURS_OPTIONS,
   SCHEDULE_TYPE_OPTIONS,
@@ -208,9 +208,9 @@ const toggleRequireField = (
   return selectedValues.filter((item) => item !== value);
 };
 
-export const CronPage: FC = (_props) => {
+export const CronPage: React.FC = (_props) => {
   const { t, locale } = useTranslation();
-  const pageTabs = useMemo(
+  const pageTabs = React.useMemo(
     () =>
       PAGE_TAB_IDS.map((id) => ({
         id,
@@ -218,7 +218,7 @@ export const CronPage: FC = (_props) => {
       })),
     [t],
   );
-  const scheduleTypeOptions = useMemo(
+  const scheduleTypeOptions = React.useMemo(
     () =>
       SCHEDULE_TYPE_OPTIONS.map((option) => ({
         ...option,
@@ -226,7 +226,7 @@ export const CronPage: FC = (_props) => {
       })),
     [t],
   );
-  const occursOptions = useMemo(
+  const occursOptions = React.useMemo(
     () =>
       OCCURS_OPTIONS.map((option) => ({
         ...option,
@@ -234,7 +234,7 @@ export const CronPage: FC = (_props) => {
       })),
     [t],
   );
-  const dailyFrequencyOptions = useMemo(
+  const dailyFrequencyOptions = React.useMemo(
     () =>
       DAILY_FREQUENCY_VALUES.map((value) => ({
         value,
@@ -242,7 +242,7 @@ export const CronPage: FC = (_props) => {
       })),
     [t],
   );
-  const requireOptions = useMemo(
+  const requireOptions = React.useMemo(
     () =>
       REQUIRE_FIELD_VALUES.map((value) => ({
         value,
@@ -261,11 +261,11 @@ export const CronPage: FC = (_props) => {
     submitCron,
   } = useCronPageSearchParams();
 
-  const [editorOptions, setEditorOptions] = useState<Required<CronOptions>>(
+  const [editorOptions, setEditorOptions] = React.useState<Required<CronOptions>>(
     () => ({ ...DEFAULT_CRON_OPTIONS }),
   );
 
-  const canEditFromChecker = useMemo(() => {
+  const canEditFromChecker = React.useMemo(() => {
     const trimmed = checkerExpression.trim();
     if (!trimmed) {
       return false;
@@ -350,6 +350,13 @@ export const CronPage: FC = (_props) => {
     }));
   };
 
+  const patchShowYearNotice = (showYearNotice: boolean) => {
+    setEditorOptions((prevOptions) => ({
+      ...prevOptions,
+      showYearNotice,
+    }));
+  };
+
   const patchRequireField = (value: CronRequireField, checked: boolean) => {
     setEditorOptions((prevOptions) => ({
       ...prevOptions,
@@ -358,11 +365,7 @@ export const CronPage: FC = (_props) => {
   };
 
   const renderCronEditor = () => (
-    <CronEditor
-      cron={cron}
-      onChange={submitCron}
-      options={editorOptions}
-    />
+    <CronEditor value={cron} onChange={submitCron} options={editorOptions} />
   );
 
   const renderPageTab = (
@@ -469,6 +472,21 @@ export const CronPage: FC = (_props) => {
                 }
               >
                 {t.showMonthWeeks}
+              </CheckboxField>
+            </CheckboxList>
+          </ControlGroup>
+
+          <ControlGroup>
+            <T font="Body/Body 2 Short" color="Neutral/Neutral 50">
+              {t.oneTimeSection}
+            </T>
+            <CheckboxList>
+              <CheckboxField
+                dimension="s"
+                checked={editorOptions.showYearNotice}
+                onChange={(event) => patchShowYearNotice(event.target.checked)}
+              >
+                {t.showYearNotice}
               </CheckboxField>
             </CheckboxList>
           </ControlGroup>

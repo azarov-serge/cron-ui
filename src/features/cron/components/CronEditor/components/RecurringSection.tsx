@@ -1,18 +1,24 @@
-import { FrequencySection } from './FrequencySection';
+import React from 'react';
+import { getIsRecurring } from '../utils';
 import { DailyFrequencySection } from './DailyFrequencySection';
-import { useCronEditorStore } from '../hooks/useCronEditorStore';
+import { FrequencySection } from './FrequencySection';
+import type { CronSectionProps } from './types';
 
-export const RecurringSection = () => {
-  const scheduleType = useCronEditorStore((state) => state.schedule.scheduleType);
+export const RecurringSection: React.FC<CronSectionProps> = (props) => {
+  const { value, options, onChange } = props;
 
-  if (scheduleType !== 'recurring') {
+  if (!getIsRecurring(value)) {
     return null;
   }
 
   return (
     <>
-      <FrequencySection />
-      <DailyFrequencySection />
+      <FrequencySection value={value} options={options} onChange={onChange} />
+      <DailyFrequencySection
+        value={value}
+        options={options}
+        onChange={onChange}
+      />
     </>
   );
 };

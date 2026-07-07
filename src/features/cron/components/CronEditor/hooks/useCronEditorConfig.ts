@@ -1,18 +1,16 @@
-import { useMemo } from 'react';
+import React from 'react';
 import {
   INTERVAL_UNIT_OPTIONS,
   OCCURS_OPTIONS,
   SCHEDULE_TYPE_OPTIONS,
 } from '../utils/constants';
-import { useCronEditorStore } from '../hooks/useCronEditorStore';
 import { useTranslation } from '@shared/i18n/useTranslation';
-import type { WeekDayKey } from '../models/schedule/types';
+import type { CronOptions, WeekDayKey } from '../utils';
 
-export const useCronEditorConfig = () => {
+export const useCronEditorConfig = (options: Required<CronOptions>) => {
   const { t } = useTranslation();
-  const options = useCronEditorStore((state) => state.options);
 
-  return useMemo(() => {
+  return React.useMemo(() => {
     const showScheduleTypeChoice = options.scheduleTypes.length > 1;
     const scheduleTypeOptions = SCHEDULE_TYPE_OPTIONS.filter((option) =>
       options.scheduleTypes.includes(option.value),
