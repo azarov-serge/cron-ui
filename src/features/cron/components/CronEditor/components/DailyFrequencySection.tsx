@@ -18,10 +18,7 @@ import {
   setOnceAtTime,
   type ScheduleInterface,
 } from '../utils';
-import {
-  useCronEditorConfig,
-  useCronEditorValidation,
-} from '../hooks';
+import { useCronEditorConfig, useCronEditorValidation } from '../hooks';
 import { useTranslation } from '@shared/i18n/useTranslation';
 import type { CronSectionProps } from './types';
 
@@ -36,7 +33,8 @@ export const DailyFrequencySection: React.FC<CronSectionProps> = (props) => {
   } = useCronEditorConfig(options);
   const { everyIntervalLimits, isOnceDaily, isIntervalInvalid } =
     useCronEditorValidation(value, options);
-  const { onceAtTime, everyInterval, everyUnit } = getDailyFrequencySchedule(value);
+  const { onceAtTime, everyInterval, everyUnit } =
+    getDailyFrequencySchedule(value);
 
   return (
     <Styled.Section>
@@ -67,7 +65,7 @@ export const DailyFrequencySection: React.FC<CronSectionProps> = (props) => {
                 disabled={showDailyFrequencyChoice && !isOnceDaily}
                 minuteStep={options.minuteStep}
                 onChange={(time) =>
-                  onChange(setOnceAtTime(value, time, options.minuteStep))
+                  onChange(setOnceAtTime(value, time ?? '', options.minuteStep))
                 }
               />
             </Styled.IntervalField>

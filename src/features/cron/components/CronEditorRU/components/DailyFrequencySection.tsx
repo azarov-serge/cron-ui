@@ -63,7 +63,7 @@ export const DailyFrequencySection: React.FC<CronSectionProps> = (props) => {
                 disabled={showDailyFrequencyChoice && !isOnceDaily}
                 minuteStep={options.minuteStep}
                 onChange={(time) =>
-                  onChange(setOnceAtTime(value, time, options.minuteStep))
+                  onChange(setOnceAtTime(value, time ?? '', options.minuteStep))
                 }
               />
             </Styled.IntervalField>

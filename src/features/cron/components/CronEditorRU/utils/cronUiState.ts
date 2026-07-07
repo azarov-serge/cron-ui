@@ -1,4 +1,4 @@
-import { normalizeTimeToMinuteStep } from '@shared/utils/time';
+import { normalizeTimeToMinuteStep } from '@shared/components/TimePicker/utils/time';
 import { Cron } from '../models/cron';
 import type {
   ScheduleInterface,
@@ -26,7 +26,8 @@ export const setOccurs = (
 
 export const getScheduleType = (
   value: Cron,
-): ScheduleInterface['scheduleType'] => parseScheduleFromCron(value).scheduleType;
+): ScheduleInterface['scheduleType'] =>
+  parseScheduleFromCron(value).scheduleType;
 
 export const setScheduleType = (
   value: Cron,
@@ -83,7 +84,7 @@ export const setOneTimeTime = (
   minuteStep: number,
 ): Cron =>
   updateSchedule(value, {
-    oneTimeTime: normalizeTimeToMinuteStep(oneTimeTime, minuteStep),
+    oneTimeTime: normalizeTimeToMinuteStep(oneTimeTime, minuteStep) ?? '',
   });
 
 export const getDailyFrequencySchedule = (
@@ -112,7 +113,7 @@ export const setOnceAtTime = (
   minuteStep: number,
 ): Cron =>
   updateSchedule(value, {
-    onceAtTime: normalizeTimeToMinuteStep(onceAtTime, minuteStep),
+    onceAtTime: normalizeTimeToMinuteStep(onceAtTime, minuteStep) ?? '',
   });
 
 export const setEveryInterval = (

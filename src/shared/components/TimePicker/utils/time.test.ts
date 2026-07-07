@@ -14,6 +14,11 @@ describe('normalizeTimeToMinuteStep', () => {
     expect(normalizeTimeToMinuteStep('09:07', 10)).toBe('09:10');
     expect(normalizeTimeToMinuteStep('09:03', 10)).toBe('09:00');
   });
+
+  it('возвращает null для пустого значения', () => {
+    expect(normalizeTimeToMinuteStep(null, 10)).toBeNull();
+    expect(normalizeTimeToMinuteStep('', 10)).toBeNull();
+  });
 });
 
 describe('getHourOptions', () => {
@@ -64,6 +69,15 @@ describe('splitTimeString / combineTimeString / snapMinuteToStep', () => {
   it('разбирает и собирает время', () => {
     expect(splitTimeString('09:30')).toEqual({ hour: '09', minute: '30' });
     expect(combineTimeString('9', '5')).toBe('09:05');
+  });
+
+  it('разбирает и собирает время с секундами', () => {
+    expect(splitTimeString('09:30:45', true)).toEqual({
+      hour: '09',
+      minute: '30',
+      second: '45',
+    });
+    expect(combineTimeString('9', '5', '7')).toBe('09:05:07');
   });
 
   it('приводит минуты к шагу', () => {

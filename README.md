@@ -3,7 +3,7 @@
 Demo app and UI library for building and validating five-field cron schedules (minute, hour, day of month, month, day of week — no seconds).
 
 **Demo:** https://azarov-serge.github.io/cron-ui/  
-**Version:** `1.0.9` (shown in the app header next to the logo)
+**Version:** `1.1.1` (shown in the app header next to the logo)
 
 **Languages:** English (this file) · [Русский](README.ru.md) · [中文](README.zh.md) · [हिन्दी](README.hi.md)
 
@@ -18,7 +18,7 @@ Demo app and UI library for building and validating five-field cron schedules (m
 | `CronChecker` | `src/features/cron/components/CronChecker/` |
 | `CronPage` | `src/features/cron/pages/CronPage.tsx` |
 | `TimePicker` | `src/shared/components/TimePicker/` |
-| Spec | [`src/features/cron/components/CronEditor/SRS.md`](src/features/cron/components/CronEditor/SRS.md) |
+| `DateTimePicker` | `src/shared/components/DateTimePicker/` — date + time (`OneTimeSection`) |
 
 ## Project structure
 
@@ -33,7 +33,7 @@ src/
 │   ├── pages/CronPage.tsx
 │   └── utils/
 └── shared/
-    ├── components/Header/, TimePicker/
+    ├── components/Header/, TimePicker/, DateTimePicker/
     ├── constants/layout.ts   # LAYOUT_MAX_WIDTH_PX = 1280
     ├── i18n/                 # ru, en, zh, hi
     └── providers/            # AppThemeProvider, LocaleProvider
@@ -52,10 +52,14 @@ npm run preview  # test production build locally
 
 ## Deployment
 
-GitHub Actions (`.github/workflows/deploy.yml`) deploys on push to `main`.  
+GitHub Actions (`.github/workflows/deploy.yml`) builds Vite and deploys the `dist/` folder on push to `main`.  
 `vite.config.ts`: `base: '/cron-ui/'` for production, `'/'` for dev.
 
-**GitHub Pages (one-time):** Settings → Pages → Source → **GitHub Actions**.
+**GitHub Pages (one-time setup):** Repository → **Settings** → **Pages** → **Build and deployment** → **Source** → **GitHub Actions**.
+
+> Do **not** use “Deploy from a branch” with the `/docs` folder — this repo has no Jekyll `docs/` site.  
+> If Pages is set to `/docs`, the build fails with `No such file or directory … /docs` and Jekyll `style.scss` errors.  
+> Switch the source to **GitHub Actions** and re-run the **Deploy to GitHub Pages** workflow.
 
 ## Versioning
 
@@ -131,7 +135,7 @@ type ScheduleEntity = {
 | `minuteStep` | `1` | Minute step for time fields and “every N minutes” |
 | `weeklyWeekNumbers` | `false` | Week-of-month checkboxes (1–5) for weekly mode |
 | `showYearNotice` | `false` | Shows one-time warning that year is not part of cron |
-| `requires` | `[]` | Required fields: `weeklyWeekDays`, `weeklyWeekNumbers` |
+| `requires` | `[]` | Required fields: `weeklyWeekDays`, `weeklyWeekNumbers`. Section labels show a red `*` (Admiral style) when required; plain label when optional. |
 
 Allowed `minuteStep`: `1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30`.
 

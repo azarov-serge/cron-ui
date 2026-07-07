@@ -3,7 +3,7 @@
 Демо-приложение и UI-библиотека для создания и проверки пятичастных cron-выражений (минута, час, день месяца, месяц, день недели — без секунд).
 
 **Демо:** https://azarov-serge.github.io/cron-ui/  
-**Версия:** `1.0.9` (в шапке приложения рядом с логотипом)
+**Версия:** `1.1.1` (в шапке приложения рядом с логотипом)
 
 **Языки:** [English](README.md) · Русский (этот файл) · [中文](README.zh.md) · [हिन्दी](README.hi.md)
 
@@ -18,7 +18,7 @@
 | `CronChecker` | `src/features/cron/components/CronChecker/` |
 | `CronPage` | `src/features/cron/pages/CronPage.tsx` |
 | `TimePicker` | `src/shared/components/TimePicker/` |
-| ТЗ | [`src/features/cron/components/CronEditor/SRS.md`](src/features/cron/components/CronEditor/SRS.md) |
+| `DateTimePicker` | `src/shared/components/DateTimePicker/` — дата + время (`OneTimeSection`) |
 
 ## Структура проекта
 
@@ -33,7 +33,7 @@ src/
 │   ├── pages/CronPage.tsx
 │   └── utils/
 └── shared/
-    ├── components/Header/, TimePicker/
+    ├── components/Header/, TimePicker/, DateTimePicker/
     ├── constants/layout.ts   # LAYOUT_MAX_WIDTH_PX = 1280
     ├── i18n/                 # ru, en, zh, hi
     └── providers/            # AppThemeProvider, LocaleProvider
@@ -52,10 +52,14 @@ npm run preview  # локальная проверка production-сборки
 
 ## Публикация
 
-GitHub Actions (`.github/workflows/deploy.yml`) деплоит при push в `main`.  
+GitHub Actions (`.github/workflows/deploy.yml`) собирает Vite и публикует папку `dist/` при push в `main`.  
 `vite.config.ts`: `base: '/cron-ui/'` для production, `'/'` для dev.
 
-**GitHub Pages (один раз):** Settings → Pages → Source → **GitHub Actions**.
+**GitHub Pages (один раз):** Repository → **Settings** → **Pages** → **Build and deployment** → **Source** → **GitHub Actions**.
+
+> Не используйте «Deploy from a branch» с папкой `/docs` — в репозитории нет Jekyll-сайта в `docs/`.  
+> Если источник указан как `/docs`, сборка падает с `No such file or directory … /docs` и ошибками Jekyll `style.scss`.  
+> Переключите источник на **GitHub Actions** и перезапустите workflow **Deploy to GitHub Pages**.
 
 ## Версионирование
 
@@ -131,7 +135,7 @@ type ScheduleEntity = {
 | `minuteStep` | `1` | Шаг минут в полях времени и в «каждые N минут» |
 | `weeklyWeekNumbers` | `false` | Чекбоксы недель месяца (1–5) для еженедельного режима |
 | `showYearNotice` | `false` | Предупреждение «Год не входит в cron» для one-time |
-| `requires` | `[]` | Обязательные поля: `weeklyWeekDays`, `weeklyWeekNumbers` |
+| `requires` | `[]` | Обязательные поля: `weeklyWeekDays`, `weeklyWeekNumbers`. Подпись секции: красная `*` (Admiral), если обязательно; без звёздочки — необязательно. |
 
 Допустимые `minuteStep`: `1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30`.
 
@@ -163,7 +167,7 @@ import {
 import { Cron } from '@features/cron/components/CronEditor/models/cron';
 
 <CronEditor
-  cron={task.cron}
+  value={task.cron}
   options={{
     scheduleTypes: ['recurring'],
     occursFrequencies: ['daily', 'weekly'],

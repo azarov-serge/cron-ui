@@ -3,7 +3,7 @@
 पाँच-भागीय cron अभिव्यक्तियों (मिनट, घंटा, महीने का दिन, महीना, सप्ताह का दिन — सेकंड नहीं) के लिए डेमो ऐप और UI लाइब्रेरी।
 
 **डेमो:** https://azarov-serge.github.io/cron-ui/  
-**संस्करण:** `1.0.9` (ऐप हेडर में लोगो के बगल में)
+**संस्करण:** `1.1.1` (ऐप हेडर में लोगो के बगल में)
 
 **भाषाएँ:** [English](README.md) · [Русский](README.ru.md) · [中文](README.zh.md) · हिन्दी (यह फ़ाइल)
 
@@ -18,7 +18,7 @@
 | `CronChecker` | `src/features/cron/components/CronChecker/` |
 | `CronPage` | `src/features/cron/pages/CronPage.tsx` |
 | `TimePicker` | `src/shared/components/TimePicker/` |
-| विनिर्देश | [`src/features/cron/components/CronEditor/SRS.md`](src/features/cron/components/CronEditor/SRS.md) |
+| `DateTimePicker` | `src/shared/components/DateTimePicker/` — तारीख + समय (`OneTimeSection`) |
 
 ## परियोजना संरचना
 
@@ -33,7 +33,7 @@ src/
 │   ├── pages/CronPage.tsx
 │   └── utils/
 └── shared/
-    ├── components/Header/, TimePicker/
+    ├── components/Header/, TimePicker/, DateTimePicker/
     ├── constants/layout.ts   # LAYOUT_MAX_WIDTH_PX = 1280
     ├── i18n/                 # ru, en, zh, hi
     └── providers/            # AppThemeProvider, LocaleProvider
@@ -131,7 +131,7 @@ type ScheduleEntity = {
 | `minuteStep` | `1` | समय फ़ील्ड और «हर N मिनट» के लिए कदम |
 | `weeklyWeekNumbers` | `false` | साप्ताहिक मोड में महीने के सप्ताह (1–5) |
 | `showYearNotice` | `false` | one-time में «वर्ष cron में नहीं» चेतावनी |
-| `requires` | `[]` | आवश्यक: `weeklyWeekDays`, `weeklyWeekNumbers` |
+| `requires` | `[]` | आवश्यक: `weeklyWeekDays`, `weeklyWeekNumbers`. अनिवार्य होने पर सेक्शन लेबल पर लाल `*` (Admiral); वैकल्पिक — बिना तारे के। |
 
 अनुमत `minuteStep`: `1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30`।
 
@@ -163,7 +163,7 @@ import {
 import { Cron } from '@features/cron/components/CronEditor/models/cron';
 
 <CronEditor
-  cron={task.cron}
+  value={task.cron}
   options={{
     scheduleTypes: ['recurring'],
     occursFrequencies: ['daily', 'weekly'],

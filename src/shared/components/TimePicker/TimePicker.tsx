@@ -1,218 +1,132 @@
+import React from 'react';
 import {
   changeInputData,
-  InputBox,
   InputIconButton,
   InputLine,
   isInputDataDifferent,
   keyboardKey,
   refSetter,
   StyledDropdownContainer,
-  typography,
 } from '@admiral-ds/react-ui';
-import TimeOutlineIcon from './timeOutline.svg?react';
-import {
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ChangeEvent,
-  type FC,
-  type MouseEvent,
-  type RefObject,
-} from 'react';
-import styled from 'styled-components';
+
+import CloseOutlineIcon from '@admiral-ds/icons/build/service/CloseOutline.svg?react';
 import {
   combineTimeString,
   getHourOptions,
   getMinuteOptionsForStep,
+  getSecondOptions,
   snapMinuteToStep,
   splitTimeString,
-} from '@shared/utils/time';
-import { timePickerInputHandle } from './utils';
-
-const StyledInputBox = styled(InputBox)`
-  width: 100%;
-  max-width: 100%;
-`;
-
-const Panel = styled.div`
-  display: flex;
-  width: max-content;
-`;
-
-const Column = styled.div`
-  display: flex;
-  flex-direction: column;
-  min-width: 56px;
-`;
-
-const ColumnHeader = styled.div`
-  ${typography['Body/Body 2 Short']};
-  padding: 8px 12px;
-  text-align: center;
-  color: ${({ theme }) => theme.color['Neutral/Neutral 50']};
-  border-bottom: 1px solid ${({ theme }) => theme.color['Neutral/Neutral 20']};
-`;
-
-const ColumnList = styled.ul`
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  max-height: 224px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-`;
-
-const ColumnItem = styled.li``;
-
-const OptionButton = styled.button<{ $selected?: boolean }>`
-  ${typography['Body/Body 1 Long']};
-  display: block;
-  width: 100%;
-  padding: 6px 12px;
-  border: none;
-  background: ${({ $selected, theme }) =>
-    $selected ? theme.color['Primary/Primary 10'] : 'transparent'};
-  color: ${({ $selected, theme }) =>
-    $selected
-      ? theme.color['Primary/Primary 60 Main']
-      : theme.color['Neutral/Neutral 90']};
-  cursor: pointer;
-  text-align: center;
-
-  &:hover {
-    background: ${({ $selected, theme }) =>
-      $selected
-        ? theme.color['Primary/Primary 10']
-        : theme.color['Neutral/Neutral 10']};
-  }
-
-  &:focus-visible {
-    outline: 2px solid ${({ theme }) => theme.color['Primary/Primary 60 Main']};
-    outline-offset: -2px;
-  }
-`;
-
-const IconPanel = styled.div`
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  padding-right: 12px;
-  pointer-events: auto;
-`;
-
-const isCompleteTime = (time: string): boolean =>
-  /^\d{2}:\d{2}$/.test(time) && !time.includes('_');
-
-const parseTimeValue = (time?: string): string =>
-  time && isCompleteTime(time) ? time : '';
-
-interface TimeColumnProps {
-  label: string;
-  options: string[];
-  selected: string;
-  listRef: React.Ref<HTMLUListElement>;
-  onSelect: (value: string) => void;
-}
-
-const TimeColumn: FC<TimeColumnProps> = (props) => {
-  const { label, options, selected, listRef, onSelect } = props;
-
-  return (
-    <Column>
-      <ColumnHeader>{label}</ColumnHeader>
-      <ColumnList ref={listRef} role="listbox" aria-label={label}>
-        {options.map((option) => (
-          <ColumnItem key={option} role="presentation">
-            <OptionButton
-              type="button"
-              role="option"
-              aria-selected={option === selected}
-              $selected={option === selected}
-              data-value={option}
-              onMouseDown={(event) => event.preventDefault()}
-              onClick={() => onSelect(option)}
-            >
-              {option}
-            </OptionButton>
-          </ColumnItem>
-        ))}
-      </ColumnList>
-    </Column>
-  );
-};
-
-const scrollOptionIntoView = (
-  listElement: HTMLUListElement | null,
-  selectedValue: string,
-) => {
-  if (!listElement) {
-    return;
-  }
-
-  const selectedButton = listElement.querySelector(
-    `[data-value="${selectedValue}"]`,
-  );
-
-  if (selectedButton instanceof HTMLElement) {
-    selectedButton.scrollIntoView({ block: 'center' });
-  }
-};
+} from '@shared/components/TimePicker/utils/time';
+import { TimeColumn, TimePickerFooter } from './components';
+import * as Styled from './styles';
+import type { RuleSet } from 'styled-components';
+import TimeOutlineIcon from './assets/timeOutline.svg?react';
+import {
+  getCurrentTimeString,
+  isCompleteTime,
+  parseTimeValue,
+  scrollOptionIntoView,
+  timePickerInputHandle,
+  toDisplayValue,
+} from './utils';
 
 export interface TimePickerProps {
-  value: string;
+  className?: string;
+  inputBoxCss?: RuleSet<object>;
+  value: string | null;
   disabled?: boolean;
   minuteStep?: number;
-  onChange: (value: string) => void;
+  withSeconds?: boolean;
+  displayClearIcon?: boolean;
+  showNow?: boolean;
+  onChange: (value: string | null) => void;
 }
 
-export const TimePicker: FC<TimePickerProps> = (props) => {
-  const { value, disabled = false, minuteStep = 1, onChange } = props;
+export const TimePicker: React.FC<TimePickerProps> = (props) => {
+  const {
+    className,
+    inputBoxCss,
+    value,
+    disabled = false,
+    minuteStep = 1,
+    withSeconds = false,
+    displayClearIcon = false,
+    showNow = false,
+    onChange,
+  } = props;
 
-  const containerRef = useRef<HTMLDivElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const hourListRef = useRef<HTMLUListElement>(null);
-  const minuteListRef = useRef<HTMLUListElement>(null);
-  const [innerValue, setInnerValue] = useState(value);
-  const [isOpened, setIsOpened] = useState(false);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
+  const inputRef = React.useRef<HTMLInputElement>(null);
+  const hourListRef = React.useRef<HTMLUListElement>(null);
+  const minuteListRef = React.useRef<HTMLUListElement>(null);
+  const secondListRef = React.useRef<HTMLUListElement>(null);
+  const [innerValue, setInnerValue] = React.useState(() =>
+    toDisplayValue(value),
+  );
+  const [isOpened, setIsOpened] = React.useState(false);
 
-  const hourOptions = useMemo(() => getHourOptions(), []);
-  const minuteOptions = useMemo(
+  const hourOptions = React.useMemo(() => getHourOptions(), []);
+  const minuteOptions = React.useMemo(
     () => getMinuteOptionsForStep(minuteStep),
     [minuteStep],
   );
+  const secondOptions = React.useMemo(() => getSecondOptions(), []);
 
-  const { hour: selectedHour, minute: selectedMinute } = useMemo(() => {
-    const parts = splitTimeString(parseTimeValue(innerValue) || '00:00');
+  const defaultTime = withSeconds ? '00:00:00' : '00:00';
+  const placeholder = withSeconds ? 'чч:мм:сс' : 'чч:мм';
+  const hasValue = value !== null;
+  const iconsAfterCount = displayClearIcon && hasValue ? 2 : 1;
+
+  const {
+    hour: selectedHour,
+    minute: selectedMinute,
+    second: selectedSecond,
+  } = React.useMemo(() => {
+    const parts = splitTimeString(
+      parseTimeValue(innerValue, withSeconds) || defaultTime,
+      withSeconds,
+    );
     const snappedMinute = snapMinuteToStep(parts.minute, minuteStep);
     const minute = minuteOptions.includes(snappedMinute)
       ? snappedMinute
       : (minuteOptions[0] ?? '00');
+    const second = withSeconds
+      ? secondOptions.includes(parts.second ?? '00')
+        ? (parts.second ?? '00')
+        : '00'
+      : undefined;
 
-    return { hour: parts.hour, minute };
-  }, [innerValue, minuteOptions, minuteStep]);
+    return { hour: parts.hour, minute, second };
+  }, [
+    defaultTime,
+    innerValue,
+    minuteOptions,
+    minuteStep,
+    secondOptions,
+    withSeconds,
+  ]);
 
-  useEffect(() => {
-    setInnerValue(value);
+  React.useEffect(() => {
+    setInnerValue(toDisplayValue(value));
   }, [value]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (!isOpened) {
       return;
     }
 
     scrollOptionIntoView(hourListRef.current, selectedHour);
     scrollOptionIntoView(minuteListRef.current, selectedMinute);
-  }, [isOpened, selectedHour, selectedMinute]);
 
-  useLayoutEffect(() => {
-    const nullHandledValue = timePickerInputHandle(null);
+    if (withSeconds && selectedSecond) {
+      scrollOptionIntoView(secondListRef.current, selectedSecond);
+    }
+  }, [isOpened, selectedHour, selectedMinute, selectedSecond, withSeconds]);
+
+  React.useLayoutEffect(() => {
+    const nullHandledValue = timePickerInputHandle(null, withSeconds);
 
     const handleInputEvent = function handleInputEvent(this: HTMLInputElement) {
       const { value: currentValue, selectionStart, selectionEnd } = this;
@@ -221,7 +135,7 @@ export const TimePicker: FC<TimePickerProps> = (props) => {
         selectionStart,
         selectionEnd,
       };
-      const inputData = timePickerInputHandle(currentInputData);
+      const inputData = timePickerInputHandle(currentInputData, withSeconds);
 
       if (!isInputDataDifferent(currentInputData, inputData)) {
         return;
@@ -239,7 +153,9 @@ export const TimePicker: FC<TimePickerProps> = (props) => {
 
       setInnerValue(this.value);
 
-      if (isCompleteTime(this.value)) {
+      if (!this.value) {
+        onChange(null);
+      } else if (isCompleteTime(this.value, withSeconds)) {
         onChange(this.value);
       }
     };
@@ -257,7 +173,7 @@ export const TimePicker: FC<TimePickerProps> = (props) => {
       selectionStart,
       selectionEnd,
     };
-    const inputData = timePickerInputHandle(currentInputData);
+    const inputData = timePickerInputHandle(currentInputData, withSeconds);
 
     if (
       isInputDataDifferent(currentInputData, inputData) &&
@@ -274,10 +190,20 @@ export const TimePicker: FC<TimePickerProps> = (props) => {
     return () => {
       inputElement.removeEventListener('input', handleInputEvent);
     };
-  }, [onChange]);
+  }, [onChange, withSeconds]);
 
-  const applyTime = (nextHour: string, nextMinute: string) => {
-    const nextValue = combineTimeString(nextHour, nextMinute);
+  const applyTime = (
+    nextHour: string,
+    nextMinute: string,
+    nextSecond?: string,
+  ) => {
+    const nextValue = withSeconds
+      ? combineTimeString(
+          nextHour,
+          nextMinute,
+          nextSecond ?? selectedSecond ?? '00',
+        )
+      : combineTimeString(nextHour, nextMinute);
 
     if (!inputRef.current) {
       setInnerValue(nextValue);
@@ -298,7 +224,9 @@ export const TimePicker: FC<TimePickerProps> = (props) => {
     setIsOpened(true);
   };
 
-  const handleContainerMouseDown = (event: MouseEvent<HTMLDivElement>) => {
+  const handleContainerMouseDown = (
+    event: React.MouseEvent<HTMLDivElement>,
+  ) => {
     if (disabled) {
       return;
     }
@@ -328,20 +256,33 @@ export const TimePicker: FC<TimePickerProps> = (props) => {
   };
 
   const handleSelectHour = (hour: string) => {
-    applyTime(hour, selectedMinute);
+    applyTime(hour, selectedMinute, selectedSecond);
   };
 
   const handleSelectMinute = (minute: string) => {
-    applyTime(selectedHour, minute);
+    applyTime(selectedHour, minute, selectedSecond);
   };
 
-  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleSelectSecond = (second: string) => {
+    applyTime(selectedHour, selectedMinute, second);
+  };
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setInnerValue(event.currentTarget.value);
   };
 
   const handleBlur = () => {
-    const parsedTime = parseTimeValue(inputRef.current?.value ?? innerValue);
-    if (parsedTime && parsedTime !== value) {
+    const raw = inputRef.current?.value ?? innerValue;
+    const parsedTime = parseTimeValue(raw, withSeconds);
+
+    if (!parsedTime) {
+      if (value !== null) {
+        onChange(null);
+      }
+      return;
+    }
+
+    if (parsedTime !== value) {
       onChange(parsedTime);
     }
   };
@@ -361,61 +302,115 @@ export const TimePicker: FC<TimePickerProps> = (props) => {
     }
   };
 
+  const handleClear = (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (disabled || !hasValue) {
+      return;
+    }
+
+    setIsOpened(false);
+
+    if (inputRef.current) {
+      changeInputData(inputRef.current, { value: '' });
+    }
+
+    setInnerValue('');
+    onChange(null);
+  };
+
+  const handleNow = () => {
+    const nextValue = getCurrentTimeString(minuteStep, withSeconds);
+    const { hour, minute, second } = splitTimeString(nextValue, withSeconds);
+    applyTime(hour, minute, second);
+  };
+
+  const inputBoxClassName = className
+    ? `time-picker ${className}`
+    : 'time-picker';
+
   return (
     <>
-      <StyledInputBox
-        ref={containerRef}
-        $dimension="s"
-        disabled={disabled}
-        $iconsAfterCount={1}
-        className="time-picker"
-        onMouseDown={handleContainerMouseDown}
-      >
-        <InputLine
-          ref={refSetter(inputRef)}
-          value={innerValue}
+      <Styled.Root>
+        <Styled.InputBox
+          ref={containerRef}
+          $dimension="s"
           disabled={disabled}
-          placeholder="чч:мм"
-          dataPlaceholder="чч:мм"
-          className="time-picker-input"
-          onChange={handleChange}
-          onBlur={handleBlur}
-          onKeyDown={handleKeyDown}
-        />
-        <IconPanel>
-          <InputIconButton
-            width={24}
-            height={24}
-            icon={TimeOutlineIcon}
-            tabIndex={0}
-            aria-label="Выбрать время"
+          $iconsAfterCount={iconsAfterCount}
+          $css={inputBoxCss}
+          className={inputBoxClassName}
+          onMouseDown={handleContainerMouseDown}
+        >
+          <InputLine
+            ref={refSetter(inputRef)}
+            value={innerValue}
+            disabled={disabled}
+            placeholder={placeholder}
+            dataPlaceholder={placeholder}
+            className="time-picker-input"
+            onChange={handleChange}
+            onBlur={handleBlur}
+            onKeyDown={handleKeyDown}
           />
-        </IconPanel>
-      </StyledInputBox>
+          <Styled.IconPanel>
+            {displayClearIcon && hasValue && (
+              <InputIconButton
+                width={24}
+                height={24}
+                icon={CloseOutlineIcon}
+                tabIndex={0}
+                aria-label="Очистить время"
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={handleClear}
+              />
+            )}
+            <InputIconButton
+              width={24}
+              height={24}
+              icon={TimeOutlineIcon}
+              tabIndex={0}
+              aria-label="Выбрать время"
+            />
+          </Styled.IconPanel>
+        </Styled.InputBox>
+      </Styled.Root>
 
       {isOpened && !disabled && (
         <StyledDropdownContainer
-          ref={dropdownRef as RefObject<HTMLDivElement>}
+          ref={dropdownRef as React.RefObject<HTMLDivElement>}
           targetElement={containerRef.current}
           alignSelf="flex-end"
           onClickOutside={handleClickOutside}
         >
-          <Panel>
-            <TimeColumn
-              label="Часы"
-              options={hourOptions}
-              selected={selectedHour}
-              listRef={hourListRef}
-              onSelect={handleSelectHour}
-            />
-            <TimeColumn
-              label="Мин."
-              options={minuteOptions}
-              selected={selectedMinute}
-              listRef={minuteListRef}
-              onSelect={handleSelectMinute}
-            />
-          </Panel>
+          <Styled.Dropdown>
+            <Styled.Panel>
+              <TimeColumn
+                ariaLabel="Часы"
+                options={hourOptions}
+                selected={selectedHour}
+                listRef={hourListRef}
+                onSelect={handleSelectHour}
+              />
+              <TimeColumn
+                ariaLabel="Минуты"
+                options={minuteOptions}
+                selected={selectedMinute}
+                listRef={minuteListRef}
+                onSelect={handleSelectMinute}
+              />
+              {withSeconds && (
+                <TimeColumn
+                  ariaLabel="Секунды"
+                  options={secondOptions}
+                  selected={selectedSecond ?? '00'}
+                  listRef={secondListRef}
+                  onSelect={handleSelectSecond}
+                />
+              )}
+            </Styled.Panel>
+            {showNow && <TimePickerFooter onNow={handleNow} />}
+          </Styled.Dropdown>
         </StyledDropdownContainer>
       )}
     </>

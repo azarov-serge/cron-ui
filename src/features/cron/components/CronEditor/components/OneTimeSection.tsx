@@ -1,6 +1,5 @@
 import React from 'react';
-import { DateField } from '@admiral-ds/react-ui';
-import { TimePickerField } from '@shared/components/TimePicker';
+import { DateTimePicker } from '@shared/components/DateTimePicker';
 import { useTranslation } from '@shared/i18n/useTranslation';
 import * as Styled from '../styles';
 import { Legend } from './Legend';
@@ -20,28 +19,16 @@ export const OneTimeSection: React.FC<CronSectionProps> = (props) => {
   return (
     <Styled.Section>
       <Legend>{t.editor.oneTimeSection}</Legend>
-      <Styled.InlineRow>
-        <Styled.DateFieldWrap>
-          <DateField
-            dimension="s"
-            label={t.editor.date}
-            value={oneTimeDate}
-            onChange={(event) =>
-              onChange(setOneTimeDate(value, event.target.value))
-            }
-          />
-        </Styled.DateFieldWrap>
-        <Styled.TimeFieldWrap>
-          <TimePickerField
-            label={t.editor.time}
-            value={oneTimeTime}
-            minuteStep={minuteStep}
-            onChange={(time) =>
-              onChange(setOneTimeTime(value, time, minuteStep))
-            }
-          />
-        </Styled.TimeFieldWrap>
-      </Styled.InlineRow>
+      <DateTimePicker
+        label={t.editor.date}
+        dateValue={oneTimeDate}
+        timeValue={oneTimeTime || null}
+        minuteStep={minuteStep}
+        onDateChange={(date) => onChange(setOneTimeDate(value, date))}
+        onTimeChange={(time) =>
+          onChange(setOneTimeTime(value, time ?? '', minuteStep))
+        }
+      />
     </Styled.Section>
   );
 };

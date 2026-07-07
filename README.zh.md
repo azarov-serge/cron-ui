@@ -3,7 +3,7 @@
 用于创建和校验五段 cron 表达式（分、时、日、月、周 — 无秒）的演示应用与 UI 库。
 
 **演示：** https://azarov-serge.github.io/cron-ui/  
-**版本：** `1.0.9`（显示在应用标题栏徽标旁）
+**版本：** `1.1.1`（显示在应用标题栏徽标旁）
 
 **语言：** [English](README.md) · [Русский](README.ru.md) · 中文（本文件）· [हिन्दी](README.hi.md)
 
@@ -18,7 +18,7 @@
 | `CronChecker` | `src/features/cron/components/CronChecker/` |
 | `CronPage` | `src/features/cron/pages/CronPage.tsx` |
 | `TimePicker` | `src/shared/components/TimePicker/` |
-| 规格 | [`src/features/cron/components/CronEditor/SRS.md`](src/features/cron/components/CronEditor/SRS.md) |
+| `DateTimePicker` | `src/shared/components/DateTimePicker/` — 日期 + 时间（`OneTimeSection`） |
 
 ## 项目结构
 
@@ -33,7 +33,7 @@ src/
 │   ├── pages/CronPage.tsx
 │   └── utils/
 └── shared/
-    ├── components/Header/, TimePicker/
+    ├── components/Header/, TimePicker/, DateTimePicker/
     ├── constants/layout.ts   # LAYOUT_MAX_WIDTH_PX = 1280
     ├── i18n/                 # ru, en, zh, hi
     └── providers/            # AppThemeProvider, LocaleProvider
@@ -131,7 +131,7 @@ type ScheduleEntity = {
 | `minuteStep` | `1` | 时间字段与「每 N 分钟」的步长 |
 | `weeklyWeekNumbers` | `false` | 周模式下月份周次复选框（1–5） |
 | `showYearNotice` | `false` | one-time 模式下显示「年份不在 cron 中」警告 |
-| `requires` | `[]` | 必填：`weeklyWeekDays`、`weeklyWeekNumbers` |
+| `requires` | `[]` | 必填：`weeklyWeekDays`、`weeklyWeekNumbers`。必填时区块标题带红色 `*`（Admiral 样式）；可选时无星号。 |
 
 允许的 `minuteStep`：`1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30`。
 
@@ -163,7 +163,7 @@ import {
 import { Cron } from '@features/cron/components/CronEditor/models/cron';
 
 <CronEditor
-  cron={task.cron}
+  value={task.cron}
   options={{
     scheduleTypes: ['recurring'],
     occursFrequencies: ['daily', 'weekly'],

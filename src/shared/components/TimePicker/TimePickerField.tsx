@@ -1,49 +1,65 @@
+import React from 'react';
 import { Field } from '@admiral-ds/react-ui';
-import { useEffect, type FC } from 'react';
+import { normalizeTimeToMinuteStep } from '@shared/components/TimePicker/utils/time';
+import * as Styled from './styles';
 import { TimePicker } from './TimePicker';
-import { normalizeTimeToMinuteStep } from '@shared/utils/time';
+import { coerceEmptyToNull } from './utils';
 
 export interface TimePickerFieldProps {
+  className?: string;
   label?: string;
-  value: string;
+  value: string | null;
   disabled?: boolean;
   minuteStep?: number;
-  onChange: (value: string) => void;
+  withSeconds?: boolean;
+  displayClearIcon?: boolean;
+  showNow?: boolean;
+  onChange: (value: string | null) => void;
 }
 
-export const TimePickerField: FC<TimePickerFieldProps> = (props) => {
+export const TimePickerField: React.FC<TimePickerFieldProps> = (props) => {
   const {
+    className,
     label,
     value,
     disabled,
     minuteStep = 1,
+    withSeconds = false,
+    displayClearIcon = false,
+    showNow = false,
     onChange,
   } = props;
 
-  const normalizedValue = normalizeTimeToMinuteStep(value, minuteStep);
+  const coercedValue = coerceEmptyToNull(value);
+  const normalizedValue = normalizeTimeToMinuteStep(coercedValue, minuteStep);
 
-  useEffect(() => {
-    if (normalizedValue !== value) {
+  React.useEffect(() => {
+    if (normalizedValue !== coercedValue) {
       onChange(normalizedValue);
     }
-  }, [normalizedValue, onChange, value]);
+  }, [coercedValue, normalizedValue, onChange]);
 
   const timePicker = (
     <TimePicker
       value={normalizedValue}
       disabled={disabled}
       minuteStep={minuteStep}
+      withSeconds={withSeconds}
+      displayClearIcon={displayClearIcon}
+      showNow={showNow}
       onChange={onChange}
     />
   );
 
   if (!label) {
-    return timePicker;
+    return <Styled.Root className={className}>{timePicker}</Styled.Root>;
   }
 
   return (
-    <Field label={label} disabled={disabled}>
-      {timePicker}
-    </Field>
+    <Styled.Root className={className}>
+      <Field label={label} disabled={disabled}>
+        {timePicker}
+      </Field>
+    </Styled.Root>
   );
 };

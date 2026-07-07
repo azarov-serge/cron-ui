@@ -35,7 +35,7 @@ export const OneTimeSection: React.FC<CronSectionProps> = (props) => {
             value={oneTimeTime}
             minuteStep={minuteStep}
             onChange={(time) =>
-              onChange(setOneTimeTime(value, time, minuteStep))
+              onChange(setOneTimeTime(value, time ?? '', minuteStep))
             }
           />
         </Styled.TimeFieldWrap>

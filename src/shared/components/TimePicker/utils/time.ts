@@ -1,22 +1,30 @@
 /** Округляет минуты времени до ближайшего кратного minuteStep */
 export const normalizeTimeToMinuteStep = (
-  time: string,
+  time: string | null,
   minuteStep: number,
-): string => {
+): string | null => {
   if (!time) {
-    return '';
+    return null;
   }
+
+  const hasSeconds = /^\d{2}:\d{2}:\d{2}$/.test(time);
+  const { hour, minute, second } = splitTimeString(time, hasSeconds);
 
   if (minuteStep <= 1) {
-    return time;
+    return hasSeconds
+      ? combineTimeString(hour, minute, second)
+      : combineTimeString(hour, minute);
   }
 
-  const [hourPart, minutePart] = time.split(':');
-  const hour = Number.parseInt(hourPart || '0', 10);
-  const minute = Number.parseInt(minutePart || '0', 10);
-  const snapped = Math.min(59, Math.round(minute / minuteStep) * minuteStep);
+  const hourValue = Number.parseInt(hour, 10);
+  const minuteValue = Number.parseInt(minute, 10);
+  const snapped = Math.min(59, Math.round(minuteValue / minuteStep) * minuteStep);
+  const snappedMinute = String(snapped).padStart(2, '0');
+  const snappedHour = String(hourValue).padStart(2, '0');
 
-  return `${String(hour).padStart(2, '0')}:${String(snapped).padStart(2, '0')}`;
+  return hasSeconds
+    ? combineTimeString(snappedHour, snappedMinute, second)
+    : combineTimeString(snappedHour, snappedMinute);
 };
 
 /** Список часов 00–23 для колонки TimePicker */
@@ -35,10 +43,26 @@ export const getMinuteOptionsForStep = (minuteStep: number): string[] => {
   return minutes;
 };
 
-/** Разбивает HH:mm на части; при невалидном значении — 00:00 */
+export type TimeParts = {
+  hour: string;
+  minute: string;
+  second?: string;
+};
+
+/** Разбивает HH:mm или HH:mm:ss на части; при невалидном значении — 00:00[:00] */
 export const splitTimeString = (
   time: string,
-): { hour: string; minute: string } => {
+  withSeconds = false,
+): TimeParts => {
+  if (withSeconds) {
+    if (!/^\d{2}:\d{2}:\d{2}$/.test(time)) {
+      return { hour: '00', minute: '00', second: '00' };
+    }
+
+    const [hour, minute, second] = time.split(':');
+    return { hour, minute, second };
+  }
+
   if (!/^\d{2}:\d{2}$/.test(time)) {
     return { hour: '00', minute: '00' };
   }
@@ -47,9 +71,20 @@ export const splitTimeString = (
   return { hour, minute };
 };
 
-/** Собирает HH:mm из часов и минут */
-export const combineTimeString = (hour: string, minute: string): string =>
-  `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
+/** Собирает HH:mm или HH:mm:ss из частей */
+export const combineTimeString = (
+  hour: string,
+  minute: string,
+  second?: string,
+): string => {
+  const base = `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
+
+  return second !== undefined ? `${base}:${second.padStart(2, '0')}` : base;
+};
+
+/** Список секунд 00–59 для колонки TimePicker */
+export const getSecondOptions = (): string[] =>
+  Array.from({ length: 60 }, (_, second) => String(second).padStart(2, '0'));
 
 /** Приводит минуты к ближайшему допустимому значению для шага */
 export const snapMinuteToStep = (

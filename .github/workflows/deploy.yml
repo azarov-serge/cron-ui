@@ -30,6 +30,8 @@ jobs:
 
       - run: npm ci
       - run: npm run build
+      # SPA: skip Jekyll processing on github.io (also copied from public/)
+      - run: touch dist/.nojekyll
 
       - uses: actions/configure-pages@v5
 

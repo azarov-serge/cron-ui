@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckboxField, T } from '@admiral-ds/react-ui';
+import { CheckboxField } from '@admiral-ds/react-ui';
 import * as Styled from '../styles';
 import {
   isCronFieldRequired,
@@ -10,6 +10,7 @@ import {
 } from '../utils';
 import { useCronEditorConfig, useCronEditorValidation } from '../hooks';
 import { WEEK_DAYS_LABELS, WEEK_NUMBERS_LABELS } from '../strings';
+import { SectionLabel } from '../../SectionLabel';
 import type { CronSectionProps } from './types';
 
 export const WeeklyFields: React.FC<CronSectionProps> = (props) => {
@@ -32,13 +33,7 @@ export const WeeklyFields: React.FC<CronSectionProps> = (props) => {
 
   return (
     <>
-      <T
-        font="Body/Body 2 Short"
-        color="Neutral/Neutral 50"
-        style={{ display: 'block', marginBottom: 8 }}
-      >
-        {weekDaysRequired ? 'Дни недели' : 'Дни недели (необязательно)'}
-      </T>
+      <SectionLabel required={weekDaysRequired}>Дни недели</SectionLabel>
       <Styled.WeekDaysGrid>
         {weekDayKeys.map((day) => (
           <CheckboxField
@@ -66,15 +61,9 @@ export const WeeklyFields: React.FC<CronSectionProps> = (props) => {
 
       {options.weeklyWeekNumbers && (
         <>
-          <T
-            font="Body/Body 2 Short"
-            color="Neutral/Neutral 50"
-            style={{ display: 'block', marginTop: 16 }}
-          >
-            {weekNumbersRequired
-              ? 'Недели месяца'
-              : 'Недели месяца (необязательно)'}
-          </T>
+          <SectionLabel required={weekNumbersRequired} style={{ marginTop: 16 }}>
+            Недели месяца
+          </SectionLabel>
           <Styled.WeekDaysGrid>
             {WEEK_NUMBER_KEYS.map((week) => (
               <CheckboxField

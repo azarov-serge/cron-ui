@@ -1,4 +1,4 @@
-export { TimePicker } from './TimePicker';
-export type { TimePickerProps } from './TimePicker';
-export { TimePickerField } from './TimePickerField';
-export type { TimePickerFieldProps } from './TimePickerField';
+export * from './TimePicker';
+export * from './TimePickerField';
+export { InputBox as TimePickerInputBox } from './styles';
+export * from './mixins';
