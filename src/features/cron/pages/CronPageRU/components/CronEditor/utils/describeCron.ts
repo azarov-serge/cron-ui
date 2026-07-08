@@ -1,7 +1,7 @@
 import { Cron } from '../models/cron';
 import type { ScheduleInterface } from './scheduleTypes';
 import { buildCronFromSchedule } from './cronParsers';
-import { formatMessage } from '@shared/i18n/messages';
+import { formatMessage } from '../../../utils/formatMessage';
 
 const capitalize = (text: string): string =>
   text.charAt(0).toUpperCase() + text.slice(1);

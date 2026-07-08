@@ -1,6 +1,8 @@
 import React from 'react';
 import {
   DateTimeSeparator,
+  type ComponentDimension,
+  type DateInputProps,
   Field,
   type InputStatus,
 } from '@admiral-ds/react-ui';
@@ -15,6 +17,10 @@ export interface DateTimePickerProps {
   label?: string;
   dateValue: string;
   timeValue: string | null;
+  dimension?: ComponentDimension;
+  minDate?: Date;
+  maxDate?: Date;
+  validator?: DateInputProps['validator'];
   disabled?: boolean;
   readOnly?: boolean;
   status?: InputStatus;
@@ -32,6 +38,10 @@ export const DateTimePicker: React.FC<DateTimePickerProps> = (props) => {
     label,
     dateValue,
     timeValue,
+    dimension = 's',
+    minDate,
+    maxDate,
+    validator,
     disabled,
     readOnly,
     status,
@@ -58,8 +68,11 @@ export const DateTimePicker: React.FC<DateTimePickerProps> = (props) => {
   const picker = (
     <Styled.Container disabled={disabled} readOnly={readOnly} status={status}>
       <Styled.DateInput
-        dimension="s"
+        dimension={dimension}
         value={dateValue}
+        minDate={minDate}
+        maxDate={maxDate}
+        validator={validator}
         disabled={disabled}
         readOnly={readOnly}
         status={status}
@@ -73,6 +86,7 @@ export const DateTimePicker: React.FC<DateTimePickerProps> = (props) => {
       <Styled.TimeWrap>
         <TimePicker
           value={normalizedTimeValue}
+          dimension={dimension}
           disabled={disabled || readOnly}
           minuteStep={minuteStep}
           withSeconds={withSeconds}

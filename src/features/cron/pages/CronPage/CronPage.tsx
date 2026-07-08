@@ -1,18 +1,16 @@
 import React from 'react';
-import styled from 'styled-components';
 import {
   HorizontalTab,
   HorizontalTabs,
-  NotificationItem,
   NotificationItemContent,
   NotificationItemTitle,
   Option,
   SelectField,
   TabText,
   T,
-  Button,
   CheckboxField,
 } from '@admiral-ds/react-ui';
+import { EditOutlined } from '@ant-design/icons';
 import { CronChecker } from '@features/cron/components/CronChecker';
 import {
   CronEditor,
@@ -26,190 +24,30 @@ import type {
   DailyFrequencyType,
   OccursFrequency,
   ScheduleType,
-} from '@features/cron/components/CronEditor/utils/scheduleTypes';
+} from '@features/cron/components/CronEditor/utils';
 import {
   OCCURS_OPTIONS,
   SCHEDULE_TYPE_OPTIONS,
-} from '@features/cron/components/CronEditor/utils/constants';
+} from '@features/cron/components/CronEditor/utils';
 import {
   PAGE_TAB_IDS,
   type PageTabId,
 } from '@features/cron/utils/cronPageSearchParams';
-import { EditOutlined } from '@ant-design/icons';
 import { useTranslation } from '@shared/i18n/useTranslation';
 import { parseCronExpression } from '@features/cron/utils/parseCronExpression';
 
-const Page = styled.main`
-  flex: 1;
-  width: 100%;
-  padding: 40px 32px 48px;
-  min-width: 0;
-  overflow-x: hidden;
+import * as Styled from './styles';
+import {
+  DAILY_FREQUENCY_VALUES,
+  MINUTE_STEP_OPTIONS,
+  REQUIRE_FIELD_VALUES,
+  toggleMultiSelect,
+  toggleRequireField,
+} from './utils';
 
-  @media (max-width: 767px) {
-    padding: 16px 12px 24px;
-  }
-`;
-
-const PageHeader = styled.div`
-  margin-bottom: 8px;
-`;
-
-const PageDescription = styled(T)`
-  display: block;
-  margin-top: 8px;
-  max-width: 56rem;
-`;
-
-const HelpNotice = styled(NotificationItem)`
-  margin-top: 16px;
-`;
-
-const ParamsHint = styled(T)`
-  display: block;
-  margin-bottom: 12px;
-`;
-
-const ConstructorEditor = styled.div`
-  margin-top: 24px;
-  min-width: 0;
-  max-width: 100%;
-`;
-
-const CheckerActions = styled.div`
-  display: flex;
-  flex-shrink: 0;
-  gap: 8px;
-  width: 100%;
-  margin-bottom: 16px;
-
-  &:last-child {
-    margin-bottom: 0;
-    margin-top: 16px;
-  }
-
-  @media (min-width: 768px) {
-    width: auto;
-  }
-`;
-
-const EditCronButton = styled(Button)`
-  flex: 1;
-  justify-content: center;
-
-  @media (min-width: 768px) {
-    flex: initial;
-    min-width: 200px;
-  }
-`;
-
-const ButtonContent = styled.span`
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  pointer-events: none;
-`;
-
-const ControlsPanel = styled.fieldset`
-  border: 1px solid ${({ theme }) => theme.color['Neutral/Neutral 20']};
-  border-radius: 4px;
-  margin: 0 0 24px;
-  padding: 12px 16px 16px;
-
-  &:last-child {
-    margin-bottom: 0;
-  }
-
-  legend {
-    padding: 0 6px;
-    color: ${({ theme }) => theme.color['Neutral/Neutral 50']};
-    font-size: 13px;
-  }
-`;
-
-const ControlsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px 24px;
-
-  @media (min-width: 768px) {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  @media (max-width: 767px) {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-`;
-
-const ControlGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-`;
-
-const CheckboxList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-`;
-
-const Legend = styled.legend`
-  width: auto;
-`;
-
-const TabContent = styled.div`
-  margin-top: 24px;
-  min-width: 0;
-  max-width: 100%;
-`;
-
-const UrlErrorNotice = styled(NotificationItem)`
-  margin-top: 16px;
-`;
-
-const MINUTE_STEP_OPTIONS = [1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30] as const;
-
-const DAILY_FREQUENCY_VALUES = ['once', 'every'] as const;
-
-const REQUIRE_FIELD_VALUES = [
-  'weeklyWeekDays',
-  'weeklyWeekNumbers',
-] as const satisfies readonly CronRequireField[];
-
-const toggleMultiSelect = <OptionValue extends string>(
-  selectedValues: OptionValue[],
-  value: OptionValue,
-  checked: boolean,
-): OptionValue[] => {
-  if (checked) {
-    if (selectedValues.includes(value)) {
-      return selectedValues;
-    }
-    return [...selectedValues, value];
-  }
-  if (selectedValues.length <= 1) {
-    return selectedValues;
-  }
-  return selectedValues.filter((item) => item !== value);
-};
-
-const toggleRequireField = (
-  selectedValues: CronRequireField[],
-  value: CronRequireField,
-  checked: boolean,
-): CronRequireField[] => {
-  if (checked) {
-    if (selectedValues.includes(value)) {
-      return selectedValues;
-    }
-    return [...selectedValues, value];
-  }
-  return selectedValues.filter((item) => item !== value);
-};
-
-export const CronPage: React.FC = (_props) => {
+export const CronPage: React.FC = () => {
   const { t, locale } = useTranslation();
+
   const pageTabs = React.useMemo(
     () =>
       PAGE_TAB_IDS.map((id) => ({
@@ -218,6 +56,7 @@ export const CronPage: React.FC = (_props) => {
       })),
     [t],
   );
+
   const scheduleTypeOptions = React.useMemo(
     () =>
       SCHEDULE_TYPE_OPTIONS.map((option) => ({
@@ -226,6 +65,7 @@ export const CronPage: React.FC = (_props) => {
       })),
     [t],
   );
+
   const occursOptions = React.useMemo(
     () =>
       OCCURS_OPTIONS.map((option) => ({
@@ -234,6 +74,7 @@ export const CronPage: React.FC = (_props) => {
       })),
     [t],
   );
+
   const dailyFrequencyOptions = React.useMemo(
     () =>
       DAILY_FREQUENCY_VALUES.map((value) => ({
@@ -242,6 +83,7 @@ export const CronPage: React.FC = (_props) => {
       })),
     [t],
   );
+
   const requireOptions = React.useMemo(
     () =>
       REQUIRE_FIELD_VALUES.map((value) => ({
@@ -261,9 +103,9 @@ export const CronPage: React.FC = (_props) => {
     submitCron,
   } = useCronPageSearchParams();
 
-  const [editorOptions, setEditorOptions] = React.useState<Required<CronOptions>>(
-    () => ({ ...DEFAULT_CRON_OPTIONS }),
-  );
+  const [editorOptions, setEditorOptions] = React.useState<
+    Required<CronOptions>
+  >(() => ({ ...DEFAULT_CRON_OPTIONS }));
 
   const canEditFromChecker = React.useMemo(() => {
     const trimmed = checkerExpression.trim();
@@ -278,23 +120,24 @@ export const CronPage: React.FC = (_props) => {
     if (!trimmed || parseCronExpression(trimmed, locale).valid === false) {
       return;
     }
+
     submitCron(Cron.fromString(trimmed));
     selectTab('constructor');
   };
 
   const renderEditCronButton = () => (
-    <EditCronButton
+    <Styled.EditCronButton
       appearance="primary"
       dimension="s"
       type="button"
       disabled={!canEditFromChecker}
       onClick={editCronFromChecker}
     >
-      <ButtonContent>
+      <Styled.ButtonContent>
         <EditOutlined />
         {t.editCron}
-      </ButtonContent>
-    </EditCronButton>
+      </Styled.ButtonContent>
+    </Styled.EditCronButton>
   );
 
   const patchScheduleTypes = (value: ScheduleType, checked: boolean) => {
@@ -386,20 +229,19 @@ export const CronPage: React.FC = (_props) => {
       </HorizontalTab>
     );
   };
-
   const renderEditorParamsPanels = () => (
     <>
-      <ControlsPanel>
-        <Legend>{t.editorParams}</Legend>
-        <ParamsHint font="Body/Body 2 Long" color="Neutral/Neutral 50">
+      <Styled.ControlsPanel>
+        <Styled.Legend>{t.editorParams}</Styled.Legend>
+        <Styled.ParamsHint font="Body/Body 2 Long" color="Neutral/Neutral 50">
           {t.editorParamsHint}
-        </ParamsHint>
-        <ControlsGrid>
-          <ControlGroup>
+        </Styled.ParamsHint>
+        <Styled.ControlsGrid>
+          <Styled.ControlGroup>
             <T font="Body/Body 2 Short" color="Neutral/Neutral 50">
               {t.scheduleType}
             </T>
-            <CheckboxList>
+            <Styled.CheckboxList>
               {scheduleTypeOptions.map((option) => (
                 <CheckboxField
                   key={option.value}
@@ -412,14 +254,14 @@ export const CronPage: React.FC = (_props) => {
                   {option.label}
                 </CheckboxField>
               ))}
-            </CheckboxList>
-          </ControlGroup>
+            </Styled.CheckboxList>
+          </Styled.ControlGroup>
 
-          <ControlGroup>
+          <Styled.ControlGroup>
             <T font="Body/Body 2 Short" color="Neutral/Neutral 50">
               {t.occursFrequency}
             </T>
-            <CheckboxList>
+            <Styled.CheckboxList>
               {occursOptions.map((option) => (
                 <CheckboxField
                   key={option.value}
@@ -434,14 +276,14 @@ export const CronPage: React.FC = (_props) => {
                   {option.label}
                 </CheckboxField>
               ))}
-            </CheckboxList>
-          </ControlGroup>
+            </Styled.CheckboxList>
+          </Styled.ControlGroup>
 
-          <ControlGroup>
+          <Styled.ControlGroup>
             <T font="Body/Body 2 Short" color="Neutral/Neutral 50">
               {t.dailyFrequency}
             </T>
-            <CheckboxList>
+            <Styled.CheckboxList>
               {dailyFrequencyOptions.map((option) => (
                 <CheckboxField
                   key={option.value}
@@ -456,14 +298,14 @@ export const CronPage: React.FC = (_props) => {
                   {option.label}
                 </CheckboxField>
               ))}
-            </CheckboxList>
-          </ControlGroup>
+            </Styled.CheckboxList>
+          </Styled.ControlGroup>
 
-          <ControlGroup>
+          <Styled.ControlGroup>
             <T font="Body/Body 2 Short" color="Neutral/Neutral 50">
               {t.weeklySection}
             </T>
-            <CheckboxList>
+            <Styled.CheckboxList>
               <CheckboxField
                 dimension="s"
                 checked={editorOptions.weeklyWeekNumbers}
@@ -473,14 +315,14 @@ export const CronPage: React.FC = (_props) => {
               >
                 {t.showMonthWeeks}
               </CheckboxField>
-            </CheckboxList>
-          </ControlGroup>
+            </Styled.CheckboxList>
+          </Styled.ControlGroup>
 
-          <ControlGroup>
+          <Styled.ControlGroup>
             <T font="Body/Body 2 Short" color="Neutral/Neutral 50">
               {t.oneTimeSection}
             </T>
-            <CheckboxList>
+            <Styled.CheckboxList>
               <CheckboxField
                 dimension="s"
                 checked={editorOptions.showYearNotice}
@@ -488,10 +330,10 @@ export const CronPage: React.FC = (_props) => {
               >
                 {t.showYearNotice}
               </CheckboxField>
-            </CheckboxList>
-          </ControlGroup>
+            </Styled.CheckboxList>
+          </Styled.ControlGroup>
 
-          <ControlGroup>
+          <Styled.ControlGroup>
             <SelectField
               dimension="s"
               label={t.minuteStep}
@@ -507,17 +349,17 @@ export const CronPage: React.FC = (_props) => {
             <T font="Body/Body 2 Long" color="Neutral/Neutral 50">
               {t.minuteStepHint}
             </T>
-          </ControlGroup>
-        </ControlsGrid>
-      </ControlsPanel>
+          </Styled.ControlGroup>
+        </Styled.ControlsGrid>
+      </Styled.ControlsPanel>
 
-      <ControlsPanel>
-        <Legend>{t.requiredFields}</Legend>
-        <ControlGroup>
+      <Styled.ControlsPanel>
+        <Styled.Legend>{t.requiredFields}</Styled.Legend>
+        <Styled.ControlGroup>
           <T font="Body/Body 2 Long" color="Neutral/Neutral 50">
             {t.requiredFieldsHint}
           </T>
-          <CheckboxList>
+          <Styled.CheckboxList>
             {requireOptions.map((option) => (
               <CheckboxField
                 key={option.value}
@@ -534,26 +376,26 @@ export const CronPage: React.FC = (_props) => {
                 {option.label}
               </CheckboxField>
             ))}
-          </CheckboxList>
-        </ControlGroup>
-      </ControlsPanel>
+          </Styled.CheckboxList>
+        </Styled.ControlGroup>
+      </Styled.ControlsPanel>
     </>
   );
 
   return (
-    <Page>
-      <PageHeader>
+    <Styled.Page>
+      <Styled.PageHeader>
         <T font="Header/H4" as="h3">
           {t.pageTitle}
         </T>
-        <PageDescription
+        <Styled.PageDescription
           font="Body/Body 1 Long"
           color="Neutral/Neutral 50"
           as="p"
         >
           {t.pageDescription}
-        </PageDescription>
-      </PageHeader>
+        </Styled.PageDescription>
+      </Styled.PageHeader>
 
       <HorizontalTabs
         selectedTabId={activeTab}
@@ -564,18 +406,18 @@ export const CronPage: React.FC = (_props) => {
       />
 
       {cronParamError && (
-        <UrlErrorNotice status="error" displayStatusIcon>
+        <Styled.UrlErrorNotice status="error" displayStatusIcon>
           <NotificationItemTitle>{t.urlError.title}</NotificationItemTitle>
           <NotificationItemContent>
             {cronParamError}. {t.urlError.defaultUsed} (
             {Cron.createEmpty().toExpression()}).
           </NotificationItemContent>
-        </UrlErrorNotice>
+        </Styled.UrlErrorNotice>
       )}
 
       {activeTab === 'constructor' && (
-        <TabContent>
-          <HelpNotice status="info" displayStatusIcon>
+        <Styled.TabContent>
+          <Styled.HelpNotice status="info" displayStatusIcon>
             <NotificationItemTitle>{t.help.title}</NotificationItemTitle>
             <NotificationItemContent>
               <ol style={{ margin: '8px 0 0', paddingLeft: 20 }}>
@@ -585,27 +427,33 @@ export const CronPage: React.FC = (_props) => {
                 <li>{t.help.step4}</li>
               </ol>
             </NotificationItemContent>
-          </HelpNotice>
+          </Styled.HelpNotice>
 
-          <ConstructorEditor>{renderCronEditor()}</ConstructorEditor>
-        </TabContent>
+          <Styled.ConstructorEditor>
+            {renderCronEditor()}
+          </Styled.ConstructorEditor>
+        </Styled.TabContent>
       )}
 
       {activeTab === 'checker' && (
-        <TabContent>
-          <CheckerActions>{renderEditCronButton()}</CheckerActions>
+        <Styled.TabContent>
+          <Styled.CheckerActions>
+            {renderEditCronButton()}
+          </Styled.CheckerActions>
           <CronChecker
             expression={checkerExpression}
             onExpressionChange={changeCheckerExpression}
           />
-          <CheckerActions>{renderEditCronButton()}</CheckerActions>
-        </TabContent>
+          <Styled.CheckerActions>
+            {renderEditCronButton()}
+          </Styled.CheckerActions>
+        </Styled.TabContent>
       )}
 
       {activeTab === 'editorParams' && (
-        <TabContent>{renderEditorParamsPanels()}</TabContent>
+        <Styled.TabContent>{renderEditorParamsPanels()}</Styled.TabContent>
       )}
-    </Page>
+    </Styled.Page>
   );
 };
 

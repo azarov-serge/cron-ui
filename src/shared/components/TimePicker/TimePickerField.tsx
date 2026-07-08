@@ -1,5 +1,5 @@
 import React from 'react';
-import { Field } from '@admiral-ds/react-ui';
+import { type ComponentDimension, Field } from '@admiral-ds/react-ui';
 import { normalizeTimeToMinuteStep } from '@shared/components/TimePicker/utils/time';
 import * as Styled from './styles';
 import { TimePicker } from './TimePicker';
@@ -9,6 +9,7 @@ export interface TimePickerFieldProps {
   className?: string;
   label?: string;
   value: string | null;
+  dimension?: ComponentDimension;
   disabled?: boolean;
   minuteStep?: number;
   withSeconds?: boolean;
@@ -22,6 +23,7 @@ export const TimePickerField: React.FC<TimePickerFieldProps> = (props) => {
     className,
     label,
     value,
+    dimension,
     disabled,
     minuteStep = 1,
     withSeconds = false,
@@ -42,6 +44,7 @@ export const TimePickerField: React.FC<TimePickerFieldProps> = (props) => {
   const timePicker = (
     <TimePicker
       value={normalizedValue}
+      dimension={dimension}
       disabled={disabled}
       minuteStep={minuteStep}
       withSeconds={withSeconds}

@@ -7,8 +7,8 @@ import type { IntervalUnit, ScheduleInterface } from './scheduleTypes';
 import { WEEK_NUMBER_KEYS } from './scheduleTypes';
 import type { CronOptions } from './options';
 import { isCronFieldRequired } from './options';
-import type { Messages } from '@shared/i18n/messages';
-import { formatMessage } from '@shared/i18n/messages';
+import { formatMessage } from '../../../utils/formatMessage';
+import type { EditorStrings } from '../strings';
 
 export type ValidateScheduleOptions = Pick<CronOptions, 'requires' | 'weeklyWeekNumbers'>;
 
@@ -46,7 +46,7 @@ export const normalizeEveryInterval = (
 export const getEveryIntervalHint = (
   unit: IntervalUnit,
   minuteStep: number,
-  editor: Messages['editor'],
+  editor: EditorStrings,
 ): string => {
   const { min, max } = getEveryIntervalLimits(unit, minuteStep);
   return unit === 'minutes'
@@ -59,7 +59,7 @@ export const validateSchedule = (
   schedule: ScheduleInterface,
   minuteStep: number,
   editorOptions: ValidateScheduleOptions = {},
-  editor: Messages['editor'],
+  editor: EditorStrings,
 ): { valid: boolean; message: string | null } => {
   const requireFields = editorOptions.requires ?? [];
   const weeklyWeekNumbersEnabled =

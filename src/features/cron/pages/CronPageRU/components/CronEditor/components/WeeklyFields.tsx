@@ -10,7 +10,7 @@ import {
 } from '../utils';
 import { useCronEditorConfig, useCronEditorValidation } from '../hooks';
 import { WEEK_DAYS_LABELS, WEEK_NUMBERS_LABELS } from '../strings';
-import { SectionLabel } from '../../SectionLabel';
+import { SectionLabel } from '../SectionLabel';
 import type { CronSectionProps } from './types';
 
 export const WeeklyFields: React.FC<CronSectionProps> = (props) => {

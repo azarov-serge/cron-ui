@@ -19,14 +19,14 @@ const resolveInputBoxBorderColor = (
   state: InputBoxBorderState = 'default',
 ): string => {
   if (state === 'hover') {
-    return theme.color['Neutral/Neutral 60'];
+    return `var(--admiral-color-Neutral_Neutral60, ${theme.color['Neutral/Neutral 60']})`;
   }
 
   if (state === 'focus') {
-    return theme.color['Primary/Primary 60 Main'];
+    return `var(--admiral-color-Primary_Primary60Main, ${theme.color['Primary/Primary 60 Main']})`;
   }
 
-  return theme.color['Neutral/Neutral 40'];
+  return `var(--admiral-color-Neutral_Neutral40, ${theme.color['Neutral/Neutral 40']})`;
 };
 
 const inputBoxInsetShadow = (color: string, options?: InputBoxBorderOptions): string => {
@@ -138,26 +138,34 @@ export const inputBoxBorderMixin = (
  */
 export const inputBoxJoin = (hide: InputBoxBorderSide[]): RuleSet<object> => css`
   &&&& {
-    box-shadow: ${({ theme }: { theme: DefaultTheme }) =>
-      inputBoxInsetShadow(resolveInputBoxBorderColor(theme), { hide })};
+    border: 1px solid
+      ${({ theme }: { theme: DefaultTheme }) =>
+        resolveInputBoxBorderColor(theme)};
+    ${isSideHidden(hide, 'left') ? 'border-left: none;' : ''}
+    ${isSideHidden(hide, 'right') ? 'border-right: none;' : ''}
+    ${isSideHidden(hide, 'top') ? 'border-top: none;' : ''}
+    ${isSideHidden(hide, 'bottom') ? 'border-bottom: none;' : ''}
+    box-shadow: none;
     ${inputBoxBorderRadius({ hide })}
 
     &:hover:not(:focus-within):not([data-disabled]):not([data-read-only]):not(
         [data-skeleton]
       ) {
-      box-shadow: ${({ theme }: { theme: DefaultTheme }) =>
-        inputBoxInsetShadow(resolveInputBoxBorderColor(theme, 'hover'), { hide })};
+      border-color: ${({ theme }: { theme: DefaultTheme }) =>
+        resolveInputBoxBorderColor(theme, 'hover')};
+      ${isSideHidden(hide, 'left') ? 'border-left: none;' : ''}
+      ${isSideHidden(hide, 'right') ? 'border-right: none;' : ''}
+      ${isSideHidden(hide, 'top') ? 'border-top: none;' : ''}
+      ${isSideHidden(hide, 'bottom') ? 'border-bottom: none;' : ''}
     }
 
     &:focus-within:not([data-disabled]):not([data-read-only]):not([data-skeleton]) {
-      box-shadow: ${({ theme }: { theme: DefaultTheme }) => {
-        const focusColor = resolveInputBoxBorderColor(theme, 'focus');
-        const focusShadow = inputBoxInsetShadow(focusColor, { hide, width: 2 });
-
-        return isSideHidden(hide, 'left')
-          ? `${focusShadow}, inset 1px 0 0 0 ${focusColor}`
-          : focusShadow;
-      }};
+      border-color: ${({ theme }: { theme: DefaultTheme }) =>
+        resolveInputBoxBorderColor(theme, 'focus')};
+      ${isSideHidden(hide, 'left') ? 'border-left: none;' : ''}
+      ${isSideHidden(hide, 'right') ? 'border-right: none;' : ''}
+      ${isSideHidden(hide, 'top') ? 'border-top: none;' : ''}
+      ${isSideHidden(hide, 'bottom') ? 'border-bottom: none;' : ''}
     }
   }
 `;

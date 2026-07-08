@@ -15,7 +15,7 @@ export interface CronEditorRUProps {
   options?: CronOptions;
 }
 
-export const CronEditorRU: React.FC<CronEditorRUProps> = (props) => {
+export const CronEditor: React.FC<CronEditorRUProps> = (props) => {
   const { value, onChange } = props;
   const currentValue = value ?? Cron.createEmpty();
   const options = resolveCronOptions(props.options);

@@ -1,7 +1,14 @@
 import type { WeekDayKey } from './utils';
-import { formatMessage, messages } from '@shared/i18n/messages';
+import { formatMessage } from '../../utils/formatMessage';
 
-export const EDITOR_STRINGS = messages.ru.editor;
+export const EDITOR_STRINGS = {
+  intervalMinutes: 'от {min} до {max} минут',
+  intervalHours: 'от {min} до {max} часов',
+  pickWeekDay: 'Выберите хотя бы один день недели',
+  pickWeekNumber: 'Выберите хотя бы одну неделю месяца',
+} as const;
+
+export type EditorStrings = typeof EDITOR_STRINGS;
 
 export const SCHEDULE_TYPE_LABELS = {
   recurring: 'Повторяющееся',

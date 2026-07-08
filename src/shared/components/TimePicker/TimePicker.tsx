@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   changeInputData,
+  type ComponentDimension,
   InputIconButton,
   InputLine,
   isInputDataDifferent,
@@ -35,6 +36,7 @@ export interface TimePickerProps {
   className?: string;
   inputBoxCss?: RuleSet<object>;
   value: string | null;
+  dimension?: ComponentDimension;
   disabled?: boolean;
   minuteStep?: number;
   withSeconds?: boolean;
@@ -48,6 +50,7 @@ export const TimePicker: React.FC<TimePickerProps> = (props) => {
     className,
     inputBoxCss,
     value,
+    dimension = 's',
     disabled = false,
     minuteStep = 1,
     withSeconds = false,
@@ -78,6 +81,7 @@ export const TimePicker: React.FC<TimePickerProps> = (props) => {
   const placeholder = withSeconds ? 'чч:мм:сс' : 'чч:мм';
   const hasValue = value !== null;
   const iconsAfterCount = displayClearIcon && hasValue ? 2 : 1;
+  const iconSize = dimension === 's' ? 20 : 24;
 
   const {
     hour: selectedHour,
@@ -335,7 +339,7 @@ export const TimePicker: React.FC<TimePickerProps> = (props) => {
       <Styled.Root>
         <Styled.InputBox
           ref={containerRef}
-          $dimension="s"
+          $dimension={dimension}
           disabled={disabled}
           $iconsAfterCount={iconsAfterCount}
           $css={inputBoxCss}
@@ -353,11 +357,11 @@ export const TimePicker: React.FC<TimePickerProps> = (props) => {
             onBlur={handleBlur}
             onKeyDown={handleKeyDown}
           />
-          <Styled.IconPanel>
+          <Styled.IconPanel $dimension={dimension}>
             {displayClearIcon && hasValue && (
               <InputIconButton
-                width={24}
-                height={24}
+                width={iconSize}
+                height={iconSize}
                 icon={CloseOutlineIcon}
                 tabIndex={0}
                 aria-label="Очистить время"
@@ -366,8 +370,8 @@ export const TimePicker: React.FC<TimePickerProps> = (props) => {
               />
             )}
             <InputIconButton
-              width={24}
-              height={24}
+              width={iconSize}
+              height={iconSize}
               icon={TimeOutlineIcon}
               tabIndex={0}
               aria-label="Выбрать время"

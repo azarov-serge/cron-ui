@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { createEmptyWeekDays } from './scheduleTypes';
 import { validateSchedule } from './validation';
-import { messages } from '@shared/i18n/messages';
+import { EDITOR_STRINGS } from '../strings';
 
-const editor = messages.ru.editor;
+const editor = EDITOR_STRINGS;
 
 describe('validateSchedule weekly requiredness', () => {
   const weeklySchedule = {

@@ -1,6 +1,6 @@
 import type { FC } from 'react';
 import styled from 'styled-components';
-import { CronPage } from '@features/cron/pages/CronPage';
+import { CronPage } from '@features/cron/pages/CronPage/CronPage';
 import { Header } from '@shared/components/Header';
 import { LAYOUT_MAX_WIDTH_PX } from '@shared/constants/layout';
 

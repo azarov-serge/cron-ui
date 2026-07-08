@@ -1,3 +1,3 @@
-export * from './CronEditorRU';
+export * from './CronEditor';
 export * from './components';
 export * from './utils';

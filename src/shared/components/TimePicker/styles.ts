@@ -1,4 +1,8 @@
-import { InputBox as InputBoxUI, typography } from '@admiral-ds/react-ui';
+import {
+  InputBox as InputBoxUI,
+  type ComponentDimension,
+  typography,
+} from '@admiral-ds/react-ui';
 import styled, { type RuleSet } from 'styled-components';
 
 export const Root = styled.div`
@@ -12,7 +16,7 @@ export const InputBox = styled(InputBoxUI)<{ $css?: RuleSet<object> }>`
   ${({ $css }) => $css}
 `;
 
-export const IconPanel = styled.div`
+export const IconPanel = styled.div<{ $dimension?: ComponentDimension }>`
   position: absolute;
   top: 0;
   right: 0;
@@ -21,7 +25,7 @@ export const IconPanel = styled.div`
   display: flex;
   align-items: center;
   gap: 4px;
-  padding-right: 12px;
+  padding-right: ${({ $dimension }) => ($dimension === 's' ? 12 : 16)}px;
   pointer-events: auto;
 `;
 
