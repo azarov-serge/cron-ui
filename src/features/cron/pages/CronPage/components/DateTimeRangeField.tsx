@@ -1,35 +1,69 @@
 import React from 'react';
-import { T } from '@admiral-ds/react-ui';
+import { Button, T } from '@admiral-ds/react-ui';
 import { normalizeTimeToMinuteStep } from '@shared/components/TimePicker/utils/time';
 import { isInvalidDate } from '@shared/components/DateTimePicker/utils/date';
 import {
-  clampToBounds,
   DateTimeRange,
-  getBoundError,
   isInvalidRange,
   type DateValidator,
   type DateTimeRangeProps,
   type Period,
 } from '@shared/components/DateTimeRange';
+import {
+  clampToResolvedMax,
+  getMoscowTodayMaxDate,
+  isAfterResolvedMax,
+  periodToMoscowISO,
+} from './dateTimeRangeFieldUtils';
+import styled from 'styled-components';
 
 export interface DateTimeRangeFieldProps {
-  minDate?: Date;
+  /** Верхняя граница (абсолютный момент); дополнительно ограничивается «сейчас» по Москве */
   maxDate?: Date;
   minuteStep?: number;
+  /** Колбэк «отправки на бэк» — ISO в UTC, wall-clock интерпретирован как Europe/Moscow */
+  onSubmit?: (payload: {
+    start: string;
+    end: string;
+    timeZone: string;
+  }) => void;
 }
+
+const Actions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+`;
+
+const PayloadBlock = styled.pre`
+  margin: 12px 0 0;
+  padding: 12px;
+  overflow-x: auto;
+  border-radius: 8px;
+  background: ${({ theme }) => theme.color['Neutral/Neutral 05']};
+  color: ${({ theme }) => theme.color['Neutral/Neutral 90']};
+  font: var(--admiral-font-Body_Body2Long, inherit);
+  white-space: pre-wrap;
+  word-break: break-word;
+`;
 
 export const DateTimeRangeField: React.FC<DateTimeRangeFieldProps> = (
   props,
 ) => {
-  const { minDate, maxDate, minuteStep = 5 } = props;
+  const { maxDate, minuteStep = 5, onSubmit } = props;
 
   const [date, setDate] = React.useState<Period>({ start: '', end: '' });
   const [time, setTime] = React.useState<Period>({ start: '', end: '' });
+  const [submittedPayload, setSubmittedPayload] = React.useState<{
+    start: string;
+    end: string;
+    timeZone: string;
+  } | null>(null);
+  const [submitError, setSubmitError] = React.useState<string | null>(null);
 
-  // Стабильный maxDate на сессию формы — иначе new Date() каждый рендер даёт лишние clamp/моргания
-  const defaultMaxDate = React.useMemo(() => new Date(), []);
-  const maxDateTime = maxDate ?? defaultMaxDate;
-  const minDateTime = minDate;
+  // Календарь: сегодняшний день по Москве (локальные Y/M/D для Admiral)
+  const calendarMaxDate = getMoscowTodayMaxDate();
 
   const validator = React.useMemo<DateValidator>(
     () => ({
@@ -38,11 +72,18 @@ export const DateTimeRangeField: React.FC<DateTimeRangeFieldProps> = (
           return null;
         }
 
-        if (minDateTime && value.getTime() < minDateTime.getTime()) {
-          return 'Дата вне диапазона';
-        }
+        const selectedDay = new Date(
+          value.getFullYear(),
+          value.getMonth(),
+          value.getDate(),
+        ).getTime();
+        const maxDay = new Date(
+          calendarMaxDate.getFullYear(),
+          calendarMaxDate.getMonth(),
+          calendarMaxDate.getDate(),
+        ).getTime();
 
-        if (value.getTime() > maxDateTime.getTime()) {
+        if (selectedDay > maxDay) {
           return 'Дата вне диапазона';
         }
 
@@ -52,7 +93,7 @@ export const DateTimeRangeField: React.FC<DateTimeRangeFieldProps> = (
       invalidYear: () => null,
       invalidMonth: () => null,
     }),
-    [maxDateTime, minDateTime],
+    [calendarMaxDate],
   );
 
   const normalizeTime = (timeValue: string): string => {
@@ -69,10 +110,12 @@ export const DateTimeRangeField: React.FC<DateTimeRangeFieldProps> = (
     nextTimeValue: string,
   ) => {
     const normalizedTime = normalizeTime(nextTimeValue);
-    const bounded = clampToBounds(nextDateValue, normalizedTime, {
-      minDate: minDateTime,
-      maxDate: maxDateTime,
-    });
+    const bounded = clampToResolvedMax(
+      nextDateValue,
+      normalizedTime,
+      maxDate,
+      minuteStep,
+    );
 
     if (side === 'start') {
       setDate((prevValue) => ({ ...prevValue, start: bounded.date }));
@@ -108,6 +151,32 @@ export const DateTimeRangeField: React.FC<DateTimeRangeFieldProps> = (
     }
   };
 
+  // Страховка: если в state всё же оказалось будущее (гонка / старый value) — clamp
+  React.useLayoutEffect(() => {
+    const startBounded = clampToResolvedMax(
+      date.start,
+      time.start,
+      maxDate,
+      minuteStep,
+    );
+    const endBounded = clampToResolvedMax(
+      date.end,
+      time.end,
+      maxDate,
+      minuteStep,
+    );
+
+    if (startBounded.changed) {
+      setDate((prevValue) => ({ ...prevValue, start: startBounded.date }));
+      setTime((prevValue) => ({ ...prevValue, start: startBounded.time }));
+    }
+
+    if (endBounded.changed) {
+      setDate((prevValue) => ({ ...prevValue, end: endBounded.date }));
+      setTime((prevValue) => ({ ...prevValue, end: endBounded.time }));
+    }
+  }, [date.end, date.start, maxDate, minuteStep, time.end, time.start]);
+
   const startDateInvalid = isInvalidDate(date.start);
   const endDateInvalid = isInvalidDate(date.end);
 
@@ -126,27 +195,59 @@ export const DateTimeRangeField: React.FC<DateTimeRangeFieldProps> = (
     ],
   );
 
-  const startBoundError = React.useMemo(
-    () =>
-      startDateInvalid
-        ? null
-        : getBoundError(date.start, time.start, {
-            minDate: minDateTime,
-            maxDate: maxDateTime,
-          }),
-    [date.start, maxDateTime, minDateTime, startDateInvalid, time.start],
-  );
+  const startBoundError = React.useMemo(() => {
+    if (startDateInvalid) {
+      return null;
+    }
 
-  const endBoundError = React.useMemo(
-    () =>
-      endDateInvalid
-        ? null
-        : getBoundError(date.end, time.end, {
-            minDate: minDateTime,
-            maxDate: maxDateTime,
-          }),
-    [date.end, endDateInvalid, maxDateTime, minDateTime, time.end],
-  );
+    return isAfterResolvedMax(date.start, time.start, maxDate, minuteStep)
+      ? 'max'
+      : null;
+  }, [date.start, maxDate, minuteStep, startDateInvalid, time.start]);
+
+  const endBoundError = React.useMemo(() => {
+    if (endDateInvalid) {
+      return null;
+    }
+
+    return isAfterResolvedMax(date.end, time.end, maxDate, minuteStep)
+      ? 'max'
+      : null;
+  }, [date.end, endDateInvalid, maxDate, minuteStep, time.end]);
+
+  const canSubmit =
+    Boolean(date.start && time.start && date.end && time.end) &&
+    !startDateInvalid &&
+    !endDateInvalid &&
+    !rangeInvalid &&
+    startBoundError === null &&
+    endBoundError === null;
+
+  const handleSubmit = () => {
+    if (!canSubmit) {
+      setSubmitError('Заполните корректный диапазон даты и времени.');
+      setSubmittedPayload(null);
+      return;
+    }
+
+    const iso = periodToMoscowISO(date, time);
+
+    if (!iso.start || !iso.end) {
+      setSubmitError('Не удалось преобразовать дату и время в ISO.');
+      setSubmittedPayload(null);
+      return;
+    }
+
+    const payload = {
+      start: iso.start,
+      end: iso.end,
+      timeZone: MOSCOW_TIME_ZONE,
+    };
+
+    setSubmitError(null);
+    setSubmittedPayload(payload);
+    onSubmit?.(payload);
+  };
 
   return (
     <>
@@ -155,8 +256,7 @@ export const DateTimeRangeField: React.FC<DateTimeRangeFieldProps> = (
         onDateChange={handleDateRangeDateChange}
         time={time}
         onTimeChange={handleDateRangeTimeChange}
-        minDate={minDateTime}
-        maxDate={maxDateTime}
+        maxDate={calendarMaxDate}
         minuteStep={minuteStep}
         validator={validator}
       />
@@ -174,10 +274,26 @@ export const DateTimeRangeField: React.FC<DateTimeRangeFieldProps> = (
         </T>
       ) : null}
 
-      {startBoundError === 'min' || endBoundError === 'min' ? (
+      <Actions>
+        <Button
+          appearance="primary"
+          dimension="s"
+          type="button"
+          disabled={!canSubmit}
+          onClick={handleSubmit}
+        >
+          Выполнить
+        </Button>
+      </Actions>
+
+      {submitError ? (
         <T font="Body/Body 2 Long" color="Error/Error 60 Main" as="p">
-          Дата и время меньше допустимого минимального значения.
+          {submitError}
         </T>
+      ) : null}
+
+      {submittedPayload ? (
+        <PayloadBlock>{JSON.stringify(submittedPayload, null, 2)}</PayloadBlock>
       ) : null}
     </>
   );
