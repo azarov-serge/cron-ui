@@ -1,3 +1,4 @@
+import { splitDateTimeValue } from '@shared/components/DateTimePicker/utils/date';
 import { parseDate, type Period } from '@shared/components/DateTimeRange';
 
 export const MOSCOW_TIME_ZONE = 'Europe/Moscow';
@@ -165,13 +166,17 @@ export const dateTimeToZonedISO = (
   return new Date(utcMillis).toISOString();
 };
 
-/** Диапазон start/end → ISO UTC + timeZone */
+/** Диапазон start/end (`dd.MM.yyyy HH:mm`) → ISO UTC + timeZone */
 export const periodToZonedISO = (
-  date: Period,
-  time: Period,
+  value: Period,
   timeZone: string = MOSCOW_TIME_ZONE,
-): ZonedISOPeriod => ({
-  start: dateTimeToZonedISO(date.start, time.start, timeZone),
-  end: dateTimeToZonedISO(date.end, time.end, timeZone),
-  timeZone,
-});
+): ZonedISOPeriod => {
+  const start = splitDateTimeValue(value.start);
+  const end = splitDateTimeValue(value.end);
+
+  return {
+    start: dateTimeToZonedISO(start.date, start.time ?? '', timeZone),
+    end: dateTimeToZonedISO(end.date, end.time ?? '', timeZone),
+    timeZone,
+  };
+};

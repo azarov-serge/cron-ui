@@ -1,10 +1,12 @@
 import React from 'react';
 import { Button, T } from '@admiral-ds/react-ui';
-import { isInvalidDate } from '@shared/components/DateTimePicker/utils/date';
+import {
+  isInvalidDate,
+  splitDateTimeValue,
+} from '@shared/components/DateTimePicker/utils/date';
 import {
   DateTimeRange,
   isInvalidRange,
-  type DateTimeRangeProps,
   type Period,
 } from '@shared/components/DateTimeRange';
 import {
@@ -51,8 +53,7 @@ export const DateTimeRangeField: React.FC<DateTimeRangeFieldProps> = (
 ) => {
   const { onSubmit } = props;
 
-  const [date, setDate] = React.useState<Period>({ start: '', end: '' });
-  const [time, setTime] = React.useState<Period>({ start: '', end: '' });
+  const [value, setValue] = React.useState<Period>({ start: '', end: '' });
   const [submittedPayload, setSubmittedPayload] = React.useState<{
     start: string;
     end: string;
@@ -63,32 +64,23 @@ export const DateTimeRangeField: React.FC<DateTimeRangeFieldProps> = (
   const maxDate = getTodayInTimeZone(TIME_ZONE);
   const nowWallClock = getNowWallClockInTimeZone(TIME_ZONE, MINUTE_STEP);
 
+  const startParts = splitDateTimeValue(value.start);
+  const endParts = splitDateTimeValue(value.end);
+
   const startMaxTime =
-    date.start === nowWallClock.date ? nowWallClock.time : null;
+    startParts.date === nowWallClock.date ? nowWallClock.time : null;
   const endMaxTime =
-    date.end === nowWallClock.date ? nowWallClock.time : null;
+    endParts.date === nowWallClock.date ? nowWallClock.time : null;
 
-  const handleDateRangeDateChange: DateTimeRangeProps['onDateChange'] = (
-    nextDate,
-  ) => {
-    setDate(nextDate);
-  };
-
-  const handleDateRangeTimeChange: DateTimeRangeProps['onTimeChange'] = (
-    nextTime,
-  ) => {
-    setTime(nextTime);
-  };
-
-  const startDateInvalid = isInvalidDate(date.start);
-  const endDateInvalid = isInvalidDate(date.end);
+  const startDateInvalid = isInvalidDate(startParts.date);
+  const endDateInvalid = isInvalidDate(endParts.date);
   const rangeInvalid =
     !startDateInvalid &&
     !endDateInvalid &&
-    isInvalidRange(date.start, time.start, date.end, time.end);
+    isInvalidRange(value.start, value.end);
 
   const canSubmit =
-    Boolean(date.start && time.start && date.end && time.end) &&
+    Boolean(startParts.date && startParts.time && endParts.date && endParts.time) &&
     !startDateInvalid &&
     !endDateInvalid &&
     !rangeInvalid;
@@ -100,7 +92,7 @@ export const DateTimeRangeField: React.FC<DateTimeRangeFieldProps> = (
       return;
     }
 
-    const iso = periodToZonedISO(date, time, TIME_ZONE);
+    const iso = periodToZonedISO(value, TIME_ZONE);
 
     if (!iso.start || !iso.end) {
       setSubmitError('Не удалось преобразовать дату и время в ISO.');
@@ -122,10 +114,8 @@ export const DateTimeRangeField: React.FC<DateTimeRangeFieldProps> = (
   return (
     <>
       <DateTimeRange
-        date={date}
-        onDateChange={handleDateRangeDateChange}
-        time={time}
-        onTimeChange={handleDateRangeTimeChange}
+        value={value}
+        onChange={setValue}
         maxDate={maxDate}
         startMaxTime={startMaxTime}
         endMaxTime={endMaxTime}

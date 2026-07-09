@@ -3,20 +3,14 @@ import React from 'react';
 import ArrowIcon from '@admiral-ds/icons/build/system/ArrowRightOutline.svg?react';
 
 import { DateTimePicker } from '@shared/components/DateTimePicker';
-import {
-  joinDateTimeValue,
-  splitDateTimeValue,
-} from '@shared/components/DateTimePicker/utils/date';
 import type { DateTimeRangeProps } from './types';
 import * as Styled from './styles';
 
 export const DateTimeRange: React.FC<DateTimeRangeProps> = (props) => {
   const {
     className,
-    date,
-    onDateChange,
-    time,
-    onTimeChange,
+    value,
+    onChange,
     dimension,
     minDate,
     maxDate,
@@ -35,41 +29,13 @@ export const DateTimeRange: React.FC<DateTimeRangeProps> = (props) => {
   const resolvedEndMinTime = endMinTime ?? minTime;
   const resolvedEndMaxTime = endMaxTime ?? maxTime;
 
-  const handleStartChange = (nextValue: string) => {
-    const { date: nextDate, time: nextTime } = splitDateTimeValue(nextValue);
-
-    if (nextDate !== date.start) {
-      onDateChange({ ...date, start: nextDate });
-    }
-
-    const nextTimeValue = nextTime ?? '';
-
-    if (nextTimeValue !== time.start) {
-      onTimeChange({ ...time, start: nextTimeValue });
-    }
-  };
-
-  const handleEndChange = (nextValue: string) => {
-    const { date: nextDate, time: nextTime } = splitDateTimeValue(nextValue);
-
-    if (nextDate !== date.end) {
-      onDateChange({ ...date, end: nextDate });
-    }
-
-    const nextTimeValue = nextTime ?? '';
-
-    if (nextTimeValue !== time.end) {
-      onTimeChange({ ...time, end: nextTimeValue });
-    }
-  };
-
   return (
     <Styled.Root className={className}>
       <Styled.Row>
         <Styled.Item>
           <DateTimePicker
             label="Дата и время начала"
-            value={joinDateTimeValue(date.start, time.start)}
+            value={value.start}
             dimension={dimension}
             minDate={minDate}
             maxDate={maxDate}
@@ -77,7 +43,7 @@ export const DateTimeRange: React.FC<DateTimeRangeProps> = (props) => {
             maxTime={resolvedStartMaxTime}
             validator={validator}
             minuteStep={minuteStep}
-            onChange={handleStartChange}
+            onChange={(start) => onChange({ ...value, start })}
           />
         </Styled.Item>
 
@@ -88,7 +54,7 @@ export const DateTimeRange: React.FC<DateTimeRangeProps> = (props) => {
         <Styled.Item>
           <DateTimePicker
             label="Дата и время конца"
-            value={joinDateTimeValue(date.end, time.end)}
+            value={value.end}
             dimension={dimension}
             minDate={minDate}
             maxDate={maxDate}
@@ -96,7 +62,7 @@ export const DateTimeRange: React.FC<DateTimeRangeProps> = (props) => {
             maxTime={resolvedEndMaxTime}
             validator={validator}
             minuteStep={minuteStep}
-            onChange={handleEndChange}
+            onChange={(end) => onChange({ ...value, end })}
           />
         </Styled.Item>
       </Styled.Row>

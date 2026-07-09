@@ -23,26 +23,20 @@ describe('isInvalidDate (re-export)', () => {
 
 describe('isInvalidRange', () => {
   it('end раньше start — невалидно', () => {
-    expect(isInvalidRange('09.07.2026', '09:00', '09.07.2026', '08:00')).toBe(
-      true,
-    );
+    expect(isInvalidRange('09.07.2026 09:00', '09.07.2026 08:00')).toBe(true);
   });
 
   it('одинаковые дата и время — невалидно', () => {
-    expect(isInvalidRange('09.07.2026', '08:00', '09.07.2026', '08:00')).toBe(
-      true,
-    );
+    expect(isInvalidRange('09.07.2026 08:00', '09.07.2026 08:00')).toBe(true);
   });
 
   it('end позже start — валидно', () => {
-    expect(isInvalidRange('09.07.2026', '08:00', '09.07.2026', '08:05')).toBe(
-      false,
-    );
+    expect(isInvalidRange('09.07.2026 08:00', '09.07.2026 08:05')).toBe(false);
   });
 
   it('неполные значения — не ошибка диапазона', () => {
-    expect(isInvalidRange('09.07.2026', '08:00', '', '')).toBe(false);
-    expect(isInvalidRange('09.07.2026', '', '09.07.2026', '08:00')).toBe(false);
+    expect(isInvalidRange('09.07.2026 08:00', '')).toBe(false);
+    expect(isInvalidRange('09.07.2026', '09.07.2026 08:00')).toBe(false);
   });
 });
 

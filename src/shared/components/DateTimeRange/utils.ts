@@ -1,3 +1,5 @@
+import { splitDateTimeValue } from '@shared/components/DateTimePicker/utils/date';
+
 export type ParsedDateTime = {
   value: Date;
 };
@@ -196,21 +198,23 @@ export const clampToBounds = (
   return { date: dateValue, time: timeValue, changed: false };
 };
 
-export const isInvalidRange = (
-  startDate: string,
-  startTime: string,
-  endDate: string,
-  endTime: string,
-): boolean => {
-  const start = parseDateTime(startDate, startTime);
-  const end = parseDateTime(endDate, endTime);
+export const isInvalidRange = (start: string, end: string): boolean => {
+  const startParts = splitDateTimeValue(start);
+  const endParts = splitDateTimeValue(end);
 
-  if (!start || !end) {
+  if (!startParts.time || !endParts.time) {
+    return false;
+  }
+
+  const startParsed = parseDateTime(startParts.date, startParts.time);
+  const endParsed = parseDateTime(endParts.date, endParts.time);
+
+  if (!startParsed || !endParsed) {
     return false;
   }
 
   // Конец должен быть строго позже начала (равные дата+время — тоже ошибка)
-  return end.value.getTime() <= start.value.getTime();
+  return endParsed.value.getTime() <= startParsed.value.getTime();
 };
 
 export const getBoundError = (

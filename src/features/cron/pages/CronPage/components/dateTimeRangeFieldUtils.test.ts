@@ -35,8 +35,7 @@ describe('periodToZonedISO', () => {
   it('собирает payload для бэка', () => {
     expect(
       periodToZonedISO(
-        { start: '09.07.2026', end: '09.07.2026' },
-        { start: '18:20', end: '18:25' },
+        { start: '09.07.2026 18:20', end: '09.07.2026 18:25' },
         MOSCOW_TIME_ZONE,
       ),
     ).toEqual({
