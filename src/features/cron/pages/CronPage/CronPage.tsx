@@ -397,7 +397,7 @@ export const CronPage: React.FC = () => {
           {t.pageDescription}
         </Styled.PageDescription>
       </Styled.PageHeader>
-      {/* <DateTimeRangeField minuteStep={5} /> */}
+      {/* <DateTimeRangeField /> */}
       <HorizontalTabs
         selectedTabId={activeTab}
         onSelectTab={(tabId) => selectTab(tabId as PageTabId)}

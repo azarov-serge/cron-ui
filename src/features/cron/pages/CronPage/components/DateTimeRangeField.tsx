@@ -10,17 +10,14 @@ import {
   type Period,
 } from '@shared/components/DateTimeRange';
 import {
-  clampToResolvedMax,
+  clampToMoscowNow,
   getMoscowTodayMaxDate,
-  isAfterResolvedMax,
+  isAfterMoscowNow,
   periodToMoscowISO,
 } from './dateTimeRangeFieldUtils';
 import styled from 'styled-components';
 
 export interface DateTimeRangeFieldProps {
-  /** Верхняя граница (абсолютный момент); дополнительно ограничивается «сейчас» по Москве */
-  maxDate?: Date;
-  minuteStep?: number;
   /** Колбэк «отправки на бэк» — ISO в UTC, wall-clock интерпретирован как Europe/Moscow */
   onSubmit?: (payload: {
     start: string;
@@ -28,6 +25,8 @@ export interface DateTimeRangeFieldProps {
     timeZone: string;
   }) => void;
 }
+
+const MINUTE_STEP = 5;
 
 const Actions = styled.div`
   display: flex;
@@ -51,7 +50,7 @@ const PayloadBlock = styled.pre`
 export const DateTimeRangeField: React.FC<DateTimeRangeFieldProps> = (
   props,
 ) => {
-  const { maxDate, minuteStep = 5, onSubmit } = props;
+  const { onSubmit } = props;
 
   const [date, setDate] = React.useState<Period>({ start: '', end: '' });
   const [time, setTime] = React.useState<Period>({ start: '', end: '' });
@@ -101,7 +100,7 @@ export const DateTimeRangeField: React.FC<DateTimeRangeFieldProps> = (
       return timeValue;
     }
 
-    return normalizeTimeToMinuteStep(timeValue, minuteStep) ?? timeValue;
+    return normalizeTimeToMinuteStep(timeValue, MINUTE_STEP) ?? timeValue;
   };
 
   const applyBoundedSideValue = (
@@ -110,11 +109,10 @@ export const DateTimeRangeField: React.FC<DateTimeRangeFieldProps> = (
     nextTimeValue: string,
   ) => {
     const normalizedTime = normalizeTime(nextTimeValue);
-    const bounded = clampToResolvedMax(
+    const bounded = clampToMoscowNow(
       nextDateValue,
       normalizedTime,
-      maxDate,
-      minuteStep,
+      MINUTE_STEP,
     );
 
     if (side === 'start') {
@@ -153,18 +151,8 @@ export const DateTimeRangeField: React.FC<DateTimeRangeFieldProps> = (
 
   // Страховка: если в state всё же оказалось будущее (гонка / старый value) — clamp
   React.useLayoutEffect(() => {
-    const startBounded = clampToResolvedMax(
-      date.start,
-      time.start,
-      maxDate,
-      minuteStep,
-    );
-    const endBounded = clampToResolvedMax(
-      date.end,
-      time.end,
-      maxDate,
-      minuteStep,
-    );
+    const startBounded = clampToMoscowNow(date.start, time.start, MINUTE_STEP);
+    const endBounded = clampToMoscowNow(date.end, time.end, MINUTE_STEP);
 
     if (startBounded.changed) {
       setDate((prevValue) => ({ ...prevValue, start: startBounded.date }));
@@ -175,7 +163,7 @@ export const DateTimeRangeField: React.FC<DateTimeRangeFieldProps> = (
       setDate((prevValue) => ({ ...prevValue, end: endBounded.date }));
       setTime((prevValue) => ({ ...prevValue, end: endBounded.time }));
     }
-  }, [date.end, date.start, maxDate, minuteStep, time.end, time.start]);
+  }, [date.end, date.start, time.end, time.start]);
 
   const startDateInvalid = isInvalidDate(date.start);
   const endDateInvalid = isInvalidDate(date.end);
@@ -200,20 +188,16 @@ export const DateTimeRangeField: React.FC<DateTimeRangeFieldProps> = (
       return null;
     }
 
-    return isAfterResolvedMax(date.start, time.start, maxDate, minuteStep)
-      ? 'max'
-      : null;
-  }, [date.start, maxDate, minuteStep, startDateInvalid, time.start]);
+    return isAfterMoscowNow(date.start, time.start, MINUTE_STEP) ? 'max' : null;
+  }, [date.start, startDateInvalid, time.start]);
 
   const endBoundError = React.useMemo(() => {
     if (endDateInvalid) {
       return null;
     }
 
-    return isAfterResolvedMax(date.end, time.end, maxDate, minuteStep)
-      ? 'max'
-      : null;
-  }, [date.end, endDateInvalid, maxDate, minuteStep, time.end]);
+    return isAfterMoscowNow(date.end, time.end, MINUTE_STEP) ? 'max' : null;
+  }, [date.end, endDateInvalid, time.end]);
 
   const canSubmit =
     Boolean(date.start && time.start && date.end && time.end) &&
@@ -241,7 +225,7 @@ export const DateTimeRangeField: React.FC<DateTimeRangeFieldProps> = (
     const payload = {
       start: iso.start,
       end: iso.end,
-      timeZone: MOSCOW_TIME_ZONE,
+      timeZone: iso.timeZone,
     };
 
     setSubmitError(null);
@@ -257,7 +241,7 @@ export const DateTimeRangeField: React.FC<DateTimeRangeFieldProps> = (
         time={time}
         onTimeChange={handleDateRangeTimeChange}
         maxDate={calendarMaxDate}
-        minuteStep={minuteStep}
+        minuteStep={MINUTE_STEP}
         validator={validator}
       />
 
