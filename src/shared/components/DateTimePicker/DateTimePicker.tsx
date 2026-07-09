@@ -10,17 +10,26 @@ import { normalizeTimeToMinuteStep } from '@shared/components/TimePicker/utils/t
 import { TimePicker } from '../TimePicker';
 import { coerceEmptyToNull } from '../TimePicker/utils';
 import { inputBoxJoin } from '../TimePicker/mixins';
-import { INVALID_DATE_MESSAGE, isInvalidDate } from './utils/date';
+import {
+  INVALID_DATE_MESSAGE,
+  isInvalidDate,
+  joinDateTimeValue,
+  splitDateTimeValue,
+} from './utils/date';
 import * as Styled from './styles';
 
 export interface DateTimePickerProps {
   className?: string;
   label?: string;
-  dateValue: string;
-  timeValue: string | null;
+  /** `dd.MM.yyyy[ HH:mm[:ss]]` */
+  value: string;
   dimension?: ComponentDimension;
   minDate?: Date;
   maxDate?: Date;
+  /** Нижняя граница времени `HH:mm[:ss]` для TimePicker */
+  minTime?: string | null;
+  /** Верхняя граница времени `HH:mm[:ss]` для TimePicker */
+  maxTime?: string | null;
   validator?: DateInputProps['validator'];
   disabled?: boolean;
   readOnly?: boolean;
@@ -29,19 +38,19 @@ export interface DateTimePickerProps {
   withSeconds?: boolean;
   displayClearIcon?: boolean;
   showNow?: boolean;
-  onDateChange: (value: string) => void;
-  onTimeChange: (value: string | null) => void;
+  onChange: (value: string) => void;
 }
 
 export const DateTimePicker: React.FC<DateTimePickerProps> = (props) => {
   const {
     className,
     label,
-    dateValue,
-    timeValue,
+    value,
     dimension = 's',
     minDate,
     maxDate,
+    minTime = null,
+    maxTime = null,
     validator,
     disabled,
     readOnly,
@@ -50,29 +59,36 @@ export const DateTimePicker: React.FC<DateTimePickerProps> = (props) => {
     withSeconds = false,
     displayClearIcon = false,
     showNow = false,
-    onDateChange,
-    onTimeChange,
+    onChange,
   } = props;
 
+  const { date: dateValue, time: timeValue } = splitDateTimeValue(value);
   const dateInvalid = isInvalidDate(dateValue);
   const resolvedStatus: InputStatus | undefined = dateInvalid
     ? 'error'
     : status;
 
-  const resolvedValidator = React.useMemo<DateInputProps['validator']>(() => {
+  const resolvedValidator = React.useMemo<
+    DateInputProps['validator'] | undefined
+  >(() => {
+    if (!validator) {
+      // Без кастомного validator Admiral сам применит default по minDate/maxDate
+      return undefined;
+    }
+
     return {
-      invalidValue: (value) => {
-        if (value && Number.isNaN(value.getTime())) {
+      invalidValue: (nextValue) => {
+        if (nextValue && Number.isNaN(nextValue.getTime())) {
           return 'Дата не валидна';
         }
 
-        return validator?.invalidValue?.(value) ?? null;
+        return validator.invalidValue?.(nextValue) ?? null;
       },
       invalidRange: (startDate, endDate) =>
-        validator?.invalidRange?.(startDate, endDate) ?? null,
-      invalidYear: (year) => validator?.invalidYear?.(year) ?? null,
+        validator.invalidRange?.(startDate, endDate) ?? null,
+      invalidYear: (year) => validator.invalidYear?.(year) ?? null,
       invalidMonth: (month, year) =>
-        validator?.invalidMonth?.(month, year) ?? null,
+        validator.invalidMonth?.(month, year) ?? null,
     };
   }, [validator]);
 
@@ -82,8 +98,19 @@ export const DateTimePicker: React.FC<DateTimePickerProps> = (props) => {
     minuteStep,
   );
 
+  const emitChange = (nextDate: string, nextTime: string | null) => {
+    onChange(joinDateTimeValue(nextDate, nextTime));
+  };
+
+  const handleDateChange = (nextDate: string) => {
+    emitChange(nextDate, normalizedTimeValue);
+  };
+
   const handleTimeChange = (nextValue: string | null) => {
-    onTimeChange(normalizeTimeToMinuteStep(nextValue, minuteStep));
+    emitChange(
+      dateValue,
+      normalizeTimeToMinuteStep(nextValue, minuteStep),
+    );
   };
 
   const picker = (
@@ -101,7 +128,7 @@ export const DateTimePicker: React.FC<DateTimePickerProps> = (props) => {
         disabled={disabled}
         readOnly={readOnly}
         status={resolvedStatus}
-        onChange={(event) => onDateChange(event.target.value)}
+        onChange={(event) => handleDateChange(event.target.value)}
       />
       <DateTimeSeparator
         disabled={disabled}
@@ -113,6 +140,8 @@ export const DateTimePicker: React.FC<DateTimePickerProps> = (props) => {
           value={normalizedTimeValue}
           dimension={dimension}
           disabled={disabled || readOnly}
+          minTime={minTime}
+          maxTime={maxTime}
           minuteStep={minuteStep}
           withSeconds={withSeconds}
           displayClearIcon={displayClearIcon}

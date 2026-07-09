@@ -116,3 +116,167 @@ export const getTimeSlotsForStep = (
 
   return timeSlots;
 };
+
+/** HH:mm[:ss] → секунды от полуночи; невалидное — null */
+export const timeToSeconds = (time: string | null | undefined): number | null => {
+  if (!time) {
+    return null;
+  }
+
+  const trimmed = time.trim();
+  const withSeconds = /^\d{2}:\d{2}:\d{2}$/.test(trimmed);
+  const withoutSeconds = /^\d{2}:\d{2}$/.test(trimmed);
+
+  if (!withSeconds && !withoutSeconds) {
+    return null;
+  }
+
+  const { hour, minute, second } = splitTimeString(trimmed, withSeconds);
+  const hours = Number.parseInt(hour, 10);
+  const minutes = Number.parseInt(minute, 10);
+  const seconds = Number.parseInt(second ?? '0', 10);
+
+  if (
+    Number.isNaN(hours) ||
+    Number.isNaN(minutes) ||
+    Number.isNaN(seconds) ||
+    hours < 0 ||
+    hours > 23 ||
+    minutes < 0 ||
+    minutes > 59 ||
+    seconds < 0 ||
+    seconds > 59
+  ) {
+    return null;
+  }
+
+  return hours * 3600 + minutes * 60 + seconds;
+};
+
+export type TimeBounds = {
+  minTime?: string | null;
+  maxTime?: string | null;
+};
+
+const isWithinBounds = (
+  seconds: number,
+  bounds: TimeBounds,
+): boolean => {
+  const minSeconds = timeToSeconds(bounds.minTime);
+  const maxSeconds = timeToSeconds(bounds.maxTime);
+
+  if (minSeconds !== null && seconds < minSeconds) {
+    return false;
+  }
+
+  if (maxSeconds !== null && seconds > maxSeconds) {
+    return false;
+  }
+
+  return true;
+};
+
+/** Час недоступен, если ни одна минута/секунда в нём не попадает в [minTime, maxTime] */
+export const isHourOutOfBounds = (
+  hour: string,
+  bounds: TimeBounds,
+): boolean => {
+  const hourValue = Number.parseInt(hour, 10);
+
+  if (Number.isNaN(hourValue)) {
+    return true;
+  }
+
+  const dayStart = hourValue * 3600;
+  const dayEnd = dayStart + 3599;
+
+  const minSeconds = timeToSeconds(bounds.minTime) ?? 0;
+  const maxSeconds = timeToSeconds(bounds.maxTime) ?? 23 * 3600 + 59 * 60 + 59;
+
+  return dayEnd < minSeconds || dayStart > maxSeconds;
+};
+
+/** Минута недоступна при выбранном часе */
+export const isMinuteOutOfBounds = (
+  hour: string,
+  minute: string,
+  bounds: TimeBounds,
+): boolean => {
+  const hourValue = Number.parseInt(hour, 10);
+  const minuteValue = Number.parseInt(minute, 10);
+
+  if (Number.isNaN(hourValue) || Number.isNaN(minuteValue)) {
+    return true;
+  }
+
+  const minuteStart = hourValue * 3600 + minuteValue * 60;
+  const minuteEnd = minuteStart + 59;
+
+  const minSeconds = timeToSeconds(bounds.minTime) ?? 0;
+  const maxSeconds = timeToSeconds(bounds.maxTime) ?? 23 * 3600 + 59 * 60 + 59;
+
+  return minuteEnd < minSeconds || minuteStart > maxSeconds;
+};
+
+/** Секунда недоступна при выбранных часе и минуте */
+export const isSecondOutOfBounds = (
+  hour: string,
+  minute: string,
+  second: string,
+  bounds: TimeBounds,
+): boolean => {
+  const seconds = timeToSeconds(
+    combineTimeString(hour, minute, second),
+  );
+
+  if (seconds === null) {
+    return true;
+  }
+
+  return !isWithinBounds(seconds, bounds);
+};
+
+/** Clamp полного времени к [minTime, maxTime]; null — без изменений */
+export const clampTimeToBounds = (
+  time: string | null,
+  bounds: TimeBounds,
+  withSeconds = false,
+): string | null => {
+  if (!time) {
+    return time;
+  }
+
+  const seconds = timeToSeconds(time);
+
+  if (seconds === null) {
+    return time;
+  }
+
+  const minSeconds = timeToSeconds(bounds.minTime);
+  const maxSeconds = timeToSeconds(bounds.maxTime);
+  let next = seconds;
+
+  if (minSeconds !== null && next < minSeconds) {
+    next = minSeconds;
+  }
+
+  if (maxSeconds !== null && next > maxSeconds) {
+    next = maxSeconds;
+  }
+
+  if (next === seconds) {
+    return time;
+  }
+
+  const hours = Math.floor(next / 3600);
+  const minutes = Math.floor((next % 3600) / 60);
+  const secs = next % 60;
+
+  return withSeconds
+    ? combineTimeString(
+        String(hours),
+        String(minutes),
+        String(secs),
+      )
+    : combineTimeString(String(hours), String(minutes));
+};

@@ -75,7 +75,10 @@ export const ColumnList = styled.ul`
 
 export const ColumnItem = styled.li``;
 
-export const OptionButton = styled.button<{ $selected?: boolean }>`
+export const OptionButton = styled.button<{
+  $selected?: boolean;
+  $disabled?: boolean;
+}>`
   ${typography['Body/Body 1 Long']};
   display: block;
   width: 100%;
@@ -83,22 +86,37 @@ export const OptionButton = styled.button<{ $selected?: boolean }>`
   border: none;
   background: ${({ $selected, theme }) =>
     $selected ? theme.color['Primary/Primary 10'] : 'transparent'};
-  color: ${({ $selected, theme }) =>
-    $selected
+  color: ${({ $disabled, $selected, theme }) => {
+    if ($disabled) {
+      return theme.color['Neutral/Neutral 30'];
+    }
+
+    return $selected
       ? theme.color['Primary/Primary 60 Main']
-      : theme.color['Neutral/Neutral 90']};
-  cursor: pointer;
+      : theme.color['Neutral/Neutral 90'];
+  }};
+  cursor: ${({ $disabled }) => ($disabled ? 'not-allowed' : 'pointer')};
   text-align: center;
+  opacity: ${({ $disabled }) => ($disabled ? 0.55 : 1)};
 
   &:hover {
-    background: ${({ $selected, theme }) =>
-      $selected
+    background: ${({ $disabled, $selected, theme }) => {
+      if ($disabled) {
+        return 'transparent';
+      }
+
+      return $selected
         ? theme.color['Primary/Primary 10']
-        : theme.color['Neutral/Neutral 10']};
+        : theme.color['Neutral/Neutral 10'];
+    }};
   }
 
   &:focus-visible {
     outline: 2px solid ${({ theme }) => theme.color['Primary/Primary 60 Main']};
     outline-offset: -2px;
+  }
+
+  &:disabled {
+    pointer-events: none;
   }
 `;

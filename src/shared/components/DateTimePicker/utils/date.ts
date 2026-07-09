@@ -1,4 +1,66 @@
 const DATE_PATTERN = /^(\d{2})\.(\d{2})\.(\d{4})$/;
+const DATE_TIME_VALUE_PATTERN =
+  /^(\d{2}\.\d{2}\.\d{4})(?:\s+(\d{2}:\d{2}(?::\d{2})?))?$/;
+
+export type DateTimeParts = {
+  date: string;
+  time: string | null;
+};
+
+/** Склеивает `dd.MM.yyyy` и `HH:mm[:ss]` в одну строку value */
+export const joinDateTimeValue = (
+  date: string,
+  time: string | null | undefined,
+): string => {
+  const datePart = date.trim();
+  const timePart = (time ?? '').trim();
+
+  if (!datePart && !timePart) {
+    return '';
+  }
+
+  if (!timePart) {
+    return datePart;
+  }
+
+  if (!datePart) {
+    return timePart;
+  }
+
+  return `${datePart} ${timePart}`;
+};
+
+/**
+ * Разбирает `dd.MM.yyyy[ HH:mm[:ss]]` на части для DateInput / TimePicker.
+ * Неполная маска даты без времени остаётся в `date`.
+ */
+export const splitDateTimeValue = (value: string): DateTimeParts => {
+  const trimmed = value.trim();
+
+  if (!trimmed) {
+    return { date: '', time: null };
+  }
+
+  const fullMatch = DATE_TIME_VALUE_PATTERN.exec(trimmed);
+
+  if (fullMatch) {
+    return {
+      date: fullMatch[1],
+      time: fullMatch[2] ?? null,
+    };
+  }
+
+  const spaceIndex = trimmed.indexOf(' ');
+
+  if (spaceIndex === -1) {
+    return { date: trimmed, time: null };
+  }
+
+  const date = trimmed.slice(0, spaceIndex);
+  const time = trimmed.slice(spaceIndex + 1).trim();
+
+  return { date, time: time || null };
+};
 
 export const parseDateValue = (dateValue: string): Date | null => {
   const dateMatch = DATE_PATTERN.exec(dateValue.trim());

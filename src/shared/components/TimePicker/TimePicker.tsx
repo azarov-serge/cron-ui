@@ -12,10 +12,14 @@ import {
 
 import CloseOutlineIcon from '@admiral-ds/icons/build/service/CloseOutline.svg?react';
 import {
+  clampTimeToBounds,
   combineTimeString,
   getHourOptions,
   getMinuteOptionsForStep,
   getSecondOptions,
+  isHourOutOfBounds,
+  isMinuteOutOfBounds,
+  isSecondOutOfBounds,
   snapMinuteToStep,
   splitTimeString,
 } from '@shared/components/TimePicker/utils/time';
@@ -38,6 +42,10 @@ export interface TimePickerProps {
   value: string | null;
   dimension?: ComponentDimension;
   disabled?: boolean;
+  /** Нижняя граница `HH:mm[:ss]` — опции в колонках ниже недоступны */
+  minTime?: string | null;
+  /** Верхняя граница `HH:mm[:ss]` — опции в колонках выше недоступны */
+  maxTime?: string | null;
   minuteStep?: number;
   withSeconds?: boolean;
   displayClearIcon?: boolean;
@@ -52,12 +60,19 @@ export const TimePicker: React.FC<TimePickerProps> = (props) => {
     value,
     dimension = 's',
     disabled = false,
+    minTime = null,
+    maxTime = null,
     minuteStep = 1,
     withSeconds = false,
     displayClearIcon = false,
     showNow = false,
     onChange,
   } = props;
+
+  const timeBounds = React.useMemo(
+    () => ({ minTime, maxTime }),
+    [maxTime, minTime],
+  );
 
   const containerRef = React.useRef<HTMLDivElement>(null);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
@@ -160,7 +175,15 @@ export const TimePicker: React.FC<TimePickerProps> = (props) => {
       if (!this.value) {
         onChange(null);
       } else if (isCompleteTime(this.value, withSeconds)) {
-        onChange(this.value);
+        const nextValue =
+          clampTimeToBounds(this.value, timeBounds, withSeconds) ?? this.value;
+
+        if (nextValue !== this.value) {
+          changeInputData(this, { value: nextValue });
+          setInnerValue(nextValue);
+        }
+
+        onChange(nextValue);
       }
     };
 
@@ -194,20 +217,22 @@ export const TimePicker: React.FC<TimePickerProps> = (props) => {
     return () => {
       inputElement.removeEventListener('input', handleInputEvent);
     };
-  }, [onChange, withSeconds]);
+  }, [onChange, timeBounds, withSeconds]);
 
   const applyTime = (
     nextHour: string,
     nextMinute: string,
     nextSecond?: string,
   ) => {
-    const nextValue = withSeconds
+    const rawValue = withSeconds
       ? combineTimeString(
           nextHour,
           nextMinute,
           nextSecond ?? selectedSecond ?? '00',
         )
       : combineTimeString(nextHour, nextMinute);
+    const nextValue =
+      clampTimeToBounds(rawValue, timeBounds, withSeconds) ?? rawValue;
 
     if (!inputRef.current) {
       setInnerValue(nextValue);
@@ -260,14 +285,69 @@ export const TimePicker: React.FC<TimePickerProps> = (props) => {
   };
 
   const handleSelectHour = (hour: string) => {
-    applyTime(hour, selectedMinute, selectedSecond);
+    if (isHourOutOfBounds(hour, timeBounds)) {
+      return;
+    }
+
+    let nextMinute = selectedMinute;
+    let nextSecond = selectedSecond;
+
+    if (isMinuteOutOfBounds(hour, nextMinute, timeBounds)) {
+      const allowedMinute = minuteOptions.find(
+        (minute) => !isMinuteOutOfBounds(hour, minute, timeBounds),
+      );
+
+      if (!allowedMinute) {
+        return;
+      }
+
+      nextMinute = allowedMinute;
+    }
+
+    if (
+      withSeconds &&
+      nextSecond &&
+      isSecondOutOfBounds(hour, nextMinute, nextSecond, timeBounds)
+    ) {
+      const allowedSecond = secondOptions.find(
+        (second) =>
+          !isSecondOutOfBounds(hour, nextMinute, second, timeBounds),
+      );
+
+      nextSecond = allowedSecond ?? '00';
+    }
+
+    applyTime(hour, nextMinute, nextSecond);
   };
 
   const handleSelectMinute = (minute: string) => {
-    applyTime(selectedHour, minute, selectedSecond);
+    if (isMinuteOutOfBounds(selectedHour, minute, timeBounds)) {
+      return;
+    }
+
+    let nextSecond = selectedSecond;
+
+    if (
+      withSeconds &&
+      nextSecond &&
+      isSecondOutOfBounds(selectedHour, minute, nextSecond, timeBounds)
+    ) {
+      const allowedSecond = secondOptions.find(
+        (second) =>
+          !isSecondOutOfBounds(selectedHour, minute, second, timeBounds),
+      );
+
+      nextSecond = allowedSecond ?? '00';
+    }
+
+    applyTime(selectedHour, minute, nextSecond);
   };
 
   const handleSelectSecond = (second: string) => {
+    if (isSecondOutOfBounds(selectedHour, selectedMinute, second, timeBounds)) {
+      return;
+    }
+
     applyTime(selectedHour, selectedMinute, second);
   };
 
@@ -286,8 +366,16 @@ export const TimePicker: React.FC<TimePickerProps> = (props) => {
       return;
     }
 
-    if (parsedTime !== value) {
-      onChange(parsedTime);
+    const nextValue =
+      clampTimeToBounds(parsedTime, timeBounds, withSeconds) ?? parsedTime;
+
+    if (nextValue !== value) {
+      if (inputRef.current && nextValue !== parsedTime) {
+        changeInputData(inputRef.current, { value: nextValue });
+        setInnerValue(nextValue);
+      }
+
+      onChange(nextValue);
     }
   };
 
@@ -325,7 +413,9 @@ export const TimePicker: React.FC<TimePickerProps> = (props) => {
   };
 
   const handleNow = () => {
-    const nextValue = getCurrentTimeString(minuteStep, withSeconds);
+    const nowValue = getCurrentTimeString(minuteStep, withSeconds);
+    const nextValue =
+      clampTimeToBounds(nowValue, timeBounds, withSeconds) ?? nowValue;
     const { hour, minute, second } = splitTimeString(nextValue, withSeconds);
     applyTime(hour, minute, second);
   };
@@ -394,6 +484,9 @@ export const TimePicker: React.FC<TimePickerProps> = (props) => {
                 options={hourOptions}
                 selected={selectedHour}
                 listRef={hourListRef}
+                isOptionDisabled={(hour) =>
+                  isHourOutOfBounds(hour, timeBounds)
+                }
                 onSelect={handleSelectHour}
               />
               <TimeColumn
@@ -401,6 +494,9 @@ export const TimePicker: React.FC<TimePickerProps> = (props) => {
                 options={minuteOptions}
                 selected={selectedMinute}
                 listRef={minuteListRef}
+                isOptionDisabled={(minute) =>
+                  isMinuteOutOfBounds(selectedHour, minute, timeBounds)
+                }
                 onSelect={handleSelectMinute}
               />
               {withSeconds && (
@@ -409,6 +505,14 @@ export const TimePicker: React.FC<TimePickerProps> = (props) => {
                   options={secondOptions}
                   selected={selectedSecond ?? '00'}
                   listRef={secondListRef}
+                  isOptionDisabled={(second) =>
+                    isSecondOutOfBounds(
+                      selectedHour,
+                      selectedMinute,
+                      second,
+                      timeBounds,
+                    )
+                  }
                   onSelect={handleSelectSecond}
                 />
               )}

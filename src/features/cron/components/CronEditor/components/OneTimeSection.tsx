@@ -1,5 +1,9 @@
 import React from 'react';
 import { DateTimePicker } from '@shared/components/DateTimePicker';
+import {
+  joinDateTimeValue,
+  splitDateTimeValue,
+} from '@shared/components/DateTimePicker/utils/date';
 import { useTranslation } from '@shared/i18n/useTranslation';
 import * as Styled from '../styles';
 import { Legend } from './Legend';
@@ -21,13 +25,19 @@ export const OneTimeSection: React.FC<CronSectionProps> = (props) => {
       <Legend>{t.editor.oneTimeSection}</Legend>
       <DateTimePicker
         label={t.editor.date}
-        dateValue={oneTimeDate}
-        timeValue={oneTimeTime || null}
+        value={joinDateTimeValue(oneTimeDate, oneTimeTime)}
         minuteStep={minuteStep}
-        onDateChange={(date) => onChange(setOneTimeDate(value, date))}
-        onTimeChange={(time) =>
-          onChange(setOneTimeTime(value, time ?? '', minuteStep))
-        }
+        onChange={(nextValue) => {
+          const { date, time } = splitDateTimeValue(nextValue);
+
+          onChange(
+            setOneTimeTime(
+              setOneTimeDate(value, date),
+              time ?? '',
+              minuteStep,
+            ),
+          );
+        }}
       />
     </Styled.Section>
   );

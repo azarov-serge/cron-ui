@@ -1,32 +1,43 @@
 import { describe, expect, it } from 'vitest';
 import {
-  clampToMoscowNow,
-  dateTimeToMoscowISO,
-  getMoscowNowWallClock,
-  isAfterMoscowNow,
-  periodToMoscowISO,
+  dateTimeToZonedISO,
+  getDatePartsInTimeZone,
+  getNowWallClockInTimeZone,
+  getTodayInTimeZone,
+  MOSCOW_TIME_ZONE,
+  periodToZonedISO,
 } from './dateTimeRangeFieldUtils';
 
-describe('dateTimeToMoscowISO', () => {
+describe('dateTimeToZonedISO', () => {
   it('интерпретирует UI-время как MSK и отдаёт UTC ISO', () => {
     // 09.07.2026 18:20 MSK = 09.07.2026 15:20 UTC
-    expect(dateTimeToMoscowISO('09.07.2026', '18:20')).toBe(
-      '2026-07-09T15:20:00.000Z',
-    );
+    expect(
+      dateTimeToZonedISO('09.07.2026', '18:20', MOSCOW_TIME_ZONE),
+    ).toBe('2026-07-09T15:20:00.000Z');
+  });
+
+  it('интерпретирует UI-время как Омск и отдаёт UTC ISO', () => {
+    // 09.07.2026 21:20 Asia/Omsk (UTC+6) = 09.07.2026 15:20 UTC
+    expect(
+      dateTimeToZonedISO('09.07.2026', '21:20', 'Asia/Omsk'),
+    ).toBe('2026-07-09T15:20:00.000Z');
   });
 
   it('возвращает null для неполной/невалидной даты', () => {
-    expect(dateTimeToMoscowISO('09.07.2026', '')).toBeNull();
-    expect(dateTimeToMoscowISO('22.22.2222', '18:20')).toBeNull();
+    expect(dateTimeToZonedISO('09.07.2026', '', MOSCOW_TIME_ZONE)).toBeNull();
+    expect(
+      dateTimeToZonedISO('22.22.2222', '18:20', MOSCOW_TIME_ZONE),
+    ).toBeNull();
   });
 });
 
-describe('periodToMoscowISO', () => {
+describe('periodToZonedISO', () => {
   it('собирает payload для бэка', () => {
     expect(
-      periodToMoscowISO(
+      periodToZonedISO(
         { start: '09.07.2026', end: '09.07.2026' },
         { start: '18:20', end: '18:25' },
+        MOSCOW_TIME_ZONE,
       ),
     ).toEqual({
       start: '2026-07-09T15:20:00.000Z',
@@ -36,36 +47,43 @@ describe('periodToMoscowISO', () => {
   });
 });
 
-describe('clamp / future check — независимо от TZ браузера', () => {
-  // 09.07.2026 18:41 MSK = 09.07.2026 15:41 UTC
-  // (в Омске UTC+6 это 21:41 — сценарий бага пользователя)
+describe('getDatePartsInTimeZone — один момент, разные зоны', () => {
+  // Один абсолютный момент: 2026-07-09T15:41:00Z
   const nowUtc = new Date(Date.UTC(2026, 6, 9, 15, 41, 0));
 
-  it('getMoscowNowWallClock отдаёт московское время', () => {
-    expect(getMoscowNowWallClock(5, nowUtc)).toEqual({
+  it('в Москве 18:41, в Омске 21:41', () => {
+    expect(getDatePartsInTimeZone(nowUtc, MOSCOW_TIME_ZONE)).toMatchObject({
+      year: 2026,
+      month: 7,
+      day: 9,
+      hour: 18,
+      minute: 41,
+    });
+    expect(getDatePartsInTimeZone(nowUtc, 'Asia/Omsk')).toMatchObject({
+      year: 2026,
+      month: 7,
+      day: 9,
+      hour: 21,
+      minute: 41,
+    });
+  });
+
+  it('getNowWallClockInTimeZone — строки UI + floor minuteStep', () => {
+    expect(getNowWallClockInTimeZone(MOSCOW_TIME_ZONE, 5, nowUtc)).toEqual({
       date: '09.07.2026',
       time: '18:40',
     });
-  });
-
-  it('18:55 MSK при «сейчас» 18:41 MSK — будущее → clamp к 18:40', () => {
-    expect(clampToMoscowNow('09.07.2026', '18:55', 5, nowUtc)).toEqual({
+    expect(getNowWallClockInTimeZone('Asia/Omsk', 5, nowUtc)).toEqual({
       date: '09.07.2026',
-      time: '18:40',
-      changed: true,
+      time: '21:40',
     });
   });
 
-  it('18:35 MSK при «сейчас» 18:41 MSK — прошлое, без изменений', () => {
-    expect(clampToMoscowNow('09.07.2026', '18:35', 5, nowUtc)).toEqual({
-      date: '09.07.2026',
-      time: '18:35',
-      changed: false,
-    });
-  });
+  it('getTodayInTimeZone — сегодняшний день в зоне', () => {
+    const maxDate = getTodayInTimeZone(MOSCOW_TIME_ZONE, nowUtc);
 
-  it('isAfterMoscowNow: 18:55 — true, 18:35 — false', () => {
-    expect(isAfterMoscowNow('09.07.2026', '18:55', 5, nowUtc)).toBe(true);
-    expect(isAfterMoscowNow('09.07.2026', '18:35', 5, nowUtc)).toBe(false);
+    expect(maxDate.getFullYear()).toBe(2026);
+    expect(maxDate.getMonth()).toBe(6);
+    expect(maxDate.getDate()).toBe(9);
   });
 });

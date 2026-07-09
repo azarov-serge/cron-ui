@@ -7,6 +7,9 @@ import {
   normalizeTimeToMinuteStep,
   snapMinuteToStep,
   splitTimeString,
+  clampTimeToBounds,
+  isHourOutOfBounds,
+  isMinuteOutOfBounds,
 } from './time';
 
 describe('normalizeTimeToMinuteStep', () => {
@@ -18,6 +21,26 @@ describe('normalizeTimeToMinuteStep', () => {
   it('возвращает null для пустого значения', () => {
     expect(normalizeTimeToMinuteStep(null, 10)).toBeNull();
     expect(normalizeTimeToMinuteStep('', 10)).toBeNull();
+  });
+});
+
+describe('time bounds', () => {
+  it('isHourOutOfBounds: часы выше maxTime недоступны', () => {
+    expect(isHourOutOfBounds('18', { maxTime: '18:40' })).toBe(false);
+    expect(isHourOutOfBounds('19', { maxTime: '18:40' })).toBe(true);
+    expect(isHourOutOfBounds('17', { minTime: '18:00' })).toBe(true);
+  });
+
+  it('isMinuteOutOfBounds: минуты выше max при том же часе', () => {
+    expect(isMinuteOutOfBounds('18', '40', { maxTime: '18:40' })).toBe(false);
+    expect(isMinuteOutOfBounds('18', '45', { maxTime: '18:40' })).toBe(true);
+    expect(isMinuteOutOfBounds('17', '59', { maxTime: '18:40' })).toBe(false);
+  });
+
+  it('clampTimeToBounds зажимает к max/min', () => {
+    expect(clampTimeToBounds('18:55', { maxTime: '18:40' })).toBe('18:40');
+    expect(clampTimeToBounds('17:00', { minTime: '18:00' })).toBe('18:00');
+    expect(clampTimeToBounds('18:20', { maxTime: '18:40' })).toBe('18:20');
   });
 });
 

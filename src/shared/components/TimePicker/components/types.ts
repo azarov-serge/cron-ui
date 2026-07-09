@@ -5,6 +5,8 @@ export type TimeColumnProps = {
   options: string[];
   selected: string;
   listRef: React.Ref<HTMLUListElement>;
+  /** option → true, если недоступна (minTime/maxTime) */
+  isOptionDisabled?: (option: string) => boolean;
   onSelect: (value: string) => void;
 };
 

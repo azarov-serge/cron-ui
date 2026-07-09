@@ -44,7 +44,7 @@ import {
   toggleMultiSelect,
   toggleRequireField,
 } from './utils';
-// import { DateTimeRangeField } from './components';
+import { DateTimeRangeField } from './components';
 
 export const CronPage: React.FC = () => {
   const { t, locale } = useTranslation();
@@ -397,7 +397,7 @@ export const CronPage: React.FC = () => {
           {t.pageDescription}
         </Styled.PageDescription>
       </Styled.PageHeader>
-      {/* <DateTimeRangeField /> */}
+      <DateTimeRangeField />
       <HorizontalTabs
         selectedTabId={activeTab}
         onSelectTab={(tabId) => selectTab(tabId as PageTabId)}

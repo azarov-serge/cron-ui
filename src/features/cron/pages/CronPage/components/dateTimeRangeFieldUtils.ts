@@ -1,26 +1,50 @@
 import { parseDate, type Period } from '@shared/components/DateTimeRange';
 
-const MOSCOW_TIME_ZONE = 'Europe/Moscow';
+export const MOSCOW_TIME_ZONE = 'Europe/Moscow';
 
 const DATE_PATTERN = /^(\d{2})\.(\d{2})\.(\d{4})$/;
 const TIME_PATTERN = /^(\d{2}):(\d{2})(?::(\d{2}))?$/;
 
 const pad2 = (value: number): string => String(value).padStart(2, '0');
 
-type ZonedDateParts = {
+export type DatePartsInTimeZone = {
   year: number;
-  month: number;
+  month: number; // 1–12
   day: number;
   hour: number;
   minute: number;
   second: number;
 };
 
+export type ZonedWallClock = {
+  date: string; // dd.MM.yyyy
+  time: string; // HH:mm
+};
+
+export type ZonedISOPeriod = {
+  start: string | null;
+  end: string | null;
+  timeZone: string;
+};
+
 /**
- * Разбирает абсолютный момент на календарные части в IANA-зоне.
- * Нужен для перевода wall-clock Москвы в UTC ISO для бэка.
+ * Базовый шаг алгоритма «сейчас в нужной зоне»:
+ *
+ * 1) Берём абсолютный момент (`now` / `new Date()`).
+ *    У Date нет «своей» бизнес-зоны — это просто точка на шкале UTC.
+ * 2) Спрашиваем Intl: какие год/месяц/день/час/минута у этого момента в `timeZone`.
+ * 3) Дальше из этих чисел собираем строки UI или Date для календаря.
+ *
+ * TZ браузера здесь не сравниваем и не используем — нужен только `timeZone`.
+ *
+ * Пример: now = 2026-07-09T15:41:00Z
+ *   Europe/Moscow → 09.07.2026 18:41
+ *   Asia/Omsk     → 09.07.2026 21:41
  */
-const getZonedDateParts = (value: Date, timeZone: string): ZonedDateParts => {
+export const getDatePartsInTimeZone = (
+  now: Date,
+  timeZone: string,
+): DatePartsInTimeZone => {
   const parts = new Intl.DateTimeFormat('en-GB', {
     timeZone,
     year: 'numeric',
@@ -30,12 +54,10 @@ const getZonedDateParts = (value: Date, timeZone: string): ZonedDateParts => {
     minute: '2-digit',
     second: '2-digit',
     hourCycle: 'h23',
-  }).formatToParts(value);
+  }).formatToParts(now);
 
-  const read = (type: Intl.DateTimeFormatPartTypes): number => {
-    const part = parts.find((item) => item.type === type)?.value;
-    return Number.parseInt(part ?? '0', 10);
-  };
+  const read = (type: Intl.DateTimeFormatPartTypes): number =>
+    Number.parseInt(parts.find((part) => part.type === type)?.value ?? '0', 10);
 
   return {
     year: read('year'),
@@ -47,24 +69,52 @@ const getZonedDateParts = (value: Date, timeZone: string): ZonedDateParts => {
   };
 };
 
-export type MoscowISOPeriod = {
-  start: string | null;
-  end: string | null;
-  timeZone: string;
-};
+/** «Сейчас» как строки UI в зоне. Минуты вниз до minuteStep. */
+export const getNowWallClockInTimeZone = (
+  timeZone: string,
+  minuteStep = 1,
+  now: Date = new Date(),
+): ZonedWallClock => {
+  const { year, month, day, hour, minute } = getDatePartsInTimeZone(
+    now,
+    timeZone,
+  );
+  const step = minuteStep > 1 ? minuteStep : 1;
+  const flooredMinute = Math.floor(minute / step) * step;
 
-export type MoscowWallClock = {
-  date: string;
-  time: string;
+  return {
+    date: `${pad2(day)}.${pad2(month)}.${year}`,
+    time: `${pad2(hour)}:${pad2(flooredMinute)}`,
+  };
 };
 
 /**
- * UI `dd.mm.yyyy` + `HH:mm` трактуем как wall-clock Europe/Moscow
- * и отдаём ISO 8601 в UTC для бэкенда.
- *
- * Пример: 09.07.2026 18:20 (MSK) → 2026-07-09T15:20:00.000Z
+ * Сегодняшний календарный день в зоне → Date (локальные Y/M/D).
+ * Обычно передают в Admiral как maxDate; время 23:59:59 — конец этого дня.
  */
-export const dateTimeToMoscowISO = (
+export const getTodayInTimeZone = (
+  timeZone: string,
+  now: Date = new Date(),
+): Date => {
+  const { year, month, day } = getDatePartsInTimeZone(now, timeZone);
+
+  return new Date(year, month - 1, day, 23, 59, 59, 999);
+};
+
+/**
+ * Обратный путь: строки UI → UTC ISO для бэка.
+ *
+ * UI показывает wall-clock зоны (например 18:20 по Москве).
+ * Бэку нужен абсолютный момент в UTC.
+ *
+ * Алгоритм:
+ * 1) Парсим dd.MM.yyyy и HH:mm как числа.
+ * 2) Подбираем UTC-момент, у которого в `timeZone` те же числа на часах.
+ * 3) Отдаём toISOString().
+ *
+ * Пример: 09.07.2026 18:20 + Europe/Moscow → 2026-07-09T15:20:00.000Z
+ */
+export const dateTimeToZonedISO = (
   dateValue: string,
   timeValue: string,
   timeZone: string = MOSCOW_TIME_ZONE,
@@ -84,12 +134,9 @@ export const dateTimeToMoscowISO = (
   const seconds = Number.parseInt(timeMatch[3] ?? '0', 10);
 
   if (
-    Number.isNaN(day) ||
-    Number.isNaN(month) ||
-    Number.isNaN(year) ||
-    Number.isNaN(hours) ||
-    Number.isNaN(minutes) ||
-    Number.isNaN(seconds)
+    [day, month, year, hours, minutes, seconds].some((value) =>
+      Number.isNaN(value),
+    )
   ) {
     return null;
   }
@@ -98,131 +145,33 @@ export const dateTimeToMoscowISO = (
     return null;
   }
 
-  // Ищем UTC-момент, у которого в timeZone те же календарные компоненты
-  const desiredAsUtc = Date.UTC(year, month - 1, day, hours, minutes, seconds);
-  const zoned = getZonedDateParts(new Date(desiredAsUtc), timeZone);
-  const zonedAsUtc = Date.UTC(
-    zoned.year,
-    zoned.month - 1,
-    zoned.day,
-    zoned.hour,
-    zoned.minute,
-    zoned.second,
+  // Черновик: «как будто эти цифры уже в UTC»
+  const asIfUtc = Date.UTC(year, month - 1, day, hours, minutes, seconds);
+
+  // Какие цифры у этого черновика реально показывает нужная зона?
+  const shownInZone = getDatePartsInTimeZone(new Date(asIfUtc), timeZone);
+  const shownAsUtc = Date.UTC(
+    shownInZone.year,
+    shownInZone.month - 1,
+    shownInZone.day,
+    shownInZone.hour,
+    shownInZone.minute,
+    shownInZone.second,
   );
-  const utcMillis = desiredAsUtc + (desiredAsUtc - zonedAsUtc);
+
+  // Сдвиг = разница между желаемыми цифрами и тем, что зона показала на черновике
+  const utcMillis = asIfUtc + (asIfUtc - shownAsUtc);
 
   return new Date(utcMillis).toISOString();
 };
 
-/** Диапазон start/end → ISO UTC + timeZone для отправки на бэк */
-export const periodToMoscowISO = (
+/** Диапазон start/end → ISO UTC + timeZone */
+export const periodToZonedISO = (
   date: Period,
   time: Period,
-): MoscowISOPeriod => ({
-  start: dateTimeToMoscowISO(date.start, time.start),
-  end: dateTimeToMoscowISO(date.end, time.end),
-  timeZone: MOSCOW_TIME_ZONE,
+  timeZone: string = MOSCOW_TIME_ZONE,
+): ZonedISOPeriod => ({
+  start: dateTimeToZonedISO(date.start, time.start, timeZone),
+  end: dateTimeToZonedISO(date.end, time.end, timeZone),
+  timeZone,
 });
-
-/**
- * Текущий момент как строки UI в Europe/Moscow (не зависит от TZ браузера).
- * Минуты округляются вниз до minuteStep.
- */
-export const getMoscowNowWallClock = (
-  minuteStep = 1,
-  now: Date = new Date(),
-): MoscowWallClock => {
-  const parts = getZonedDateParts(now, MOSCOW_TIME_ZONE);
-  const step = minuteStep > 1 ? minuteStep : 1;
-  const flooredMinute = Math.floor(parts.minute / step) * step;
-
-  return {
-    date: `${pad2(parts.day)}.${pad2(parts.month)}.${parts.year}`,
-    time: `${pad2(parts.hour)}:${pad2(flooredMinute)}`,
-  };
-};
-
-/** Абсолютный max (UTC ms) = «сейчас» по Москве, минуты вниз до step */
-export const getMoscowNowUtcMillis = (
-  minuteStep = 1,
-  now: Date = new Date(),
-): number => {
-  const wall = getMoscowNowWallClock(minuteStep, now);
-  const iso = dateTimeToMoscowISO(wall.date, wall.time);
-
-  return iso ? Date.parse(iso) : now.getTime();
-};
-
-/**
- * Clamp UI date/time к «не позже сейчас по Москве».
- * Сравнение через UTC ISO — корректно при любой TZ браузера (Омск, UTC, …).
- */
-export const clampToMoscowNow = (
-  dateValue: string,
-  timeValue: string,
-  minuteStep = 1,
-  now: Date = new Date(),
-): { date: string; time: string; changed: boolean } => {
-  const iso = dateTimeToMoscowISO(dateValue, timeValue);
-  const moscowNow = getMoscowNowWallClock(minuteStep, now);
-
-  if (!iso) {
-    // Дата без времени / неполная: если день позже московского «сегодня» — сдвигаем дату
-    const parsedDate = parseDate(dateValue);
-
-    if (!parsedDate || !timeValue.trim()) {
-      if (!parsedDate) {
-        return { date: dateValue, time: timeValue, changed: false };
-      }
-
-      const dayIso = dateTimeToMoscowISO(dateValue, '00:00');
-      const todayStartIso = dateTimeToMoscowISO(moscowNow.date, '00:00');
-
-      if (
-        dayIso &&
-        todayStartIso &&
-        Date.parse(dayIso) > Date.parse(todayStartIso)
-      ) {
-        return { date: moscowNow.date, time: timeValue, changed: true };
-      }
-
-      return { date: dateValue, time: timeValue, changed: false };
-    }
-
-    return { date: dateValue, time: timeValue, changed: false };
-  }
-
-  const maxUtc = getMoscowNowUtcMillis(minuteStep, now);
-
-  if (Date.parse(iso) <= maxUtc) {
-    return { date: dateValue, time: timeValue, changed: false };
-  }
-
-  return { date: moscowNow.date, time: moscowNow.time, changed: true };
-};
-
-/** true, если date+time (как MSK) строго позже «сейчас» по Москве */
-export const isAfterMoscowNow = (
-  dateValue: string,
-  timeValue: string,
-  minuteStep = 1,
-  now: Date = new Date(),
-): boolean => {
-  const iso = dateTimeToMoscowISO(dateValue, timeValue);
-
-  if (!iso) {
-    return false;
-  }
-
-  return Date.parse(iso) > getMoscowNowUtcMillis(minuteStep, now);
-};
-
-/**
- * Date для Admiral maxDate: сегодняшний календарный день по Москве
- * как локальные Y/M/D (календарь сравнивает getDate/getMonth, не UTC).
- */
-export const getMoscowTodayMaxDate = (now: Date = new Date()): Date => {
-  const parts = getZonedDateParts(now, MOSCOW_TIME_ZONE);
-
-  return new Date(parts.year, parts.month - 1, parts.day, 23, 59, 59, 999);
-};

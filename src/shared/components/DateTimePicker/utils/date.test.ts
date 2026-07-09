@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { isInvalidDate, parseDateValue } from './date';
+import {
+  isInvalidDate,
+  joinDateTimeValue,
+  parseDateValue,
+  splitDateTimeValue,
+} from './date';
 
 describe('DateTimePicker date validation', () => {
   it('принимает корректную дату', () => {
@@ -19,5 +24,32 @@ describe('DateTimePicker date validation', () => {
   it('пустая и неполная маска не ошибка', () => {
     expect(isInvalidDate('')).toBe(false);
     expect(isInvalidDate('09.07.____')).toBe(false);
+  });
+});
+
+describe('joinDateTimeValue / splitDateTimeValue', () => {
+  it('склеивает дату и время', () => {
+    expect(joinDateTimeValue('09.07.2026', '18:20')).toBe('09.07.2026 18:20');
+    expect(joinDateTimeValue('09.07.2026', '18:20:30')).toBe(
+      '09.07.2026 18:20:30',
+    );
+    expect(joinDateTimeValue('09.07.2026', null)).toBe('09.07.2026');
+    expect(joinDateTimeValue('', '18:20')).toBe('18:20');
+  });
+
+  it('разбирает value с временем и без', () => {
+    expect(splitDateTimeValue('09.07.2026 18:20')).toEqual({
+      date: '09.07.2026',
+      time: '18:20',
+    });
+    expect(splitDateTimeValue('09.07.2026 18:20:30')).toEqual({
+      date: '09.07.2026',
+      time: '18:20:30',
+    });
+    expect(splitDateTimeValue('09.07.2026')).toEqual({
+      date: '09.07.2026',
+      time: null,
+    });
+    expect(splitDateTimeValue('')).toEqual({ date: '', time: null });
   });
 });

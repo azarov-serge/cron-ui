@@ -11,6 +11,8 @@ export interface TimePickerFieldProps {
   value: string | null;
   dimension?: ComponentDimension;
   disabled?: boolean;
+  minTime?: string | null;
+  maxTime?: string | null;
   minuteStep?: number;
   withSeconds?: boolean;
   displayClearIcon?: boolean;
@@ -25,6 +27,8 @@ export const TimePickerField: React.FC<TimePickerFieldProps> = (props) => {
     value,
     dimension,
     disabled,
+    minTime = null,
+    maxTime = null,
     minuteStep = 1,
     withSeconds = false,
     displayClearIcon = false,
@@ -46,6 +50,8 @@ export const TimePickerField: React.FC<TimePickerFieldProps> = (props) => {
       value={normalizedValue}
       dimension={dimension}
       disabled={disabled}
+      minTime={minTime}
+      maxTime={maxTime}
       minuteStep={minuteStep}
       withSeconds={withSeconds}
       displayClearIcon={displayClearIcon}
