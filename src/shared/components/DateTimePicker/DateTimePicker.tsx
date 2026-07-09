@@ -10,6 +10,7 @@ import { normalizeTimeToMinuteStep } from '@shared/components/TimePicker/utils/t
 import { TimePicker } from '../TimePicker';
 import { coerceEmptyToNull } from '../TimePicker/utils';
 import { inputBoxJoin } from '../TimePicker/mixins';
+import { INVALID_DATE_MESSAGE, isInvalidDate } from './utils/date';
 import * as Styled from './styles';
 
 export interface DateTimePickerProps {
@@ -53,35 +54,59 @@ export const DateTimePicker: React.FC<DateTimePickerProps> = (props) => {
     onTimeChange,
   } = props;
 
+  const dateInvalid = isInvalidDate(dateValue);
+  const resolvedStatus: InputStatus | undefined = dateInvalid
+    ? 'error'
+    : status;
+
+  const resolvedValidator = React.useMemo<DateInputProps['validator']>(() => {
+    return {
+      invalidValue: (value) => {
+        if (value && Number.isNaN(value.getTime())) {
+          return 'Дата не валидна';
+        }
+
+        return validator?.invalidValue?.(value) ?? null;
+      },
+      invalidRange: (startDate, endDate) =>
+        validator?.invalidRange?.(startDate, endDate) ?? null,
+      invalidYear: (year) => validator?.invalidYear?.(year) ?? null,
+      invalidMonth: (month, year) =>
+        validator?.invalidMonth?.(month, year) ?? null,
+    };
+  }, [validator]);
+
   const coercedTimeValue = coerceEmptyToNull(timeValue);
   const normalizedTimeValue = normalizeTimeToMinuteStep(
     coercedTimeValue,
     minuteStep,
   );
 
-  React.useEffect(() => {
-    if (normalizedTimeValue !== coercedTimeValue) {
-      onTimeChange(normalizedTimeValue);
-    }
-  }, [coercedTimeValue, normalizedTimeValue, onTimeChange]);
+  const handleTimeChange = (nextValue: string | null) => {
+    onTimeChange(normalizeTimeToMinuteStep(nextValue, minuteStep));
+  };
 
   const picker = (
-    <Styled.Container disabled={disabled} readOnly={readOnly} status={status}>
+    <Styled.Container
+      disabled={disabled}
+      readOnly={readOnly}
+      status={resolvedStatus}
+    >
       <Styled.DateInput
         dimension={dimension}
         value={dateValue}
         minDate={minDate}
         maxDate={maxDate}
-        validator={validator}
+        validator={resolvedValidator}
         disabled={disabled}
         readOnly={readOnly}
-        status={status}
+        status={resolvedStatus}
         onChange={(event) => onDateChange(event.target.value)}
       />
       <DateTimeSeparator
         disabled={disabled}
         readOnly={readOnly}
-        status={status}
+        status={resolvedStatus}
       />
       <Styled.TimeWrap>
         <TimePicker
@@ -93,19 +118,31 @@ export const DateTimePicker: React.FC<DateTimePickerProps> = (props) => {
           displayClearIcon={displayClearIcon}
           showNow={showNow}
           inputBoxCss={inputBoxJoin(['left'])}
-          onChange={onTimeChange}
+          onChange={handleTimeChange}
         />
       </Styled.TimeWrap>
     </Styled.Container>
   );
 
   if (!label) {
-    return <Styled.Root className={className}>{picker}</Styled.Root>;
+    return (
+      <Styled.Root className={className}>
+        {picker}
+        {dateInvalid ? (
+          <Styled.ErrorText>{INVALID_DATE_MESSAGE}</Styled.ErrorText>
+        ) : null}
+      </Styled.Root>
+    );
   }
 
   return (
     <Styled.Root className={className}>
-      <Field label={label} disabled={disabled} status={status}>
+      <Field
+        label={label}
+        disabled={disabled}
+        status={resolvedStatus}
+        extraText={dateInvalid ? INVALID_DATE_MESSAGE : undefined}
+      >
         {picker}
       </Field>
     </Styled.Root>

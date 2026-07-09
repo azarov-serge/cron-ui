@@ -7,6 +7,9 @@ export type DateValidator = NonNullable<DateInputProps['validator']>;
 
 export type Period = { start: string; end: string };
 
+/** Диапазон в ISO 8601 (UTC), `null` — если дата или время не заполнены */
+export type ISOPeriod = { start: string | null; end: string | null };
+
 export type DateTimeRangeProps = {
   className?: string;
   date: Period;

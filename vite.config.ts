@@ -29,4 +29,8 @@ export default defineConfig(({ command }) => ({
       },
     }),
   ].filter(Boolean),
+  test: {
+    environment: 'node',
+    include: ['src/**/*.{test,spec}.{ts,tsx}'],
+  },
 }))

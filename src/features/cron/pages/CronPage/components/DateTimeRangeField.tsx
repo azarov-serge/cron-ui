@@ -1,5 +1,7 @@
 import React from 'react';
 import { T } from '@admiral-ds/react-ui';
+import { normalizeTimeToMinuteStep } from '@shared/components/TimePicker/utils/time';
+import { isInvalidDate } from '@shared/components/DateTimePicker/utils/date';
 import {
   clampToBounds,
   DateTimeRange,
@@ -24,7 +26,9 @@ export const DateTimeRangeField: React.FC<DateTimeRangeFieldProps> = (
   const [date, setDate] = React.useState<Period>({ start: '', end: '' });
   const [time, setTime] = React.useState<Period>({ start: '', end: '' });
 
-  const maxDateTime = maxDate ?? new Date();
+  // Стабильный maxDate на сессию формы — иначе new Date() каждый рендер даёт лишние clamp/моргания
+  const defaultMaxDate = React.useMemo(() => new Date(), []);
+  const maxDateTime = maxDate ?? defaultMaxDate;
   const minDateTime = minDate;
 
   const validator = React.useMemo<DateValidator>(
@@ -51,12 +55,21 @@ export const DateTimeRangeField: React.FC<DateTimeRangeFieldProps> = (
     [maxDateTime, minDateTime],
   );
 
+  const normalizeTime = (timeValue: string): string => {
+    if (!timeValue.trim()) {
+      return timeValue;
+    }
+
+    return normalizeTimeToMinuteStep(timeValue, minuteStep) ?? timeValue;
+  };
+
   const applyBoundedSideValue = (
     side: 'start' | 'end',
     nextDateValue: string,
     nextTimeValue: string,
   ) => {
-    const bounded = clampToBounds(nextDateValue, nextTimeValue, {
+    const normalizedTime = normalizeTime(nextTimeValue);
+    const bounded = clampToBounds(nextDateValue, normalizedTime, {
       minDate: minDateTime,
       maxDate: maxDateTime,
     });
@@ -95,27 +108,44 @@ export const DateTimeRangeField: React.FC<DateTimeRangeFieldProps> = (
     }
   };
 
+  const startDateInvalid = isInvalidDate(date.start);
+  const endDateInvalid = isInvalidDate(date.end);
+
   const rangeInvalid = React.useMemo(
-    () => isInvalidRange(date.start, time.start, date.end, time.end),
-    [date.end, date.start, time.end, time.start],
+    () =>
+      !startDateInvalid &&
+      !endDateInvalid &&
+      isInvalidRange(date.start, time.start, date.end, time.end),
+    [
+      date.end,
+      date.start,
+      endDateInvalid,
+      startDateInvalid,
+      time.end,
+      time.start,
+    ],
   );
 
   const startBoundError = React.useMemo(
     () =>
-      getBoundError(date.start, time.start, {
-        minDate: minDateTime,
-        maxDate: maxDateTime,
-      }),
-    [date.start, maxDateTime, minDateTime, time.start],
+      startDateInvalid
+        ? null
+        : getBoundError(date.start, time.start, {
+            minDate: minDateTime,
+            maxDate: maxDateTime,
+          }),
+    [date.start, maxDateTime, minDateTime, startDateInvalid, time.start],
   );
 
   const endBoundError = React.useMemo(
     () =>
-      getBoundError(date.end, time.end, {
-        minDate: minDateTime,
-        maxDate: maxDateTime,
-      }),
-    [date.end, maxDateTime, minDateTime, time.end],
+      endDateInvalid
+        ? null
+        : getBoundError(date.end, time.end, {
+            minDate: minDateTime,
+            maxDate: maxDateTime,
+          }),
+    [date.end, endDateInvalid, maxDateTime, minDateTime, time.end],
   );
 
   return (

@@ -1,9 +1,12 @@
 import { normalizeTimeToMinuteStep } from '@shared/components/TimePicker/utils/time';
 import { Cron } from '../models/cron';
-import type {
-  ScheduleInterface,
-  WeekDayKey,
-  WeekNumberKey,
+import {
+  createDefaultWeekDays,
+  createEmptyWeekNumbers,
+  type ScheduleInterface,
+  type WeekDayKey,
+  type WeekNumberKey,
+  WEEK_NUMBER_KEYS,
 } from './scheduleTypes';
 import { buildCronFromSchedule, parseScheduleFromCron } from './cronParsers';
 import { normalizeEveryInterval } from './validation';
@@ -22,7 +25,29 @@ export const getOccurs = (value: Cron): ScheduleInterface['occurs'] =>
 export const setOccurs = (
   value: Cron,
   occurs: ScheduleInterface['occurs'],
-): Cron => updateSchedule(value, { occurs });
+): Cron => {
+  const schedule = parseScheduleFromCron(value);
+
+  if (schedule.occurs === occurs) {
+    return value;
+  }
+
+  const nextSchedule: ScheduleInterface = {
+    ...schedule,
+    occurs,
+    monthWeekNumbersEnabled: false,
+    weekNumbers: createEmptyWeekNumbers(),
+  };
+
+  if (occurs === 'weekly') {
+    const hasWeekDay = Object.values(nextSchedule.weekDays).some(Boolean);
+    if (!hasWeekDay) {
+      nextSchedule.weekDays = createDefaultWeekDays();
+    }
+  }
+
+  return buildCronFromSchedule(nextSchedule);
+};
 
 export const getScheduleType = (
   value: Cron,
@@ -58,9 +83,15 @@ export const toggleWeekNumber = (
   checked: boolean,
 ): Cron => {
   const schedule = parseScheduleFromCron(value);
+  const weekNumbers = { ...schedule.weekNumbers, [week]: checked };
+  const monthWeekNumbersEnabled = WEEK_NUMBER_KEYS.some(
+    (weekKey) => weekNumbers[weekKey],
+  );
+
   return buildCronFromSchedule({
     ...schedule,
-    weekNumbers: { ...schedule.weekNumbers, [week]: checked },
+    weekNumbers,
+    monthWeekNumbersEnabled,
   });
 };
 

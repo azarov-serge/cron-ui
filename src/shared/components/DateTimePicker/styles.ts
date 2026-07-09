@@ -38,3 +38,9 @@ export const TimeWrap = styled.div`
     width: 96px;
   }
 `;
+
+export const ErrorText = styled.p`
+  margin: 4px 0 0;
+  color: ${({ theme }) => theme.color['Error/Error 60 Main']};
+  font: var(--admiral-font-Body_Body2Long, inherit);
+`;

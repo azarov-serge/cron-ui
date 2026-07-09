@@ -103,7 +103,7 @@ export const parseDayOfWeekField = (dow: string): DayOfWeekCronPart[] =>
 export const buildWeeklyDayOfWeek = ({
   weekDays,
   weekNumbers,
-  monthWeekNumbersEnabled,
+  monthWeekNumbersEnabled: _monthWeekNumbersEnabled,
   weekNumberKeys,
 }: {
   weekDays: WeekDays;
@@ -121,7 +121,7 @@ export const buildWeeklyDayOfWeek = ({
 
   const selectedWeeks = weekNumberKeys.filter((week) => weekNumbers[week]);
 
-  if (monthWeekNumbersEnabled && selectedWeeks.length > 0) {
+  if (selectedWeeks.length > 0) {
     return selectedDays
       .flatMap((day) => selectedWeeks.map((week) => `${day}#${week}`))
       .join(',');

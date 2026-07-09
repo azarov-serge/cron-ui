@@ -116,6 +116,8 @@ export const parseDate = (dateValue: string): ParsedDate | null => {
   return { value: parsed };
 };
 
+export { isInvalidDate } from '@shared/components/DateTimePicker/utils/date';
+
 export const clampToNow = (
   dateValue: string,
   timeValue: string,
@@ -207,7 +209,8 @@ export const isInvalidRange = (
     return false;
   }
 
-  return end.value.getTime() < start.value.getTime();
+  // Конец должен быть строго позже начала (равные дата+время — тоже ошибка)
+  return end.value.getTime() <= start.value.getTime();
 };
 
 export const getBoundError = (
@@ -234,4 +237,3 @@ export const getBoundError = (
 
   return null;
 };
-

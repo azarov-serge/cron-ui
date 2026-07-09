@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@admiral-ds/icons": "4.6.0",
@@ -28,6 +30,7 @@
     "@vitejs/plugin-react": "4.7.0",
     "oxlint": "1.69.0",
     "typescript": "6.0.2",
-    "vite": "5.4.21"
+    "vite": "5.4.21",
+    "vitest": "^3.2.4"
   }
 }
