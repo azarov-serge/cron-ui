@@ -1,6 +1,7 @@
 export * from './DateTimePicker';
 export {
   isInvalidDate,
+  isCompleteDate,
   parseDateValue,
   joinDateTimeValue,
   splitDateTimeValue,

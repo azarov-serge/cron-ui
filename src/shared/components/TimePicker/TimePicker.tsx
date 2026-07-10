@@ -20,6 +20,7 @@ import {
   isHourOutOfBounds,
   isMinuteOutOfBounds,
   isSecondOutOfBounds,
+  normalizeTimeToMinuteStep,
   snapMinuteToStep,
   splitTimeString,
 } from '@shared/components/TimePicker/utils/time';
@@ -175,8 +176,10 @@ export const TimePicker: React.FC<TimePickerProps> = (props) => {
       if (!this.value) {
         onChange(null);
       } else if (isCompleteTime(this.value, withSeconds)) {
-        const nextValue =
+        const bounded =
           clampTimeToBounds(this.value, timeBounds, withSeconds) ?? this.value;
+        const nextValue =
+          normalizeTimeToMinuteStep(bounded, minuteStep) ?? bounded;
 
         if (nextValue !== this.value) {
           changeInputData(this, { value: nextValue });
@@ -217,7 +220,7 @@ export const TimePicker: React.FC<TimePickerProps> = (props) => {
     return () => {
       inputElement.removeEventListener('input', handleInputEvent);
     };
-  }, [onChange, timeBounds, withSeconds]);
+  }, [minuteStep, onChange, timeBounds, withSeconds]);
 
   const applyTime = (
     nextHour: string,
@@ -231,8 +234,10 @@ export const TimePicker: React.FC<TimePickerProps> = (props) => {
           nextSecond ?? selectedSecond ?? '00',
         )
       : combineTimeString(nextHour, nextMinute);
-    const nextValue =
+    const bounded =
       clampTimeToBounds(rawValue, timeBounds, withSeconds) ?? rawValue;
+    const nextValue =
+      normalizeTimeToMinuteStep(bounded, minuteStep) ?? bounded;
 
     if (!inputRef.current) {
       setInnerValue(nextValue);
@@ -366,15 +371,17 @@ export const TimePicker: React.FC<TimePickerProps> = (props) => {
       return;
     }
 
-    const nextValue =
+    const bounded =
       clampTimeToBounds(parsedTime, timeBounds, withSeconds) ?? parsedTime;
+    const nextValue =
+      normalizeTimeToMinuteStep(bounded, minuteStep) ?? bounded;
+
+    if (inputRef.current && nextValue !== raw) {
+      changeInputData(inputRef.current, { value: nextValue });
+      setInnerValue(nextValue);
+    }
 
     if (nextValue !== value) {
-      if (inputRef.current && nextValue !== parsedTime) {
-        changeInputData(inputRef.current, { value: nextValue });
-        setInnerValue(nextValue);
-      }
-
       onChange(nextValue);
     }
   };

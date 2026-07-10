@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button, T } from '@admiral-ds/react-ui';
 import {
+  isCompleteDate,
   isInvalidDate,
   splitDateTimeValue,
 } from '@shared/components/DateTimePicker/utils/date';
@@ -74,13 +75,19 @@ export const DateTimeRangeField: React.FC<DateTimeRangeFieldProps> = (
 
   const startDateInvalid = isInvalidDate(startParts.date);
   const endDateInvalid = isInvalidDate(endParts.date);
+  const startComplete = isCompleteDate(startParts.date);
+  const endComplete = isCompleteDate(endParts.date);
   const rangeInvalid =
+    startComplete &&
+    endComplete &&
     !startDateInvalid &&
     !endDateInvalid &&
     isInvalidRange(value.start, value.end);
 
   const canSubmit =
-    Boolean(startParts.date && startParts.time && endParts.date && endParts.time) &&
+    startComplete &&
+    endComplete &&
+    Boolean(startParts.time && endParts.time) &&
     !startDateInvalid &&
     !endDateInvalid &&
     !rangeInvalid;

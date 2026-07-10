@@ -1,4 +1,5 @@
 const DATE_PATTERN = /^(\d{2})\.(\d{2})\.(\d{4})$/;
+const TIME_ONLY_PATTERN = /^\d{2}:\d{2}(?::\d{2})?$/;
 const DATE_TIME_VALUE_PATTERN =
   /^(\d{2}\.\d{2}\.\d{4})(?:\s+(\d{2}:\d{2}(?::\d{2})?))?$/;
 
@@ -12,7 +13,8 @@ export const joinDateTimeValue = (
   date: string,
   time: string | null | undefined,
 ): string => {
-  const datePart = date.trim();
+  // Маска Admiral `__.__.____` / неполная дата — как пустая
+  const datePart = DATE_PATTERN.test(date.trim()) ? date.trim() : '';
   const timePart = (time ?? '').trim();
 
   if (!datePart && !timePart) {
@@ -33,6 +35,7 @@ export const joinDateTimeValue = (
 /**
  * Разбирает `dd.MM.yyyy[ HH:mm[:ss]]` на части для DateInput / TimePicker.
  * Неполная маска даты без времени остаётся в `date`.
+ * Строка только со временем (`HH:mm`) — в `time`, не в `date`.
  */
 export const splitDateTimeValue = (value: string): DateTimeParts => {
   const trimmed = value.trim();
@@ -48,6 +51,11 @@ export const splitDateTimeValue = (value: string): DateTimeParts => {
       date: fullMatch[1],
       time: fullMatch[2] ?? null,
     };
+  }
+
+  // join без даты отдаёт только время — не путать с датой
+  if (TIME_ONLY_PATTERN.test(trimmed)) {
+    return { date: '', time: trimmed };
   }
 
   const spaceIndex = trimmed.indexOf(' ');
@@ -104,5 +112,9 @@ export const isInvalidDate = (dateValue: string): boolean => {
 
   return parseDateValue(trimmed) === null;
 };
+
+/** Дата полностью введена и существует (не маска `__.__.____` и не 31.02) */
+export const isCompleteDate = (dateValue: string): boolean =>
+  parseDateValue(dateValue) !== null;
 
 export const INVALID_DATE_MESSAGE = 'Некорректная дата';
