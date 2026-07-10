@@ -3,6 +3,7 @@ export {
   isInvalidDate,
   isCompleteDate,
   isDateOutOfBounds,
+  getDateErrorMessage,
   parseDateValue,
   joinDateTimeValue,
   splitDateTimeValue,

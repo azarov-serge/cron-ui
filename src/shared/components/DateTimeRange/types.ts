@@ -1,7 +1,4 @@
-import type {
-  ComponentDimension,
-  DateInputProps,
-} from '@admiral-ds/react-ui';
+import type { ComponentDimension, DateInputProps } from '@admiral-ds/react-ui';
 
 export type DateValidator = NonNullable<DateInputProps['validator']>;
 
@@ -32,4 +29,8 @@ export type DateTimeRangeProps = {
   endMaxTime?: string | null;
   minuteStep?: number;
   validator?: DateValidator;
+  labels?: {
+    start: string;
+    end: string;
+  };
 };

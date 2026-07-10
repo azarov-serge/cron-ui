@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  getDateErrorMessage,
   isCompleteDate,
   isDateOutOfBounds,
   isInvalidDate,
@@ -49,6 +50,16 @@ describe('DateTimePicker date validation', () => {
 
     expect(isDateOutOfBounds('10.07.2026', { minDate })).toBe(false);
     expect(isDateOutOfBounds('09.07.2026', { minDate })).toBe(true);
+  });
+
+  it('getDateErrorMessage', () => {
+    const maxDate = new Date(2026, 6, 10, 23, 59, 59, 999);
+
+    expect(getDateErrorMessage('10.07.2026', { maxDate })).toBeUndefined();
+    expect(getDateErrorMessage('11.07.2026', { maxDate })).toBe(
+      'Дата вне допустимого диапазона',
+    );
+    expect(getDateErrorMessage('31.02.2026')).toBe('Некорректная дата');
   });
 });
 

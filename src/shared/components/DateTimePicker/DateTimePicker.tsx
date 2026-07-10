@@ -11,10 +11,7 @@ import { TimePicker } from '../TimePicker';
 import { coerceEmptyToNull } from '../TimePicker/utils';
 import { inputBoxJoin } from '../TimePicker/mixins';
 import {
-  DATE_OUT_OF_BOUNDS_MESSAGE,
-  INVALID_DATE_MESSAGE,
-  isDateOutOfBounds,
-  isInvalidDate,
+  getDateErrorMessage,
   joinDateTimeValue,
   splitDateTimeValue,
 } from './utils/date';
@@ -40,6 +37,8 @@ export interface DateTimePickerProps {
   withSeconds?: boolean;
   displayClearIcon?: boolean;
   showNow?: boolean;
+  /** Не рендерить текст ошибки под полем (status на инпутах остаётся) */
+  hideExtraText?: boolean;
   onChange: (value: string) => void;
 }
 
@@ -61,21 +60,16 @@ export const DateTimePicker: React.FC<DateTimePickerProps> = (props) => {
     withSeconds = false,
     displayClearIcon = false,
     showNow = false,
+    hideExtraText = false,
     onChange,
   } = props;
 
   const { date: dateValue, time: timeValue } = splitDateTimeValue(value);
-  const dateInvalid = isInvalidDate(dateValue);
-  const dateOutOfBounds = isDateOutOfBounds(dateValue, { minDate, maxDate });
-  const dateHasError = dateInvalid || dateOutOfBounds;
-  const dateErrorMessage = dateInvalid
-    ? INVALID_DATE_MESSAGE
-    : dateOutOfBounds
-      ? DATE_OUT_OF_BOUNDS_MESSAGE
-      : undefined;
-  const resolvedStatus: InputStatus | undefined = dateHasError
+  const dateErrorMessage = getDateErrorMessage(dateValue, { minDate, maxDate });
+  const resolvedStatus: InputStatus | undefined = dateErrorMessage
     ? 'error'
     : status;
+  const visibleErrorMessage = hideExtraText ? undefined : dateErrorMessage;
 
   const resolvedValidator = React.useMemo<
     DateInputProps['validator'] | undefined
@@ -163,8 +157,8 @@ export const DateTimePicker: React.FC<DateTimePickerProps> = (props) => {
     return (
       <Styled.Root className={className}>
         {picker}
-        {dateErrorMessage ? (
-          <Styled.ErrorText>{dateErrorMessage}</Styled.ErrorText>
+        {visibleErrorMessage ? (
+          <Styled.ErrorText>{visibleErrorMessage}</Styled.ErrorText>
         ) : null}
       </Styled.Root>
     );
@@ -176,7 +170,7 @@ export const DateTimePicker: React.FC<DateTimePickerProps> = (props) => {
         label={label}
         disabled={disabled}
         status={resolvedStatus}
-        extraText={dateErrorMessage}
+        extraText={visibleErrorMessage}
       >
         {picker}
       </Field>

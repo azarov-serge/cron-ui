@@ -153,3 +153,19 @@ export const isDateOutOfBounds = (
 
 export const INVALID_DATE_MESSAGE = 'Некорректная дата';
 export const DATE_OUT_OF_BOUNDS_MESSAGE = 'Дата вне допустимого диапазона';
+
+/** Текст ошибки даты или `undefined`, если ошибки нет */
+export const getDateErrorMessage = (
+  dateValue: string,
+  bounds?: { minDate?: Date; maxDate?: Date },
+): string | undefined => {
+  if (isInvalidDate(dateValue)) {
+    return INVALID_DATE_MESSAGE;
+  }
+
+  if (bounds && isDateOutOfBounds(dateValue, bounds)) {
+    return DATE_OUT_OF_BOUNDS_MESSAGE;
+  }
+
+  return undefined;
+};
