@@ -6,12 +6,14 @@ import {
   Field,
   type InputStatus,
 } from '@admiral-ds/react-ui';
-import { normalizeTimeToMinuteStep } from '@shared/components/TimePicker/utils/time';
+import { normalizeTimeToMinuteStep } from '../TimePicker/utils/time';
 import { TimePicker } from '../TimePicker';
 import { coerceEmptyToNull } from '../TimePicker/utils';
 import { inputBoxJoin } from '../TimePicker/mixins';
 import {
+  DATE_OUT_OF_BOUNDS_MESSAGE,
   INVALID_DATE_MESSAGE,
+  isDateOutOfBounds,
   isInvalidDate,
   joinDateTimeValue,
   splitDateTimeValue,
@@ -64,7 +66,14 @@ export const DateTimePicker: React.FC<DateTimePickerProps> = (props) => {
 
   const { date: dateValue, time: timeValue } = splitDateTimeValue(value);
   const dateInvalid = isInvalidDate(dateValue);
-  const resolvedStatus: InputStatus | undefined = dateInvalid
+  const dateOutOfBounds = isDateOutOfBounds(dateValue, { minDate, maxDate });
+  const dateHasError = dateInvalid || dateOutOfBounds;
+  const dateErrorMessage = dateInvalid
+    ? INVALID_DATE_MESSAGE
+    : dateOutOfBounds
+      ? DATE_OUT_OF_BOUNDS_MESSAGE
+      : undefined;
+  const resolvedStatus: InputStatus | undefined = dateHasError
     ? 'error'
     : status;
 
@@ -107,10 +116,7 @@ export const DateTimePicker: React.FC<DateTimePickerProps> = (props) => {
   };
 
   const handleTimeChange = (nextValue: string | null) => {
-    emitChange(
-      dateValue,
-      normalizeTimeToMinuteStep(nextValue, minuteStep),
-    );
+    emitChange(dateValue, normalizeTimeToMinuteStep(nextValue, minuteStep));
   };
 
   const picker = (
@@ -157,8 +163,8 @@ export const DateTimePicker: React.FC<DateTimePickerProps> = (props) => {
     return (
       <Styled.Root className={className}>
         {picker}
-        {dateInvalid ? (
-          <Styled.ErrorText>{INVALID_DATE_MESSAGE}</Styled.ErrorText>
+        {dateErrorMessage ? (
+          <Styled.ErrorText>{dateErrorMessage}</Styled.ErrorText>
         ) : null}
       </Styled.Root>
     );
@@ -170,7 +176,7 @@ export const DateTimePicker: React.FC<DateTimePickerProps> = (props) => {
         label={label}
         disabled={disabled}
         status={resolvedStatus}
-        extraText={dateInvalid ? INVALID_DATE_MESSAGE : undefined}
+        extraText={dateErrorMessage}
       >
         {picker}
       </Field>

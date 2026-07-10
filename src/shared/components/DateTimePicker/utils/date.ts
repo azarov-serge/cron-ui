@@ -8,13 +8,20 @@ export type DateTimeParts = {
   time: string | null;
 };
 
+/** Пустая маска Admiral (`__.__.____`) — без цифр; неполная с цифрами нужна для ввода с клавиатуры */
+const isEmptyDateMask = (date: string): boolean => {
+  const trimmed = date.trim();
+
+  return !trimmed || !/\d/.test(trimmed);
+};
+
 /** Склеивает `dd.MM.yyyy` и `HH:mm[:ss]` в одну строку value */
 export const joinDateTimeValue = (
   date: string,
   time: string | null | undefined,
 ): string => {
-  // Маска Admiral `__.__.____` / неполная дата — как пустая
-  const datePart = DATE_PATTERN.test(date.trim()) ? date.trim() : '';
+  // Пустая маска не храним; частичный ввод (`1_.__.____`) сохраняем
+  const datePart = isEmptyDateMask(date) ? '' : date.trim();
   const timePart = (time ?? '').trim();
 
   if (!datePart && !timePart) {
@@ -117,4 +124,32 @@ export const isInvalidDate = (dateValue: string): boolean => {
 export const isCompleteDate = (dateValue: string): boolean =>
   parseDateValue(dateValue) !== null;
 
+const toDayTime = (date: Date): number =>
+  new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+
+/** Полная существующая дата вне minDate/maxDate (сравнение по календарному дню) */
+export const isDateOutOfBounds = (
+  dateValue: string,
+  bounds: { minDate?: Date; maxDate?: Date },
+): boolean => {
+  const parsed = parseDateValue(dateValue);
+
+  if (!parsed) {
+    return false;
+  }
+
+  const day = toDayTime(parsed);
+
+  if (bounds.minDate && day < toDayTime(bounds.minDate)) {
+    return true;
+  }
+
+  if (bounds.maxDate && day > toDayTime(bounds.maxDate)) {
+    return true;
+  }
+
+  return false;
+};
+
 export const INVALID_DATE_MESSAGE = 'Некорректная дата';
+export const DATE_OUT_OF_BOUNDS_MESSAGE = 'Дата вне допустимого диапазона';

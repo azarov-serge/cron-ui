@@ -2,6 +2,7 @@ import React from 'react';
 import { Button, T } from '@admiral-ds/react-ui';
 import {
   isCompleteDate,
+  isDateOutOfBounds,
   isInvalidDate,
   splitDateTimeValue,
 } from '@shared/components/DateTimePicker/utils/date';
@@ -17,6 +18,7 @@ import {
   periodToZonedISO,
 } from './dateTimeRangeFieldUtils';
 import styled from 'styled-components';
+
 
 export interface DateTimeRangeFieldProps {
   /** Колбэк «отправки на бэк» — ISO в UTC, wall-clock интерпретирован как Europe/Moscow */
@@ -73,8 +75,11 @@ export const DateTimeRangeField: React.FC<DateTimeRangeFieldProps> = (
   const endMaxTime =
     endParts.date === nowWallClock.date ? nowWallClock.time : null;
 
+  const dateBounds = { maxDate };
   const startDateInvalid = isInvalidDate(startParts.date);
   const endDateInvalid = isInvalidDate(endParts.date);
+  const startOutOfBounds = isDateOutOfBounds(startParts.date, dateBounds);
+  const endOutOfBounds = isDateOutOfBounds(endParts.date, dateBounds);
   const startComplete = isCompleteDate(startParts.date);
   const endComplete = isCompleteDate(endParts.date);
   const rangeInvalid =
@@ -82,6 +87,8 @@ export const DateTimeRangeField: React.FC<DateTimeRangeFieldProps> = (
     endComplete &&
     !startDateInvalid &&
     !endDateInvalid &&
+    !startOutOfBounds &&
+    !endOutOfBounds &&
     isInvalidRange(value.start, value.end);
 
   const canSubmit =
@@ -90,6 +97,8 @@ export const DateTimeRangeField: React.FC<DateTimeRangeFieldProps> = (
     Boolean(startParts.time && endParts.time) &&
     !startDateInvalid &&
     !endDateInvalid &&
+    !startOutOfBounds &&
+    !endOutOfBounds &&
     !rangeInvalid;
 
   const handleSubmit = () => {
