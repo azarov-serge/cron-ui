@@ -100,4 +100,17 @@ describe('setOccurs', () => {
     expect(cron.toExpression()).toBe('0 9 * * *');
     expect(parseScheduleFromCron(cron).occurs).toBe('daily');
   });
+
+  it('интервал */N парсится как ежедневно + every, и weekly→daily закрепляется', () => {
+    let cron = Cron.fromString('*/5 * * * *');
+    expect(parseScheduleFromCron(cron).occurs).toBe('daily');
+    expect(parseScheduleFromCron(cron).dailyFrequency).toBe('every');
+
+    cron = setOccurs(cron, 'weekly');
+    expect(parseScheduleFromCron(cron).occurs).toBe('weekly');
+    expect(parseScheduleFromCron(cron).dailyFrequency).toBe('once');
+
+    cron = setOccurs(cron, 'daily');
+    expect(parseScheduleFromCron(cron).occurs).toBe('daily');
+  });
 });

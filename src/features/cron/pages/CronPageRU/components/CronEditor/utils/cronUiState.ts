@@ -37,6 +37,8 @@ export const setOccurs = (
     occurs,
     monthWeekNumbersEnabled: false,
     weekNumbers: createEmptyWeekNumbers(),
+    // «Каждые N» доступно только для ежедневного расписания
+    ...(occurs !== 'daily' ? { dailyFrequency: 'once' as const } : {}),
   };
 
   if (occurs === 'weekly') {

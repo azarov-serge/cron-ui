@@ -36,10 +36,9 @@ export const DailyFrequencySection: React.FC<CronSectionProps> = (props) => {
     useCronEditorValidation(value, options);
   const { onceAtTime, everyInterval, everyUnit } =
     getDailyFrequencySchedule(value);
-
-  if (getOccurs(value) !== 'daily') {
-    return null;
-  }
+  const isDailyOccurs = getOccurs(value) === 'daily';
+  const showEveryOption = allowEveryDaily && isDailyOccurs;
+  const showFrequencyChoice = showDailyFrequencyChoice && showEveryOption;
 
   return (
     <Styled.Section>
@@ -47,7 +46,7 @@ export const DailyFrequencySection: React.FC<CronSectionProps> = (props) => {
       <Styled.FrequencyGroup>
         {allowOnceDaily && (
           <Styled.RadioRow>
-            {showDailyFrequencyChoice ? (
+            {showFrequencyChoice ? (
               <Styled.RadioLabel>
                 <RadioButton
                   name="dailyFrequency"
@@ -67,7 +66,7 @@ export const DailyFrequencySection: React.FC<CronSectionProps> = (props) => {
             <Styled.IntervalField>
               <TimePickerField
                 value={onceAtTime}
-                disabled={showDailyFrequencyChoice && !isOnceDaily}
+                disabled={showFrequencyChoice && !isOnceDaily}
                 minuteStep={options.minuteStep}
                 onChange={(time) =>
                   onChange(setOnceAtTime(value, time ?? '', options.minuteStep))
@@ -77,10 +76,10 @@ export const DailyFrequencySection: React.FC<CronSectionProps> = (props) => {
           </Styled.RadioRow>
         )}
 
-        {allowEveryDaily && (
+        {showEveryOption && (
           <Styled.EveryFrequencyBlock>
             <Styled.EveryFrequencyRow>
-              {showDailyFrequencyChoice ? (
+              {showFrequencyChoice ? (
                 <Styled.RadioLabel>
                   <RadioButton
                     name="dailyFrequency"
@@ -122,7 +121,7 @@ export const DailyFrequencySection: React.FC<CronSectionProps> = (props) => {
                         ),
                       )
                     }
-                    disabled={showDailyFrequencyChoice && isOnceDaily}
+                    disabled={showFrequencyChoice && isOnceDaily}
                   />
                 </Styled.IntervalField>
                 <Styled.UnitSelectWrap>
@@ -138,7 +137,7 @@ export const DailyFrequencySection: React.FC<CronSectionProps> = (props) => {
                         ),
                       )
                     }
-                    disabled={showDailyFrequencyChoice && isOnceDaily}
+                    disabled={showFrequencyChoice && isOnceDaily}
                   >
                     {intervalUnitOptions.map((option) => (
                       <Option key={option.value} value={option.value}>

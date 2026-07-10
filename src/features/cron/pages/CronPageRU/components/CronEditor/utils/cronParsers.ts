@@ -42,6 +42,7 @@ export const parseScheduleFromCron = (cron: Cron): ScheduleInterface => {
   if (minute.startsWith('*/')) {
     return {
       ...defaults,
+      occurs: 'daily',
       dailyFrequency: 'every',
       everyUnit: 'minutes',
       everyInterval: clampCronInterval(
@@ -54,6 +55,7 @@ export const parseScheduleFromCron = (cron: Cron): ScheduleInterface => {
   if (hour.startsWith('*/')) {
     return {
       ...defaults,
+      occurs: 'daily',
       dailyFrequency: 'every',
       everyUnit: 'hours',
       everyInterval: clampCronInterval(
