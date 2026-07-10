@@ -12,6 +12,7 @@ import { Legend } from './Legend';
 import {
   getDailyFrequencySchedule,
   getEveryIntervalHint,
+  getOccurs,
   setDailyFrequency,
   setEveryInterval,
   setEveryUnit,
@@ -35,6 +36,10 @@ export const DailyFrequencySection: React.FC<CronSectionProps> = (props) => {
     useCronEditorValidation(value, options);
   const { onceAtTime, everyInterval, everyUnit } =
     getDailyFrequencySchedule(value);
+
+  if (getOccurs(value) !== 'daily') {
+    return null;
+  }
 
   return (
     <Styled.Section>
