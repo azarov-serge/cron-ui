@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  CheckboxField,
   NumberInputField,
   Option,
   RadioButton,
@@ -16,6 +17,7 @@ import {
   setEveryInterval,
   setEveryUnit,
   setOnceAtTime,
+  setStartTimeEnabled,
   type ScheduleInterface,
 } from '../utils';
 import { useCronEditorConfig, useCronEditorValidation } from '../hooks';
@@ -33,10 +35,44 @@ export const DailyFrequencySection: React.FC<CronSectionProps> = (props) => {
   } = useCronEditorConfig(options);
   const { everyIntervalLimits, isOnceDaily, isIntervalInvalid } =
     useCronEditorValidation(value, options);
-  const { onceAtTime, everyInterval, everyUnit } = getDailyFrequencySchedule(value);
-  const isDailyOccurs = getOccurs(value) === 'daily';
+  const { onceAtTime, everyInterval, everyUnit, startTimeEnabled } =
+    getDailyFrequencySchedule(value);
+  const occurs = getOccurs(value);
+  const isDailyOccurs = occurs === 'daily';
+  const isStartTimeOccurs = occurs === 'weekly' || occurs === 'monthly';
   const showEveryOption = allowEveryDaily && isDailyOccurs;
   const showFrequencyChoice = showDailyFrequencyChoice && showEveryOption;
+
+  if (isStartTimeOccurs) {
+    return (
+      <Styled.Section>
+        <Styled.InlineRow>
+          <T font="Body/Body 1 Short" color="Neutral/Neutral 90" as="span">
+            Время запуска
+          </T>
+          <Styled.IntervalField>
+            <TimePickerField
+              value={onceAtTime}
+              disabled={!startTimeEnabled}
+              minuteStep={options.minuteStep}
+              onChange={(time) =>
+                onChange(setOnceAtTime(value, time ?? '', options.minuteStep))
+              }
+            />
+          </Styled.IntervalField>
+          <CheckboxField
+            dimension="s"
+            checked={startTimeEnabled}
+            onChange={(event) =>
+              onChange(setStartTimeEnabled(value, event.target.checked))
+            }
+          >
+            Учитывать время
+          </CheckboxField>
+        </Styled.InlineRow>
+      </Styled.Section>
+    );
+  }
 
   return (
     <Styled.Section>

@@ -56,7 +56,7 @@ const describeCronInHindi = (cron: Cron): string => {
 
   if (schedule.occurs === 'monthly') {
     return formatMessage(t.monthlyAt, {
-      day: schedule.dayOfMonth,
+      day: schedule.daysOfMonth.join(', '),
       time,
     });
   }

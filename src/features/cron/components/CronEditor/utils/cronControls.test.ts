@@ -3,12 +3,13 @@ import { Cron } from '../models/cron';
 import { parseScheduleFromCron } from './cronParsers';
 import {
   setDailyFrequency,
-  setDayOfMonth,
+  setDaysOfMonth,
   setEveryInterval,
   setEveryUnit,
   setOccurs,
   setOnceAtTime,
   setScheduleType,
+  setStartTimeEnabled,
   toggleWeekDay,
   toggleWeekNumber,
 } from './cronUiState';
@@ -103,13 +104,54 @@ describe('клики контролов формируют правильный 
     });
   });
 
-  describe('день месяца', () => {
+  describe('дни месяца', () => {
     it('меняет день при ежемесячном расписании', () => {
       const monthly = setOccurs(Cron.fromString('0 9 * * *'), 'monthly');
-      const cron = setDayOfMonth(monthly, 15);
+      const cron = setDaysOfMonth(monthly, [15]);
 
       expect(cron.toExpression()).toBe('0 9 15 * *');
-      expect(parseScheduleFromCron(cron).dayOfMonth).toBe(15);
+      expect(parseScheduleFromCron(cron).daysOfMonth).toEqual([15]);
+    });
+
+    it('несколько дней → 0 9 1,5,10 * *', () => {
+      const monthly = setOccurs(Cron.fromString('0 9 * * *'), 'monthly');
+      const cron = setDaysOfMonth(monthly, [10, 1, 5]);
+
+      expect(cron.toExpression()).toBe('0 9 1,5,10 * *');
+      expect(parseScheduleFromCron(cron).daysOfMonth).toEqual([1, 5, 10]);
+    });
+
+    it('парсит список дней из cron', () => {
+      const schedule = parseScheduleFromCron(Cron.fromString('0 9 1,5,10 * *'));
+
+      expect(schedule.occurs).toBe('monthly');
+      expect(schedule.daysOfMonth).toEqual([1, 5, 10]);
+      expect(schedule.startTimeEnabled).toBe(true);
+    });
+  });
+
+  describe('время запуска (weekly/monthly)', () => {
+    it('выключает время → 0 0', () => {
+      const monthly = setOccurs(Cron.fromString('0 9 1 * *'), 'monthly');
+      const cron = setStartTimeEnabled(monthly, false);
+
+      expect(cron.toExpression()).toBe('0 0 1 * *');
+      expect(parseScheduleFromCron(cron).startTimeEnabled).toBe(false);
+    });
+
+    it('включает время с полуночи → 09:00', () => {
+      const cron = setStartTimeEnabled(Cron.fromString('0 0 1 * *'), true);
+
+      expect(cron.toExpression()).toBe('0 9 1 * *');
+      expect(parseScheduleFromCron(cron).startTimeEnabled).toBe(true);
+    });
+
+    it('weekly без времени → 0 0 * * 1', () => {
+      const weekly = setOccurs(Cron.fromString('0 9 * * *'), 'weekly');
+      const cron = setStartTimeEnabled(weekly, false);
+
+      expect(cron.toExpression()).toBe('0 0 * * 1');
+      expect(parseScheduleFromCron(cron).startTimeEnabled).toBe(false);
     });
   });
 

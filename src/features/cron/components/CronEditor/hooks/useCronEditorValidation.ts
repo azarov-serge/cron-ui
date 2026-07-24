@@ -40,6 +40,9 @@ export const useCronEditorValidation = (
     schedule.monthWeekNumbersEnabled &&
     !WEEK_NUMBER_KEYS.some((week) => schedule.weekNumbers[week]);
 
+  const isDaysOfMonthInvalid =
+    schedule.occurs === 'monthly' && schedule.daysOfMonth.length === 0;
+
   const validation = React.useMemo(
     () =>
       validateSchedule(
@@ -60,6 +63,7 @@ export const useCronEditorValidation = (
     isIntervalInvalid,
     isWeekDaysInvalid,
     isWeekNumbersInvalid,
+    isDaysOfMonthInvalid,
     validation,
   };
 };

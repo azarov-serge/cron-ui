@@ -45,6 +45,30 @@ export const parseTime = (time: string): { hour: number; minute: number } => {
   };
 };
 
+/** Разбирает поле day-of-month cron (`1`, `1,5,10`) → уникальные дни 1–31 */
+export const parseDaysOfMonthField = (field: string): number[] => {
+  const days = field
+    .split(',')
+    .map((part) => Number.parseInt(part.trim(), 10))
+    .filter((day) => !Number.isNaN(day) && day >= 1 && day <= 31);
+  const unique = [...new Set(days)].sort((a, b) => a - b);
+
+  return unique.length > 0 ? unique : [1];
+};
+
+/** Собирает daysOfMonth в строку cron */
+export const formatDaysOfMonthField = (days: number[]): string => {
+  const unique = [
+    ...new Set(
+      days
+        .map((day) => Math.trunc(day))
+        .filter((day) => !Number.isNaN(day) && day >= 1 && day <= 31),
+    ),
+  ].sort((a, b) => a - b);
+
+  return (unique.length > 0 ? unique : [1]).join(',');
+};
+
 export const expandDayOfWeek = (dow: string): number[] =>
   dow.split(',').flatMap((part) => {
     if (part.includes('#')) {

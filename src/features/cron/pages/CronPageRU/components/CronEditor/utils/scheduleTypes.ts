@@ -31,8 +31,11 @@ export interface ScheduleInterface {
   weekDays: WeekDays;
   weekNumbers: WeekNumbers;
   monthWeekNumbersEnabled: boolean;
-  dayOfMonth: number;
+  /** Дни месяца для ежемесячного расписания (1–31), в cron через запятую */
+  daysOfMonth: number[];
   dailyFrequency: DailyFrequencyType;
+  /** Учитывать время запуска (weekly/monthly); false → 0 0 */
+  startTimeEnabled: boolean;
   onceAtTime: string;
   everyInterval: number;
   everyUnit: IntervalUnit;

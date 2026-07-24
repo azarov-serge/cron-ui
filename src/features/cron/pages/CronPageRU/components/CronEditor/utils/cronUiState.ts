@@ -61,11 +61,11 @@ export const setScheduleType = (
   scheduleType: ScheduleInterface['scheduleType'],
 ): Cron => updateSchedule(value, { scheduleType });
 
-export const getDayOfMonth = (value: Cron): number =>
-  parseScheduleFromCron(value).dayOfMonth;
+export const getDaysOfMonth = (value: Cron): number[] =>
+  parseScheduleFromCron(value).daysOfMonth;
 
-export const setDayOfMonth = (value: Cron, dayOfMonth: number): Cron =>
-  updateSchedule(value, { dayOfMonth });
+export const setDaysOfMonth = (value: Cron, daysOfMonth: number[]): Cron =>
+  updateSchedule(value, { daysOfMonth });
 
 export const toggleWeekDay = (
   value: Cron,
@@ -124,7 +124,11 @@ export const getDailyFrequencySchedule = (
   value: Cron,
 ): Pick<
   ScheduleInterface,
-  'onceAtTime' | 'everyInterval' | 'everyUnit' | 'dailyFrequency'
+  | 'onceAtTime'
+  | 'everyInterval'
+  | 'everyUnit'
+  | 'dailyFrequency'
+  | 'startTimeEnabled'
 > => {
   const schedule = parseScheduleFromCron(value);
   return {
@@ -132,6 +136,7 @@ export const getDailyFrequencySchedule = (
     everyInterval: schedule.everyInterval,
     everyUnit: schedule.everyUnit,
     dailyFrequency: schedule.dailyFrequency,
+    startTimeEnabled: schedule.startTimeEnabled,
   };
 };
 
@@ -140,6 +145,35 @@ export const setDailyFrequency = (
   dailyFrequency: ScheduleInterface['dailyFrequency'],
 ): Cron => updateSchedule(value, { dailyFrequency });
 
+export const setStartTimeEnabled = (
+  value: Cron,
+  startTimeEnabled: boolean,
+): Cron => {
+  const schedule = parseScheduleFromCron(value);
+
+  if (!startTimeEnabled) {
+    return buildCronFromSchedule({ ...schedule, startTimeEnabled: false });
+  }
+
+  const { hour, minute } = (() => {
+    const [hourPart, minutePart] = schedule.onceAtTime.split(':');
+    return {
+      hour: Number.parseInt(hourPart || '0', 10),
+      minute: Number.parseInt(minutePart || '0', 10),
+    };
+  })();
+
+  // Иначе round-trip 00:00 снова выключит чекбокс
+  const onceAtTime =
+    hour === 0 && minute === 0 ? '09:00' : schedule.onceAtTime || '09:00';
+
+  return buildCronFromSchedule({
+    ...schedule,
+    startTimeEnabled: true,
+    onceAtTime,
+  });
+};
+
 export const setOnceAtTime = (
   value: Cron,
   onceAtTime: string,
@@ -147,6 +181,7 @@ export const setOnceAtTime = (
 ): Cron =>
   updateSchedule(value, {
     onceAtTime: normalizeTimeToMinuteStep(onceAtTime, minuteStep) ?? '',
+    startTimeEnabled: true,
   });
 
 export const setEveryInterval = (

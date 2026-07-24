@@ -11,7 +11,9 @@ import {
   clampCronInterval,
   cronDaysToWeekDays,
   cronPartsToWeekNumbers,
+  formatDaysOfMonthField,
   parseDayOfWeekField,
+  parseDaysOfMonthField,
   parseTime,
 } from './scheduleFieldUtils';
 
@@ -19,6 +21,24 @@ const parseCronTime = (cron: Cron): string => {
   const parsedHour = Number.parseInt(cron.hour, 10);
   const parsedMinute = Number.parseInt(cron.minute, 10);
   return `${String(parsedHour).padStart(2, '0')}:${String(parsedMinute).padStart(2, '0')}`;
+};
+
+const isMidnightCron = (cron: Cron): boolean =>
+  Number.parseInt(cron.hour, 10) === 0 &&
+  Number.parseInt(cron.minute, 10) === 0;
+
+const resolveOnceTimeFields = (
+  schedule: ScheduleInterface,
+): { minute: string; hour: string } => {
+  if (
+    (schedule.occurs === 'weekly' || schedule.occurs === 'monthly') &&
+    !schedule.startTimeEnabled
+  ) {
+    return { minute: '0', hour: '0' };
+  }
+
+  const { hour, minute } = parseTime(schedule.onceAtTime);
+  return { minute: String(minute), hour: String(hour) };
 };
 
 export const parseScheduleFromCron = (cron: Cron): ScheduleInterface => {
@@ -30,8 +50,9 @@ export const parseScheduleFromCron = (cron: Cron): ScheduleInterface => {
     weekDays: createDefaultWeekDays(),
     weekNumbers: createEmptyWeekNumbers(),
     monthWeekNumbersEnabled: false,
-    dayOfMonth: 1,
+    daysOfMonth: [1],
     dailyFrequency: 'once',
+    startTimeEnabled: true,
     onceAtTime: '',
     everyInterval: 1,
     everyUnit: 'hours',
@@ -85,6 +106,7 @@ export const parseScheduleFromCron = (cron: Cron): ScheduleInterface => {
       occurs: 'weekly',
       dailyFrequency: 'once',
       onceAtTime: time,
+      startTimeEnabled: !isMidnightCron(cron),
       weekDays: cronDaysToWeekDays([...new Set(dayParts.map((part) => part.day))]),
       weekNumbers: hasMonthWeeks
         ? cronPartsToWeekNumbers(dayParts, WEEK_NUMBER_KEYS)
@@ -99,7 +121,8 @@ export const parseScheduleFromCron = (cron: Cron): ScheduleInterface => {
       occurs: 'monthly',
       dailyFrequency: 'once',
       onceAtTime: time,
-      dayOfMonth: Number.parseInt(dayOfMonth, 10) || 1,
+      startTimeEnabled: !isMidnightCron(cron),
+      daysOfMonth: parseDaysOfMonthField(dayOfMonth),
     };
   }
 
@@ -147,8 +170,7 @@ export const buildCronFromSchedule = (schedule: ScheduleInterface): Cron => {
     });
   }
 
-  const { hour, minute } = parseTime(schedule.onceAtTime);
-  const timeFields = { minute: String(minute), hour: String(hour) };
+  const timeFields = resolveOnceTimeFields(schedule);
 
   switch (schedule.occurs) {
     case 'daily':
@@ -173,7 +195,7 @@ export const buildCronFromSchedule = (schedule: ScheduleInterface): Cron => {
     case 'monthly':
       return Cron.createEmpty().clone({
         ...timeFields,
-        dayOfMonth: String(Math.max(1, Math.min(31, schedule.dayOfMonth))),
+        dayOfMonth: formatDaysOfMonthField(schedule.daysOfMonth),
         dayOfWeek: null,
         month: null,
       });

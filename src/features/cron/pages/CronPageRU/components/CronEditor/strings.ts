@@ -6,6 +6,7 @@ export const EDITOR_STRINGS = {
   intervalHours: 'от {min} до {max} часов',
   pickWeekDay: 'Выберите хотя бы один день недели',
   pickWeekNumber: 'Выберите хотя бы одну неделю месяца',
+  pickMonthDay: 'Выберите хотя бы один день месяца',
 } as const;
 
 export type EditorStrings = typeof EDITOR_STRINGS;

@@ -92,6 +92,13 @@ export const validateSchedule = (
     }
   }
 
+  if (schedule.occurs === 'monthly' && schedule.daysOfMonth.length === 0) {
+    return {
+      valid: false,
+      message: editor.pickMonthDay,
+    };
+  }
+
   if (schedule.dailyFrequency === 'every') {
     const { min, max } = getEveryIntervalLimits(schedule.everyUnit, minuteStep);
 

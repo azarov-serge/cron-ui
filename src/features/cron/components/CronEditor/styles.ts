@@ -172,6 +172,14 @@ const responsiveField = (desktopWidth: string) => styled.div`
 
 export const NarrowField = responsiveField('120px');
 export const IntervalField = responsiveField('180px');
+export const DaysSelectWrap = styled(responsiveField('280px'))`
+  /* Select multiple: чтобы BorderedDiv не обрезался при переносе chips */
+  overflow: visible;
+
+  & > * {
+    overflow: visible;
+  }
+`;
 export const TimeFieldWrap = responsiveField('140px');
 export const DateFieldWrap = responsiveField('180px');
 export const UnitSelectWrap = responsiveField('180px');

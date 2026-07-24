@@ -8,12 +8,13 @@ const editor = messages.ru.editor;
 describe('validateSchedule weekly requiredness', () => {
   const weeklySchedule = {
     scheduleType: 'recurring' as const,
-    occurs: 'weekly',
+    occurs: 'weekly' as const,
     weekDays: createEmptyWeekDays(),
     weekNumbers: { 1: false, 2: false, 3: false, 4: false, 5: false },
     monthWeekNumbersEnabled: false,
-    dayOfMonth: 1,
+    daysOfMonth: [1],
     dailyFrequency: 'once' as const,
+    startTimeEnabled: true,
     onceAtTime: '',
     oneTimeDate: '',
     oneTimeTime: '',
